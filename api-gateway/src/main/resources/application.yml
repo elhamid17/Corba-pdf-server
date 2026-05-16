@@ -1,0 +1,38 @@
+server:
+  port: 8080
+  servlet:
+    context-path: /
+
+spring:
+  application:
+    name: corba-pdf-gateway
+  servlet:
+    multipart:
+      enabled: true
+      max-file-size: 50MB       # taille max d'un PDF uploadé
+      max-request-size: 150MB   # pour la fusion de plusieurs PDFs
+
+# ── Configuration CORBA ──
+corba:
+  host: ${CORBA_HOST:localhost}  # variable d'env Docker, localhost en dev
+  port: ${CORBA_PORT:2809}
+  service-name: PDFService
+  timeout: 30000                 # timeout connexion en ms
+
+# ── Actuator (health check pour Docker) ──
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health, info
+  endpoint:
+    health:
+      show-details: always
+
+# ── Logging ──
+logging:
+  level:
+    sn.ussein: INFO
+    org.springframework: WARN
+  pattern:
+    console: "%d{HH:mm:ss} [%thread] %-5level %logger{36} — %msg%n"

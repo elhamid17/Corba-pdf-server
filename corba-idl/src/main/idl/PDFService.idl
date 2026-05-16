@@ -1,0 +1,112 @@
+// PDFService.idl — Interface principale du serveur CORBA PDF
+// Projet : CORBA PDF Server — USSEIN L2 AgroTIC
+
+#ifndef PDFSERVICE_IDL
+#define PDFSERVICE_IDL
+
+#include "Types.idl"
+
+module sn {
+  module ussein {
+    module pdf {
+
+      interface PDFService {
+
+        // ═══ 1. Fusion ═══
+        // Fusionne plusieurs PDFs en un seul dans l'ordre de la liste
+        PDFResult merge(in PDFList pdfs)
+          raises (PDFException);
+
+        // ═══ 2. Découpage ═══
+        // Découpe un PDF en plusieurs à partir d'intervalles de pages
+        // ex: ranges = [1,3,4,6] → PDF1(pages 1-3), PDF2(pages 4-6)
+        PDFList split(in PDFData pdf, in PageList ranges)
+          raises (PDFException, InvalidPageException);
+
+        // ═══ 3. Extraction de pages ═══
+        // Extrait les pages spécifiées dans un nouveau PDF
+        PDFResult extractPages(in PDFData pdf, in PageList pages)
+          raises (PDFException, InvalidPageException);
+
+        // ═══ 4. Suppression de pages ═══
+        // Supprime les pages spécifiées et retourne le PDF restant
+        PDFResult deletePages(in PDFData pdf, in PageList pages)
+          raises (PDFException, InvalidPageException);
+
+        // ═══ 5. Compression ═══
+        // Compresse un PDF selon les options fournies
+        PDFResult compress(in PDFData pdf, in CompressOptions options)
+          raises (PDFException);
+
+        // ═══ 6. Rotation ═══
+        // Pivote les pages spécifiées (angle : 90, 180, 270)
+        PDFResult rotate(in PDFData pdf, in PageList pages, in long angle)
+          raises (PDFException, InvalidPageException);
+
+        // ═══ 7. Filigrane ═══
+        // Ajoute un filigrane texte sur toutes les pages
+        PDFResult addWatermark(in PDFData pdf, in WatermarkOptions options)
+          raises (PDFException);
+
+        // ═══ 8. Mot de passe ═══
+        // Protège un PDF avec un mot de passe propriétaire et utilisateur
+        PDFResult addPassword(
+          in PDFData pdf,
+          in string  userPassword,
+          in string  ownerPassword
+        ) raises (PDFException, PasswordException);
+
+        // ═══ 9. Conversion PDF → Images ═══
+        // Convertit chaque page en image, retourne une liste de PDFData (images)
+        PDFList convertToImages(in PDFData pdf, in ConvertOptions options)
+          raises (PDFException);
+
+        // ═══ 10. Extraction de texte ═══
+        // Extrait le texte brut de toutes les pages
+        string extractText(in PDFData pdf)
+          raises (PDFException);
+
+        // ═══ 11. OCR ═══
+        // Reconnaissance optique sur PDF scanné — retourne le texte reconnu
+        string performOCR(in PDFData pdf, in string language)
+          raises (PDFException);
+
+        // ═══ 12. Signature numérique ═══
+        // Signe le PDF avec un certificat PKCS12
+        PDFResult sign(
+          in PDFData pdf,
+          in PDFData certificate,   // fichier .p12 en octets
+          in string  password,
+          in string  reason,
+          in string  location
+        ) raises (PDFException);
+
+        // ═══ 13. Métadonnées ═══
+        // Lit les métadonnées d'un PDF
+        PDFMetadata getMetadata(in PDFData pdf)
+          raises (PDFException);
+
+        // Met à jour les métadonnées d'un PDF
+        PDFResult setMetadata(in PDFData pdf, in PDFMetadata metadata)
+          raises (PDFException);
+
+        // ═══ 14. Création ═══
+        // Crée un nouveau PDF à partir d'un texte brut
+        PDFResult createFromText(in string text, in string title)
+          raises (PDFException);
+
+        // ═══ Utilitaire ═══
+        // Retourne le nombre de pages d'un PDF
+        long getPageCount(in PDFData pdf)
+          raises (PDFException);
+
+        // Vérifie que le serveur est opérationnel
+        string ping();
+
+      }; // PDFService
+
+    }; // pdf
+  }; // ussein
+}; // sn
+
+#endif

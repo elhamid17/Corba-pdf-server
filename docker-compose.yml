@@ -1,0 +1,114 @@
+# ═══════════════════════════════════════════════════════
+# Docker Compose — CORBA PDF Server
+# USSEIN L2 AgroTIC
+# ═══════════════════════════════════════════════════════
+
+version: '3.9'
+
+services:
+
+  # ── 1. Serveur CORBA + PDFBox ──────────────────────
+  corba-server:
+    build:
+      context: .
+      dockerfile: corba-server/Dockerfile
+    container_name: corba-server
+    restart: unless-stopped
+    expose:
+      - "2809"          # IIOP interne — NON exposé publiquement
+    volumes:
+      - pdf-storage:/volumes/pdf-storage
+      - tessdata:/volumes/tessdata
+    networks:
+      - backend
+    healthcheck:
+      test: ["CMD", "sh", "-c",
+             "echo > /dev/tcp/localhost/2809 && echo OK || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 20s
+    environment:
+      - TZ=Africa/Dakar
+
+  # ── 2. API Gateway Spring Boot ─────────────────────
+  api-gateway:
+    build:
+      context: .
+      dockerfile: api-gateway/Dockerfile
+    container_name: api-gateway
+    restart: unless-stopped
+    expose:
+      - "8080"          # Interne — accessible via Nginx uniquement
+    depends_on:
+      corba-server:
+        condition: service_healthy
+    networks:
+      - backend
+      - frontend
+    environment:
+      - CORBA_HOST=corba-server
+      - CORBA_PORT=2809
+      - TZ=Africa/Dakar
+    healthcheck:
+      test: ["CMD", "wget", "-qO-",
+             "http://localhost:8080/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+
+  # ── 3. Frontend React ──────────────────────────────
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: frontend
+    restart: unless-stopped
+    expose:
+      - "80"
+    networks:
+      - frontend
+    environment:
+      - TZ=Africa/Dakar
+
+  # ── 4. Nginx — point d'entrée public ───────────────
+  nginx:
+    image: nginx:1.25-alpine
+    container_name: nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"         # HTTP public
+      - "443:443"       # HTTPS (certificat à configurer)
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - api-gateway
+      - frontend
+    networks:
+      - frontend
+    environment:
+      - TZ=Africa/Dakar
+
+# ── Volumes persistants ────────────────────────────────
+volumes:
+  pdf-storage:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ./volumes/pdf-storage
+  tessdata:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ./volumes/tessdata
+
+# ── Réseaux isolés ─────────────────────────────────────
+networks:
+  backend:
+    driver: bridge
+    internal: true    # CORBA jamais exposé directement internet
+  frontend:
+    driver: bridge
