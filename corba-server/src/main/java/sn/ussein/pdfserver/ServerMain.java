@@ -1,6 +1,5 @@
 package sn.ussein.pdfserver;
 
-import org.jacorb.naming.NameServer;
 import org.omg.CORBA.ORB;
 import org.omg.CosNaming.NameComponent;
 import org.omg.CosNaming.NamingContextExt;
@@ -11,6 +10,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import sn.ussein.pdfserver.impl.PDFServiceImpl;
 
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Properties;
 
 /**
@@ -27,6 +29,7 @@ public class ServerMain {
 
     private static final Logger log = LoggerFactory.getLogger(ServerMain.class);
     private static final String SERVICE_NAME = "PDFService";
+    private static final String IOR_FILE = "/volumes/pdf-storage/PDFService.ior";
 
     public static void main(String[] args) {
         log.info("═══════════════════════════════════════");
@@ -59,14 +62,22 @@ public class ServerMain {
             org.omg.CORBA.Object ref = rootPOA.id_to_reference(oid);
             log.info("Objet PDFService activé dans le POA");
 
-            // ── 6. Enregistrer dans le Naming Service ──
-            org.omg.CORBA.Object nsObj =
-                orb.resolve_initial_references("NameService");
-            NamingContextExt nc = NamingContextExtHelper.narrow(nsObj);
+            // Publier une référence IOR partagée pour les clients Docker
+            String ior = orb.object_to_string(ref);
+            Files.writeString(Path.of(IOR_FILE), ior, StandardCharsets.UTF_8);
+            log.info("IOR du service écrit dans {}", IOR_FILE);
 
-            NameComponent[] name = nc.to_name(SERVICE_NAME);
-            nc.rebind(name, ref);
-            log.info("PDFService enregistré dans le Naming Service sous '{}'", SERVICE_NAME);
+            // ── 6. Enregistrer dans le Naming Service (si disponible) ──
+            try {
+                org.omg.CORBA.Object nsObj =
+                    orb.resolve_initial_references("NameService");
+                NamingContextExt nc = NamingContextExtHelper.narrow(nsObj);
+                NameComponent[] name = nc.to_name(SERVICE_NAME);
+                nc.rebind(name, ref);
+                log.info("PDFService enregistré dans le Naming Service sous '{}'", SERVICE_NAME);
+            } catch (Exception e) {
+                log.warn("NameService indisponible au démarrage: le service reste actif sans enregistrement de nom", e);
+            }
 
             // ── 7. Prêt ──
             log.info("Serveur CORBA PDF prêt — en attente des clients...");

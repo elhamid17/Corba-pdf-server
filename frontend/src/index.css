@@ -1,7 +1,107 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@600;700;800&family=JetBrains+Mono:wght@400;500&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-body {
-  @apply bg-gray-50 text-gray-900;
+@layer base {
+  html {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+  }
+  body {
+    @apply bg-ink-50 text-ink-900 font-sans antialiased;
+    font-feature-settings: 'cv11', 'ss01', 'ss03';
+  }
+  h1, h2, h3, h4 { @apply font-display tracking-tight; }
+  /* Scrollbar fin et discret */
+  ::-webkit-scrollbar          { width: 10px; height: 10px; }
+  ::-webkit-scrollbar-track    { background: transparent; }
+  ::-webkit-scrollbar-thumb    { @apply bg-ink-200 rounded-full; }
+  ::-webkit-scrollbar-thumb:hover { @apply bg-ink-300; }
+  /* Focus ring uniforme */
+  :focus-visible {
+    @apply outline-none ring-2 ring-brand-500/40 ring-offset-2 ring-offset-white rounded-md;
+  }
+}
+
+@layer components {
+  /* ─── Boutons ─── */
+  .btn {
+    @apply inline-flex items-center justify-center gap-2 rounded-xl px-5 py-2.5
+           text-sm font-semibold transition-all duration-200
+           disabled:opacity-50 disabled:cursor-not-allowed select-none;
+  }
+  .btn-primary {
+    @apply btn bg-brand-600 text-white shadow-sm
+           hover:bg-brand-700 hover:shadow-glow
+           active:translate-y-px;
+  }
+  .btn-secondary {
+    @apply btn bg-white text-ink-700 border border-ink-200
+           hover:bg-ink-50 hover:border-ink-300;
+  }
+  .btn-ghost {
+    @apply btn text-ink-600 hover:bg-ink-100;
+  }
+
+  /* ─── Champs de formulaire ─── */
+  .field {
+    @apply w-full rounded-xl border border-ink-200 bg-white px-4 py-2.5 text-sm
+           text-ink-900 placeholder:text-ink-400
+           transition-all duration-150
+           hover:border-ink-300
+           focus:border-brand-500 focus:ring-4 focus:ring-brand-500/15 focus:outline-none;
+  }
+  .field-label {
+    @apply block mb-1.5 text-xs font-semibold uppercase tracking-wider text-ink-500;
+  }
+
+  /* ─── Carte de surface ─── */
+  .card {
+    @apply rounded-2xl bg-white border border-ink-200/70 shadow-card;
+  }
+  .card-hover {
+    @apply transition-all duration-200 hover:-translate-y-0.5 hover:shadow-cardHover hover:border-brand-200;
+  }
+
+  /* ─── Badges ─── */
+  .badge {
+    @apply inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5
+           text-xs font-medium ring-1 ring-inset;
+  }
+  .badge-success { @apply badge bg-emerald-50 text-emerald-700 ring-emerald-200; }
+  .badge-error   { @apply badge bg-rose-50    text-rose-700    ring-rose-200;   }
+  .badge-warn    { @apply badge bg-amber-50   text-amber-700   ring-amber-200;  }
+  .badge-info    { @apply badge bg-brand-50   text-brand-700   ring-brand-200;  }
+
+  /* ─── Alerts ─── */
+  .alert {
+    @apply rounded-xl border px-4 py-3 text-sm font-medium animate-fade-in;
+  }
+  .alert-success { @apply alert bg-emerald-50/80 border-emerald-200 text-emerald-800; }
+  .alert-error   { @apply alert bg-rose-50/80    border-rose-200    text-rose-800;    }
+  .alert-info    { @apply alert bg-brand-50/80   border-brand-200   text-brand-800;   }
+
+  /* ─── Loader shimmer ─── */
+  .shimmer {
+    background: linear-gradient(90deg, rgba(99,102,241,0) 0%, rgba(99,102,241,.10) 50%, rgba(99,102,241,0) 100%);
+    background-size: 200% 100%;
+    @apply animate-shimmer;
+  }
+
+  /* Section header */
+  .eyebrow {
+    @apply inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.18em] text-brand-600;
+  }
+}
+
+@layer utilities {
+  /* Masque la scrollbar (utile pour les nav horizontales sur mobile) */
+  .scrollbar-hide              { -ms-overflow-style: none; scrollbar-width: none; }
+  .scrollbar-hide::-webkit-scrollbar { display: none; }
+
+  /* Safe area iOS */
+  .safe-bottom { padding-bottom: env(safe-area-inset-bottom); }
 }

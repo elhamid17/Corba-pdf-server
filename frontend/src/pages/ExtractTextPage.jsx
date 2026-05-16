@@ -1,43 +1,67 @@
 import { useState } from 'react'
+import { FileText, Copy, Check } from 'lucide-react'
 import DropZone from '../components/DropZone'
-import { FileText, Loader2 } from 'lucide-react'
+import ToolPage from '../components/ToolPage'
+import SubmitButton from '../components/SubmitButton'
+import { useToast } from '../components/Toast'
+import { extractText } from '../api/pdfApi'
 
 export default function ExtractTextPage() {
-  const [file,    setFile]    = useState(null)
+  const [files, setFiles] = useState([])
+  const [text,  setText]  = useState('')
   const [loading, setLoading] = useState(false)
-  const [msg,     setMsg]     = useState(null)
+  const [copied, setCopied] = useState(false)
+  const toast = useToast()
 
   async function handleSubmit() {
-    if (!file) { setMsg({ type: 'error', text: 'Sélectionnez un PDF' }); return }
-    setLoading(true); setMsg(null)
+    if (!files[0]) return toast.error('Sélectionnez un PDF.')
+    setLoading(true)
+    setText('')
     try {
-      setMsg({ type: 'success', text: 'Opération réussie !' })
-    } catch(e) {
-      setMsg({ type: 'error', text: e.message })
-    } finally { setLoading(false) }
+      const res = await extractText(files[0])
+      setText(res.text || '')
+      toast.success('Texte extrait.')
+    } catch (e) {
+      toast.error(e.message)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  async function copy() {
+    await navigator.clipboard.writeText(text)
+    setCopied(true)
+    setTimeout(() => setCopied(false), 1500)
   }
 
   return (
-    <div className="max-w-2xl mx-auto px-4 py-10">
-      <div className="flex items-center gap-3 mb-8">
-        <FileText className="text-primary-600" size={28} />
-        <h1 className="text-2xl font-bold text-gray-900">ExtractTextPage</h1>
+    <ToolPage
+      icon={FileText}
+      title="Extraction de texte"
+      subtitle="Récupérez le contenu textuel brut de votre PDF (sans OCR)."
+    >
+      <DropZone onFiles={setFiles} label="Déposez votre PDF" />
+      <div className="mt-6">
+        <SubmitButton loading={loading} onClick={handleSubmit} disabled={!files[0]}>
+          Extraire le texte
+        </SubmitButton>
       </div>
-      <DropZone onFiles={f => setFile(f[0])} label="Déposez votre PDF ici" />
-      <button onClick={handleSubmit} disabled={loading}
-        className="mt-6 w-full bg-primary-600 hover:bg-primary-700 disabled:opacity-50
-                   text-white font-semibold py-3 rounded-xl transition-colors
-                   flex items-center justify-center gap-2">
-        {loading ? <><Loader2 className="animate-spin" size={18}/> Traitement...</> : 'Lancer'}
-      </button>
-      {msg && (
-        <div className={`mt-4 p-4 rounded-xl text-sm font-medium ${
-          msg.type === 'success'
-            ? 'bg-green-50 text-green-700 border border-green-200'
-            : 'bg-red-50 text-red-700 border border-red-200'}`}>
-          {msg.text}
+
+      {text && (
+        <div className="mt-6">
+          <div className="flex items-center justify-between mb-2">
+            <p className="text-xs font-semibold uppercase tracking-wider text-ink-500">Résultat — {text.length} caractères</p>
+            <button onClick={copy} className="btn-ghost py-1 px-3 text-xs">
+              {copied ? <><Check size={14}/> Copié</> : <><Copy size={14}/> Copier</>}
+            </button>
+          </div>
+          <textarea
+            readOnly
+            value={text}
+            className="field font-mono text-sm min-h-72 whitespace-pre-wrap"
+          />
         </div>
       )}
-    </div>
+    </ToolPage>
   )
 }

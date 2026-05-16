@@ -82,7 +82,7 @@ public class SplitHandler {
                 return results;
             }
 
-        } catch (PDFException | InvalidPageException e) {
+        } catch (InvalidPageException e) {
             throw e;
         } catch (Exception e) {
             log.error("Erreur lors du découpage PDF", e);

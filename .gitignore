@@ -3,6 +3,8 @@ target/
 *.class
 *.jar
 *.war
+.m2/
+.mvn/
 
 # IDL generated sources
 corba-idl/src/main/java/generated/
@@ -23,6 +25,10 @@ volumes/pdf-storage/*
 volumes/tessdata/*
 !volumes/pdf-storage/.gitkeep
 !volumes/tessdata/.gitkeep
+
+# Claude / runtime locks
+.claude/
+*.lock
 
 # OS
 .DS_Store

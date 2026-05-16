@@ -23,13 +23,18 @@
         </dependency>
         <dependency>
             <groupId>org.jacorb</groupId>
+            <artifactId>jacorb-idl-compiler</artifactId>
+            <version>${jacorb.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.jacorb</groupId>
             <artifactId>jacorb-omgapi</artifactId>
         </dependency>
     </dependencies>
 
     <build>
+        <sourceDirectory>${project.build.directory}/generated-sources/idl</sourceDirectory>
         <plugins>
-            <!-- Compile les fichiers .idl en classes Java via idlj -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-antrun-plugin</artifactId>
@@ -42,43 +47,31 @@
                         <configuration>
                             <target>
                                 <mkdir dir="${project.build.directory}/generated-sources/idl"/>
-                                <exec executable="idlj" failonerror="true">
-                                    <arg value="-fall"/>
-                                    <arg value="-td"/>
+
+                                <!-- Compiler avec le IDL compiler de JacORB via java -jar -->
+                                <java classname="org.jacorb.idl.parser"
+                                      fork="true"
+                                      failonerror="true"
+                                      classpathref="maven.compile.classpath">
+                                    <arg value="-d"/>
                                     <arg value="${project.build.directory}/generated-sources/idl"/>
                                     <arg value="${project.basedir}/src/main/idl/Types.idl"/>
-                                </exec>
-                                <exec executable="idlj" failonerror="true">
-                                    <arg value="-fall"/>
-                                    <arg value="-td"/>
+                                </java>
+
+                                <java classname="org.jacorb.idl.parser"
+                                      fork="true"
+                                      failonerror="true"
+                                      classpathref="maven.compile.classpath">
+                                    <arg value="-d"/>
                                     <arg value="${project.build.directory}/generated-sources/idl"/>
                                     <arg value="${project.basedir}/src/main/idl/PDFService.idl"/>
-                                </exec>
+                                </java>
                             </target>
                         </configuration>
                     </execution>
                 </executions>
             </plugin>
-            <!-- Ajoute les sources générées au classpath -->
-            <plugin>
-                <groupId>org.codehaus.mojo</groupId>
-                <artifactId>build-helper-maven-plugin</artifactId>
-                <version>3.5.0</version>
-                <executions>
-                    <execution>
-                        <id>add-source</id>
-                        <phase>generate-sources</phase>
-                        <goals><goal>add-source</goal></goals>
-                        <configuration>
-                            <sources>
-                                <source>
-                                    ${project.build.directory}/generated-sources/idl
-                                </source>
-                            </sources>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
+
         </plugins>
     </build>
 

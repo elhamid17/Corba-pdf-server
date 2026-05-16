@@ -83,7 +83,7 @@ public class PasswordHandler {
                 return res;
             }
 
-        } catch (PDFException | PasswordException e) {
+        } catch (PasswordException e) {
             throw e;
         } catch (Exception e) {
             log.error("Erreur lors de la protection du PDF", e);

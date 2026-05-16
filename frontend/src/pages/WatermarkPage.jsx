@@ -1,43 +1,83 @@
 import { useState } from 'react'
+import { Droplets } from 'lucide-react'
 import DropZone from '../components/DropZone'
-import { FileText, Loader2 } from 'lucide-react'
+import ToolPage from '../components/ToolPage'
+import SubmitButton from '../components/SubmitButton'
+import { useToast } from '../components/Toast'
+import { addWatermark } from '../api/pdfApi'
 
 export default function WatermarkPage() {
-  const [file,    setFile]    = useState(null)
+  const [files, setFiles] = useState([])
+  const [text, setText] = useState('CONFIDENTIEL')
+  const [opacity, setOpacity] = useState(0.3)
+  const [fontSize, setFontSize] = useState(48)
+  const [diagonal, setDiagonal] = useState(true)
   const [loading, setLoading] = useState(false)
-  const [msg,     setMsg]     = useState(null)
+  const toast = useToast()
 
   async function handleSubmit() {
-    if (!file) { setMsg({ type: 'error', text: 'Sélectionnez un PDF' }); return }
-    setLoading(true); setMsg(null)
+    if (!files[0]) return toast.error('Sélectionnez un PDF.')
+    if (!text.trim()) return toast.error('Saisissez le texte du filigrane.')
+    setLoading(true)
     try {
-      setMsg({ type: 'success', text: 'Opération réussie !' })
-    } catch(e) {
-      setMsg({ type: 'error', text: e.message })
-    } finally { setLoading(false) }
+      await addWatermark(files[0], { text, opacity, fontSize, diagonal })
+      toast.success('Filigrane appliqué.')
+    } catch (e) {
+      toast.error(e.message)
+    } finally {
+      setLoading(false)
+    }
   }
 
   return (
-    <div className="max-w-2xl mx-auto px-4 py-10">
-      <div className="flex items-center gap-3 mb-8">
-        <FileText className="text-primary-600" size={28} />
-        <h1 className="text-2xl font-bold text-gray-900">WatermarkPage</h1>
-      </div>
-      <DropZone onFiles={f => setFile(f[0])} label="Déposez votre PDF ici" />
-      <button onClick={handleSubmit} disabled={loading}
-        className="mt-6 w-full bg-primary-600 hover:bg-primary-700 disabled:opacity-50
-                   text-white font-semibold py-3 rounded-xl transition-colors
-                   flex items-center justify-center gap-2">
-        {loading ? <><Loader2 className="animate-spin" size={18}/> Traitement...</> : 'Lancer'}
-      </button>
-      {msg && (
-        <div className={`mt-4 p-4 rounded-xl text-sm font-medium ${
-          msg.type === 'success'
-            ? 'bg-green-50 text-green-700 border border-green-200'
-            : 'bg-red-50 text-red-700 border border-red-200'}`}>
-          {msg.text}
+    <ToolPage
+      icon={Droplets}
+      title="Filigrane"
+      subtitle="Apposez un filigrane texte sur chaque page du document."
+    >
+      <DropZone onFiles={setFiles} label="Déposez votre PDF" />
+
+      <div className="mt-6 space-y-5">
+        <div>
+          <label className="field-label">Texte du filigrane</label>
+          <input value={text} onChange={e => setText(e.target.value)} className="field" placeholder="Ex. CONFIDENTIEL" />
         </div>
-      )}
-    </div>
+
+        <div className="grid sm:grid-cols-2 gap-5">
+          <div>
+            <label className="field-label">Opacité — {(opacity * 100).toFixed(0)} %</label>
+            <input
+              type="range" min={0.05} max={1} step={0.05}
+              value={opacity}
+              onChange={e => setOpacity(Number(e.target.value))}
+              className="w-full accent-brand-600"
+            />
+          </div>
+          <div>
+            <label className="field-label">Taille de police</label>
+            <input
+              type="number" min={8} max={200}
+              value={fontSize}
+              onChange={e => setFontSize(Number(e.target.value))}
+              className="field"
+            />
+          </div>
+        </div>
+
+        <label className="flex items-start gap-3 cursor-pointer">
+          <input type="checkbox" checked={diagonal} onChange={e => setDiagonal(e.target.checked)} className="h-4 w-4 mt-0.5 rounded text-brand-600 focus:ring-brand-500/30" />
+          <div>
+            <p className="text-sm font-medium text-ink-800">Filigrane en diagonale</p>
+            <p className="text-xs text-ink-500">Décochez pour un filigrane horizontal classique.</p>
+          </div>
+        </label>
+      </div>
+
+      <div className="mt-6">
+        <SubmitButton loading={loading} onClick={handleSubmit} disabled={!files[0]}>
+          Apposer le filigrane
+        </SubmitButton>
+      </div>
+    </ToolPage>
   )
 }

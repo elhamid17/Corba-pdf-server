@@ -72,8 +72,6 @@ public class OcrHandler {
                 return fullText.toString();
             }
 
-        } catch (PDFException e) {
-            throw e;
         } catch (TesseractException e) {
             log.error("Erreur Tesseract OCR", e);
             throw new PDFException("OCR_ERROR",

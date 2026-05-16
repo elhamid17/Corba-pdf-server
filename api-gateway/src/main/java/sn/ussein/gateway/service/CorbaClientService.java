@@ -12,6 +12,8 @@ import org.springframework.stereotype.Service;
 import sn.ussein.pdf.PDFServiceHelper;
 import sn.ussein.pdf.PDFService;
 
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Properties;
 
 /**
@@ -37,6 +39,8 @@ public class CorbaClientService {
 
     @Value("${corba.service-name:PDFService}")
     private String serviceName;
+    @Value("${corba.ior-file:/volumes/pdf-storage/PDFService.ior}")
+    private String iorFile;
 
     private ORB orb;
     private PDFService pdfService;
@@ -55,11 +59,24 @@ public class CorbaClientService {
 
             orb = ORB.init(new String[]{}, props);
 
-            org.omg.CORBA.Object nsObj =
-                orb.resolve_initial_references("NameService");
-            NamingContextExt nc = NamingContextExtHelper.narrow(nsObj);
+            org.omg.CORBA.Object obj = null;
+            Path iorPath = Path.of(iorFile);
+            if (Files.exists(iorPath)) {
+                String ior = Files.readString(iorPath).trim();
+                if (!ior.isEmpty()) {
+                    obj = orb.string_to_object(ior);
+                    log.info("Référence CORBA chargée via IOR file {}", iorFile);
+                }
+            }
 
-            org.omg.CORBA.Object obj = nc.resolve_str(serviceName);
+            if (obj == null) {
+                org.omg.CORBA.Object nsObj =
+                    orb.resolve_initial_references("NameService");
+                NamingContextExt nc = NamingContextExtHelper.narrow(nsObj);
+                obj = nc.resolve_str(serviceName);
+                log.info("Référence CORBA résolue via NameService");
+            }
+
             pdfService = PDFServiceHelper.narrow(obj);
 
             // Vérifier la connexion

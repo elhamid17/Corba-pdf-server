@@ -65,8 +65,6 @@ public class ConvertHandler {
                 return images;
             }
 
-        } catch (PDFException e) {
-            throw e;
         } catch (Exception e) {
             log.error("Erreur lors de la conversion PDF → images", e);
             throw new PDFException("CONVERT_ERROR", e.getMessage());

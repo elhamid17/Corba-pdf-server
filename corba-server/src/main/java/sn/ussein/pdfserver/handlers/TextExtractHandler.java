@@ -39,9 +39,6 @@ public class TextExtractHandler {
 
                 return text;
             }
-
-        } catch (PDFException e) {
-            throw e;
         } catch (Exception e) {
             log.error("Erreur lors de l'extraction de texte", e);
             throw new PDFException("TEXT_EXTRACT_ERROR", e.getMessage());

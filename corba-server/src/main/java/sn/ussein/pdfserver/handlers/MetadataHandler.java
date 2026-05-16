@@ -51,9 +51,6 @@ public class MetadataHandler {
                     meta.pageCount, meta.title);
                 return meta;
             }
-
-        } catch (PDFException e) {
-            throw e;
         } catch (Exception e) {
             log.error("Erreur lecture métadonnées", e);
             throw new PDFException("METADATA_ERROR", e.getMessage());
@@ -97,9 +94,6 @@ public class MetadataHandler {
                 res.message = "Métadonnées mises à jour avec succès";
                 return res;
             }
-
-        } catch (PDFException e) {
-            throw e;
         } catch (Exception e) {
             log.error("Erreur écriture métadonnées", e);
             throw new PDFException("METADATA_ERROR", e.getMessage());
@@ -118,8 +112,6 @@ public class MetadataHandler {
             try (PDDocument doc = PDDocument.load(tmpFile)) {
                 return doc.getNumberOfPages();
             }
-        } catch (PDFException e) {
-            throw e;
         } catch (Exception e) {
             throw new PDFException("METADATA_ERROR", e.getMessage());
         } finally {

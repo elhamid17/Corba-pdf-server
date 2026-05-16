@@ -83,7 +83,7 @@ public class DeletePageHandler {
                 return res;
             }
 
-        } catch (PDFException | InvalidPageException e) {
+        } catch (InvalidPageException e) {
             throw e;
         } catch (Exception e) {
             log.error("Erreur lors de la suppression de pages", e);

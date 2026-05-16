@@ -50,9 +50,6 @@ public class MergeHandler {
             res.data    = result;
             res.message = "Fusion de " + pdfs.length + " fichiers réussie";
             return res;
-
-        } catch (PDFException e) {
-            throw e;
         } catch (Exception e) {
             log.error("Erreur lors de la fusion PDF", e);
             throw new PDFException("MERGE_ERROR", e.getMessage());

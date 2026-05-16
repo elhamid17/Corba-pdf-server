@@ -1,71 +1,46 @@
 import { useState } from 'react'
+import { Layers } from 'lucide-react'
 import DropZone from '../components/DropZone'
+import ToolPage from '../components/ToolPage'
+import SubmitButton from '../components/SubmitButton'
+import { useToast } from '../components/Toast'
 import { mergePDFs } from '../api/pdfApi'
-import { Layers, Loader2 } from 'lucide-react'
 
 export default function MergePage() {
-  const [files,   setFiles]   = useState([])
+  const [files, setFiles] = useState([])
   const [loading, setLoading] = useState(false)
-  const [msg,     setMsg]     = useState(null)
+  const toast = useToast()
 
   async function handleMerge() {
-    if (files.length < 2) {
-      setMsg({ type: 'error', text: 'Sélectionnez au moins 2 PDFs' })
-      return
-    }
+    if (files.length < 2) return toast.error('Sélectionnez au moins 2 fichiers PDF.')
     setLoading(true)
-    setMsg(null)
     try {
       await mergePDFs(files)
-      setMsg({ type: 'success', text: 'Fusion réussie — téléchargement en cours' })
-    } catch(e) {
-      setMsg({ type: 'error', text: e.message })
+      toast.success('Fusion réussie. Téléchargement lancé.')
+    } catch (e) {
+      toast.error(e.message)
     } finally {
       setLoading(false)
     }
   }
 
   return (
-    <div className="max-w-2xl mx-auto px-4 py-10">
-      <div className="flex items-center gap-3 mb-8">
-        <Layers className="text-primary-600" size={28} />
-        <h1 className="text-2xl font-bold text-gray-900">Fusion de PDFs</h1>
-      </div>
-
+    <ToolPage
+      icon={Layers}
+      title="Fusion de PDF"
+      subtitle="Assemblez plusieurs documents PDF en un fichier unique, dans l’ordre que vous choisissez."
+    >
       <DropZone
+        multiple
         onFiles={setFiles}
-        multiple={true}
-        label="Déposez vos PDFs à fusionner (dans l'ordre souhaité)"
+        label="Déposez vos fichiers PDF à fusionner"
+        hint="Glissez-déposez plusieurs PDF. L’ordre de la liste = l’ordre de fusion."
       />
-
-      {files.length > 0 && (
-        <p className="text-sm text-gray-500 mt-2">
-          {files.length} fichier(s) sélectionné(s)
-        </p>
-      )}
-
-      <button
-        onClick={handleMerge}
-        disabled={loading}
-        className="mt-6 w-full bg-primary-600 hover:bg-primary-700 disabled:opacity-50
-                   text-white font-semibold py-3 rounded-xl transition-colors
-                   flex items-center justify-center gap-2"
-      >
-        {loading
-          ? <><Loader2 className="animate-spin" size={18}/> Fusion en cours...</>
-          : 'Fusionner les PDFs'
-        }
-      </button>
-
-      {msg && (
-        <div className={`mt-4 p-4 rounded-xl text-sm font-medium
-          ${msg.type === 'success'
-            ? 'bg-green-50 text-green-700 border border-green-200'
-            : 'bg-red-50 text-red-700 border border-red-200'
-          }`}>
-          {msg.text}
-        </div>
-      )}
-    </div>
+      <div className="mt-6">
+        <SubmitButton loading={loading} onClick={handleMerge} disabled={files.length < 2}>
+          Fusionner {files.length > 0 ? `(${files.length})` : ''}
+        </SubmitButton>
+      </div>
+    </ToolPage>
   )
 }

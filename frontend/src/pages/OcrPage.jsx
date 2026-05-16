@@ -1,43 +1,88 @@
 import { useState } from 'react'
+import { ScanText, Copy, Check } from 'lucide-react'
 import DropZone from '../components/DropZone'
-import { FileText, Loader2 } from 'lucide-react'
+import ToolPage from '../components/ToolPage'
+import SubmitButton from '../components/SubmitButton'
+import { useToast } from '../components/Toast'
+import { performOCR } from '../api/pdfApi'
+
+const LANGUAGES = [
+  { code: 'fra', label: 'Français' },
+  { code: 'eng', label: 'Anglais'  },
+]
 
 export default function OcrPage() {
-  const [file,    setFile]    = useState(null)
+  const [files, setFiles] = useState([])
+  const [language, setLanguage] = useState('fra')
+  const [text, setText] = useState('')
   const [loading, setLoading] = useState(false)
-  const [msg,     setMsg]     = useState(null)
+  const [copied, setCopied] = useState(false)
+  const toast = useToast()
 
   async function handleSubmit() {
-    if (!file) { setMsg({ type: 'error', text: 'Sélectionnez un PDF' }); return }
-    setLoading(true); setMsg(null)
+    if (!files[0]) return toast.error('Sélectionnez un PDF.')
+    setLoading(true)
+    setText('')
     try {
-      setMsg({ type: 'success', text: 'Opération réussie !' })
-    } catch(e) {
-      setMsg({ type: 'error', text: e.message })
-    } finally { setLoading(false) }
+      const res = await performOCR(files[0], language)
+      setText(res.text || '')
+      toast.success(`OCR ${res.language || language} terminée.`)
+    } catch (e) {
+      toast.error(e.message)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  async function copy() {
+    await navigator.clipboard.writeText(text)
+    setCopied(true)
+    setTimeout(() => setCopied(false), 1500)
   }
 
   return (
-    <div className="max-w-2xl mx-auto px-4 py-10">
-      <div className="flex items-center gap-3 mb-8">
-        <FileText className="text-primary-600" size={28} />
-        <h1 className="text-2xl font-bold text-gray-900">OcrPage</h1>
+    <ToolPage
+      icon={ScanText}
+      title="Reconnaissance optique (OCR)"
+      subtitle="Extrayez le texte d’un PDF scanné grâce à Tesseract / Tess4J."
+    >
+      <DropZone onFiles={setFiles} label="Déposez votre PDF scanné" />
+
+      <div className="mt-6">
+        <label className="field-label">Langue de reconnaissance</label>
+        <div className="grid grid-cols-2 gap-2">
+          {LANGUAGES.map(l => (
+            <button
+              key={l.code}
+              type="button"
+              onClick={() => setLanguage(l.code)}
+              className={`rounded-lg border py-2.5 text-sm font-semibold transition-all ${
+                language === l.code ? 'border-brand-500 bg-brand-50 text-brand-700' : 'border-ink-200 hover:border-ink-300 text-ink-600'
+              }`}
+            >
+              {l.label} <span className="text-ink-400 font-mono text-xs">{l.code}</span>
+            </button>
+          ))}
+        </div>
       </div>
-      <DropZone onFiles={f => setFile(f[0])} label="Déposez votre PDF ici" />
-      <button onClick={handleSubmit} disabled={loading}
-        className="mt-6 w-full bg-primary-600 hover:bg-primary-700 disabled:opacity-50
-                   text-white font-semibold py-3 rounded-xl transition-colors
-                   flex items-center justify-center gap-2">
-        {loading ? <><Loader2 className="animate-spin" size={18}/> Traitement...</> : 'Lancer'}
-      </button>
-      {msg && (
-        <div className={`mt-4 p-4 rounded-xl text-sm font-medium ${
-          msg.type === 'success'
-            ? 'bg-green-50 text-green-700 border border-green-200'
-            : 'bg-red-50 text-red-700 border border-red-200'}`}>
-          {msg.text}
+
+      <div className="mt-6">
+        <SubmitButton loading={loading} onClick={handleSubmit} loadingText="OCR en cours…" disabled={!files[0]}>
+          Lancer l’OCR
+        </SubmitButton>
+      </div>
+
+      {text && (
+        <div className="mt-6">
+          <div className="flex items-center justify-between mb-2">
+            <p className="text-xs font-semibold uppercase tracking-wider text-ink-500">Texte reconnu</p>
+            <button onClick={copy} className="btn-ghost py-1 px-3 text-xs">
+              {copied ? <><Check size={14}/> Copié</> : <><Copy size={14}/> Copier</>}
+            </button>
+          </div>
+          <textarea readOnly value={text} className="field font-mono text-sm min-h-72 whitespace-pre-wrap" />
         </div>
       )}
-    </div>
+    </ToolPage>
   )
 }

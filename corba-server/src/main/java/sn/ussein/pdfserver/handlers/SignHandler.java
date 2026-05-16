@@ -2,7 +2,7 @@ package sn.ussein.pdfserver.handlers;
 
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.interactive.digitalsignature.PDSignature;
-import org.apache.pdfbox.pdmodel.interactive.digitalsignature.SignatureOptions;
+import org.apache.pdfbox.pdmodel.interactive.digitalsignature.SignatureInterface;
 import org.bouncycastle.cert.jcajce.JcaCertStore;
 import org.bouncycastle.cms.*;
 import org.bouncycastle.cms.jcajce.*;
@@ -32,7 +32,6 @@ public class SignHandler {
     private static final Logger log = LoggerFactory.getLogger(SignHandler.class);
 
     static {
-        // Enregistrer le provider BouncyCastle
         Security.addProvider(new org.bouncycastle.jce.provider.BouncyCastleProvider());
     }
 
@@ -40,15 +39,13 @@ public class SignHandler {
                            String password, String reason, String location)
             throws PDFException {
 
-        if (pdf == null || pdf.length == 0) {
+        if (pdf == null || pdf.length == 0)
             throw new PDFException("INVALID_INPUT", "Le PDF fourni est vide");
-        }
-        if (certificate == null || certificate.length == 0) {
+        if (certificate == null || certificate.length == 0)
             throw new PDFException("INVALID_INPUT", "Le certificat est vide");
-        }
 
-        File tmpPdf  = null;
-        File tmpOut  = null;
+        File tmpPdf = null;
+        File tmpOut = null;
 
         try {
             // ── Charger le certificat PKCS12 ──
@@ -62,59 +59,57 @@ public class SignHandler {
             Certificate[] certChain = keystore.getCertificateChain(alias);
             X509Certificate x509 = (X509Certificate) certChain[0];
 
-            log.info("Certificat chargé — sujet : {}", x509.getSubjectDN());
+            log.info("Certificat chargé — {}", x509.getSubjectDN());
 
-            // ── Préparer le document ──
             tmpPdf = FileUtil.bytesToTempFile(pdf, ".pdf");
             tmpOut = FileUtil.createTempFile("_signed.pdf");
 
+            // ── Créer la signature ──
+            PDSignature signature = new PDSignature();
+            signature.setFilter(PDSignature.FILTER_ADOBE_PPKLITE);
+            signature.setSubFilter(PDSignature.SUBFILTER_ADBE_PKCS7_DETACHED);
+            signature.setName(x509.getSubjectDN().getName());
+            signature.setLocation(location != null ? location : "");
+            signature.setReason(reason != null ? reason : "Signature numérique");
+            signature.setSignDate(Calendar.getInstance());
+
+            // ── Interface de signature BouncyCastle ──
+            final PrivateKey   finalKey   = privateKey;
+            final Certificate[] finalChain = certChain;
+
+            SignatureInterface sigInterface = content -> {
+                try {
+                    List<Certificate> certList = Arrays.asList(finalChain);
+                    CMSSignedDataGenerator gen = new CMSSignedDataGenerator();
+
+                    ContentSigner signer = new JcaContentSignerBuilder("SHA256withRSA")
+                        .setProvider("BC").build(finalKey);
+
+                    gen.addSignerInfoGenerator(
+                        new JcaSignerInfoGeneratorBuilder(
+                            new JcaDigestCalculatorProviderBuilder()
+                                .setProvider("BC").build())
+                        .build(signer, x509)
+                    );
+                    gen.addCertificates(new JcaCertStore(certList));
+
+                    // Lire le contenu du stream
+                    byte[] buf = content.readAllBytes();
+                    CMSProcessableByteArray processable =
+                        new CMSProcessableByteArray(buf);
+                    CMSSignedData signedData =
+                        gen.generate(processable, false);
+
+                    return signedData.getEncoded();
+                } catch (Exception e) {
+                    throw new IOException("Erreur signature CMS : " + e.getMessage(), e);
+                }
+            };
+
+            // ── Signer et sauvegarder ──
             try (PDDocument doc = PDDocument.load(tmpPdf);
                  FileOutputStream fos = new FileOutputStream(tmpOut)) {
-
-                // Créer la signature visible
-                PDSignature signature = new PDSignature();
-                signature.setFilter(PDSignature.FILTER_ADOBE_PPK_LITE);
-                signature.setSubFilter(PDSignature.SUBFILTER_ADBE_PKCS7_DETACHED);
-                signature.setName(x509.getSubjectDN().getName());
-                signature.setLocation(location != null ? location : "");
-                signature.setReason(reason != null ? reason : "Signature numérique");
-                signature.setSignDate(Calendar.getInstance());
-
-                SignatureOptions sigOptions = new SignatureOptions();
-                sigOptions.setPreferredSignatureSize(SignatureOptions.DEFAULT_SIGNATURE_SIZE * 2);
-
-                // Signer avec BouncyCastle CMS
-                final PrivateKey finalKey = privateKey;
-                final Certificate[] finalChain = certChain;
-
-                doc.addSignature(signature, sigInterface -> {
-                    try {
-                        List<Certificate> certList = Arrays.asList(finalChain);
-                        CMSSignedDataGenerator gen = new CMSSignedDataGenerator();
-
-                        ContentSigner signer = new JcaContentSignerBuilder("SHA256withRSA")
-                            .setProvider("BC").build(finalKey);
-
-                        gen.addSignerInfoGenerator(
-                            new JcaSignerInfoGeneratorBuilder(
-                                new JcaDigestCalculatorProviderBuilder()
-                                    .setProvider("BC").build())
-                            .build(signer, x509)
-                        );
-                        gen.addCertificates(new JcaCertStore(certList));
-
-                        byte[] content = sigInterface.getContent();
-                        CMSProcessableByteArray processable =
-                            new CMSProcessableByteArray(content);
-                        CMSSignedData signedData =
-                            gen.generate(processable, false);
-
-                        return signedData.getEncoded();
-                    } catch (Exception e) {
-                        throw new RuntimeException("Erreur signature CMS", e);
-                    }
-                }, sigOptions);
-
+                doc.addSignature(signature, sigInterface);
                 doc.saveIncremental(fos);
             }
 
@@ -126,9 +121,6 @@ public class SignHandler {
             res.data    = result;
             res.message = "PDF signé numériquement avec succès";
             return res;
-
-        } catch (PDFException e) {
-            throw e;
         } catch (Exception e) {
             log.error("Erreur lors de la signature PDF", e);
             throw new PDFException("SIGN_ERROR", e.getMessage());

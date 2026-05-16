@@ -74,9 +74,6 @@ public class CompressHandler {
                 res.message = "Compression réussie — gain de " + gain + "%";
                 return res;
             }
-
-        } catch (PDFException e) {
-            throw e;
         } catch (Exception e) {
             log.error("Erreur lors de la compression PDF", e);
             throw new PDFException("COMPRESS_ERROR", e.getMessage());

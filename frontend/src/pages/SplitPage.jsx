@@ -1,43 +1,56 @@
 import { useState } from 'react'
+import { Scissors } from 'lucide-react'
 import DropZone from '../components/DropZone'
-import { FileText, Loader2 } from 'lucide-react'
+import ToolPage from '../components/ToolPage'
+import SubmitButton from '../components/SubmitButton'
+import { useToast } from '../components/Toast'
+import { splitPDF } from '../api/pdfApi'
 
 export default function SplitPage() {
-  const [file,    setFile]    = useState(null)
+  const [files, setFiles] = useState([])
+  const [ranges, setRanges] = useState('1,3,4,6')
   const [loading, setLoading] = useState(false)
-  const [msg,     setMsg]     = useState(null)
+  const toast = useToast()
 
   async function handleSubmit() {
-    if (!file) { setMsg({ type: 'error', text: 'Sélectionnez un PDF' }); return }
-    setLoading(true); setMsg(null)
+    if (!files[0]) return toast.error('Sélectionnez un PDF.')
+    const parsed = ranges.split(',').map(v => Number(v.trim())).filter(v => Number.isFinite(v) && v > 0)
+    if (parsed.length < 2 || parsed.length % 2 !== 0) {
+      return toast.error('Saisissez des paires de pages, ex : 1,3,4,6')
+    }
+    setLoading(true)
     try {
-      setMsg({ type: 'success', text: 'Opération réussie !' })
-    } catch(e) {
-      setMsg({ type: 'error', text: e.message })
-    } finally { setLoading(false) }
+      await splitPDF(files[0], parsed)
+      toast.success('Découpage terminé. Archive ZIP téléchargée.')
+    } catch (e) {
+      toast.error(e.message)
+    } finally {
+      setLoading(false)
+    }
   }
 
   return (
-    <div className="max-w-2xl mx-auto px-4 py-10">
-      <div className="flex items-center gap-3 mb-8">
-        <FileText className="text-primary-600" size={28} />
-        <h1 className="text-2xl font-bold text-gray-900">SplitPage</h1>
+    <ToolPage
+      icon={Scissors}
+      title="Découpage par intervalles"
+      subtitle="Découpez votre PDF en plusieurs fichiers selon des paires de pages début/fin."
+    >
+      <DropZone onFiles={setFiles} label="Déposez votre PDF à découper" />
+      <div className="mt-6">
+        <label className="field-label">Intervalles de pages</label>
+        <input
+          value={ranges}
+          onChange={e => setRanges(e.target.value)}
+          className="field font-mono"
+          placeholder="1,3,4,6 — produira 2 PDF : pages 1-3, pages 4-6"
+        />
+        <p className="mt-1.5 text-xs text-ink-400">Format : paires <code className="font-mono">début,fin,début,fin…</code></p>
       </div>
-      <DropZone onFiles={f => setFile(f[0])} label="Déposez votre PDF ici" />
-      <button onClick={handleSubmit} disabled={loading}
-        className="mt-6 w-full bg-primary-600 hover:bg-primary-700 disabled:opacity-50
-                   text-white font-semibold py-3 rounded-xl transition-colors
-                   flex items-center justify-center gap-2">
-        {loading ? <><Loader2 className="animate-spin" size={18}/> Traitement...</> : 'Lancer'}
-      </button>
-      {msg && (
-        <div className={`mt-4 p-4 rounded-xl text-sm font-medium ${
-          msg.type === 'success'
-            ? 'bg-green-50 text-green-700 border border-green-200'
-            : 'bg-red-50 text-red-700 border border-red-200'}`}>
-          {msg.text}
-        </div>
-      )}
-    </div>
+      <div className="mt-6">
+        <SubmitButton loading={loading} onClick={handleSubmit} disabled={!files[0]}>
+          Découper
+        </SubmitButton>
+      </div>
+    </ToolPage>
   )
 }

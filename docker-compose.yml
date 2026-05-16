@@ -3,8 +3,6 @@
 # USSEIN L2 AgroTIC
 # ═══════════════════════════════════════════════════════
 
-version: '3.9'
-
 services:
 
   # ── 1. Serveur CORBA + PDFBox ──────────────────────
@@ -22,8 +20,7 @@ services:
     networks:
       - backend
     healthcheck:
-      test: ["CMD", "sh", "-c",
-             "echo > /dev/tcp/localhost/2809 && echo OK || exit 1"]
+      test: ["CMD", "sh", "-c", "nc -z localhost 2809"]
       interval: 30s
       timeout: 10s
       retries: 5
@@ -46,13 +43,15 @@ services:
     networks:
       - backend
       - frontend
+    volumes:
+      - pdf-storage:/volumes/pdf-storage:ro
     environment:
       - CORBA_HOST=corba-server
       - CORBA_PORT=2809
       - TZ=Africa/Dakar
     healthcheck:
       test: ["CMD", "wget", "-qO-",
-             "http://localhost:8080/actuator/health"]
+             "http://localhost:8080/api/pdf/ping"]
       interval: 30s
       timeout: 10s
       retries: 3

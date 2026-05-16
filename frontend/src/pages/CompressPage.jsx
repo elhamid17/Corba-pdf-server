@@ -1,43 +1,78 @@
 import { useState } from 'react'
+import { Archive } from 'lucide-react'
 import DropZone from '../components/DropZone'
-import { FileText, Loader2 } from 'lucide-react'
+import ToolPage from '../components/ToolPage'
+import SubmitButton from '../components/SubmitButton'
+import { useToast } from '../components/Toast'
+import { compressPDF } from '../api/pdfApi'
 
 export default function CompressPage() {
-  const [file,    setFile]    = useState(null)
+  const [files, setFiles] = useState([])
+  const [imageQuality, setImageQuality] = useState(70)
+  const [compressImages, setCompressImages] = useState(true)
+  const [removeMetadata, setRemoveMetadata] = useState(false)
   const [loading, setLoading] = useState(false)
-  const [msg,     setMsg]     = useState(null)
+  const toast = useToast()
 
   async function handleSubmit() {
-    if (!file) { setMsg({ type: 'error', text: 'Sélectionnez un PDF' }); return }
-    setLoading(true); setMsg(null)
+    if (!files[0]) return toast.error('Sélectionnez un PDF.')
+    setLoading(true)
     try {
-      setMsg({ type: 'success', text: 'Opération réussie !' })
-    } catch(e) {
-      setMsg({ type: 'error', text: e.message })
-    } finally { setLoading(false) }
+      await compressPDF(files[0], { compressImages, imageQuality, removeMetadata })
+      toast.success('Compression terminée.')
+    } catch (e) {
+      toast.error(e.message)
+    } finally {
+      setLoading(false)
+    }
   }
 
   return (
-    <div className="max-w-2xl mx-auto px-4 py-10">
-      <div className="flex items-center gap-3 mb-8">
-        <FileText className="text-primary-600" size={28} />
-        <h1 className="text-2xl font-bold text-gray-900">CompressPage</h1>
-      </div>
-      <DropZone onFiles={f => setFile(f[0])} label="Déposez votre PDF ici" />
-      <button onClick={handleSubmit} disabled={loading}
-        className="mt-6 w-full bg-primary-600 hover:bg-primary-700 disabled:opacity-50
-                   text-white font-semibold py-3 rounded-xl transition-colors
-                   flex items-center justify-center gap-2">
-        {loading ? <><Loader2 className="animate-spin" size={18}/> Traitement...</> : 'Lancer'}
-      </button>
-      {msg && (
-        <div className={`mt-4 p-4 rounded-xl text-sm font-medium ${
-          msg.type === 'success'
-            ? 'bg-green-50 text-green-700 border border-green-200'
-            : 'bg-red-50 text-red-700 border border-red-200'}`}>
-          {msg.text}
+    <ToolPage
+      icon={Archive}
+      title="Compression PDF"
+      subtitle="Allégez vos PDF en optimisant les images et en supprimant les métadonnées superflues."
+    >
+      <DropZone onFiles={setFiles} label="Déposez votre PDF à compresser" />
+
+      <div className="mt-6 space-y-5">
+        <label className="flex items-start gap-3 cursor-pointer">
+          <input type="checkbox" checked={compressImages} onChange={e => setCompressImages(e.target.checked)} className="h-4 w-4 mt-0.5 rounded text-brand-600 focus:ring-brand-500/30" />
+          <div>
+            <p className="text-sm font-medium text-ink-800">Compresser les images</p>
+            <p className="text-xs text-ink-500">Réduit la qualité des images embarquées selon le pourcentage choisi.</p>
+          </div>
+        </label>
+
+        <div>
+          <label className="field-label">Qualité d’image — {imageQuality} %</label>
+          <input
+            type="range" min={10} max={100} step={5}
+            value={imageQuality}
+            onChange={e => setImageQuality(Number(e.target.value))}
+            disabled={!compressImages}
+            className="w-full accent-brand-600 disabled:opacity-40"
+          />
+          <div className="flex justify-between text-xs text-ink-400 mt-1">
+            <span>Forte compression</span>
+            <span>Qualité maximale</span>
+          </div>
         </div>
-      )}
-    </div>
+
+        <label className="flex items-start gap-3 cursor-pointer">
+          <input type="checkbox" checked={removeMetadata} onChange={e => setRemoveMetadata(e.target.checked)} className="h-4 w-4 mt-0.5 rounded text-brand-600 focus:ring-brand-500/30" />
+          <div>
+            <p className="text-sm font-medium text-ink-800">Supprimer les métadonnées</p>
+            <p className="text-xs text-ink-500">Auteur, titre, dates, logiciel d’origine.</p>
+          </div>
+        </label>
+      </div>
+
+      <div className="mt-6">
+        <SubmitButton loading={loading} onClick={handleSubmit} disabled={!files[0]}>
+          Compresser
+        </SubmitButton>
+      </div>
+    </ToolPage>
   )
 }

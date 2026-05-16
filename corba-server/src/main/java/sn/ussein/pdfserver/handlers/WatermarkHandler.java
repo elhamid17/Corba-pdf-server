@@ -108,9 +108,6 @@ public class WatermarkHandler {
                 res.message = "Filigrane ajouté avec succès";
                 return res;
             }
-
-        } catch (PDFException e) {
-            throw e;
         } catch (Exception e) {
             log.error("Erreur lors de l'ajout du filigrane", e);
             throw new PDFException("WATERMARK_ERROR", e.getMessage());

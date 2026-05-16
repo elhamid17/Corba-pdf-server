@@ -1,43 +1,80 @@
 import { useState } from 'react'
+import { Image as ImageIcon } from 'lucide-react'
 import DropZone from '../components/DropZone'
-import { FileText, Loader2 } from 'lucide-react'
+import ToolPage from '../components/ToolPage'
+import SubmitButton from '../components/SubmitButton'
+import { useToast } from '../components/Toast'
+import { convertToImages } from '../api/pdfApi'
+
+const FORMATS = ['PNG', 'JPEG', 'TIFF']
+const DPIS    = [72, 150, 300]
 
 export default function ConvertPage() {
-  const [file,    setFile]    = useState(null)
+  const [files, setFiles] = useState([])
+  const [format, setFormat] = useState('PNG')
+  const [dpi, setDpi] = useState(150)
   const [loading, setLoading] = useState(false)
-  const [msg,     setMsg]     = useState(null)
+  const toast = useToast()
 
   async function handleSubmit() {
-    if (!file) { setMsg({ type: 'error', text: 'Sélectionnez un PDF' }); return }
-    setLoading(true); setMsg(null)
+    if (!files[0]) return toast.error('Sélectionnez un PDF.')
+    setLoading(true)
     try {
-      setMsg({ type: 'success', text: 'Opération réussie !' })
-    } catch(e) {
-      setMsg({ type: 'error', text: e.message })
-    } finally { setLoading(false) }
+      await convertToImages(files[0], format, dpi)
+      toast.success('Conversion terminée — archive ZIP téléchargée.')
+    } catch (e) {
+      toast.error(e.message)
+    } finally {
+      setLoading(false)
+    }
   }
 
   return (
-    <div className="max-w-2xl mx-auto px-4 py-10">
-      <div className="flex items-center gap-3 mb-8">
-        <FileText className="text-primary-600" size={28} />
-        <h1 className="text-2xl font-bold text-gray-900">ConvertPage</h1>
-      </div>
-      <DropZone onFiles={f => setFile(f[0])} label="Déposez votre PDF ici" />
-      <button onClick={handleSubmit} disabled={loading}
-        className="mt-6 w-full bg-primary-600 hover:bg-primary-700 disabled:opacity-50
-                   text-white font-semibold py-3 rounded-xl transition-colors
-                   flex items-center justify-center gap-2">
-        {loading ? <><Loader2 className="animate-spin" size={18}/> Traitement...</> : 'Lancer'}
-      </button>
-      {msg && (
-        <div className={`mt-4 p-4 rounded-xl text-sm font-medium ${
-          msg.type === 'success'
-            ? 'bg-green-50 text-green-700 border border-green-200'
-            : 'bg-red-50 text-red-700 border border-red-200'}`}>
-          {msg.text}
+    <ToolPage
+      icon={ImageIcon}
+      title="PDF vers images"
+      subtitle="Convertissez chaque page en image, livrées dans une archive ZIP."
+    >
+      <DropZone onFiles={setFiles} label="Déposez votre PDF à convertir" />
+
+      <div className="mt-6 grid sm:grid-cols-2 gap-5">
+        <div>
+          <label className="field-label">Format</label>
+          <div className="grid grid-cols-3 gap-2">
+            {FORMATS.map(f => (
+              <button
+                key={f}
+                type="button"
+                onClick={() => setFormat(f)}
+                className={`rounded-lg border py-2 text-sm font-semibold transition-all ${
+                  format === f ? 'border-brand-500 bg-brand-50 text-brand-700' : 'border-ink-200 hover:border-ink-300 text-ink-600'
+                }`}
+              >{f}</button>
+            ))}
+          </div>
         </div>
-      )}
-    </div>
+        <div>
+          <label className="field-label">Résolution (DPI)</label>
+          <div className="grid grid-cols-3 gap-2">
+            {DPIS.map(d => (
+              <button
+                key={d}
+                type="button"
+                onClick={() => setDpi(d)}
+                className={`rounded-lg border py-2 text-sm font-semibold transition-all ${
+                  dpi === d ? 'border-brand-500 bg-brand-50 text-brand-700' : 'border-ink-200 hover:border-ink-300 text-ink-600'
+                }`}
+              >{d}</button>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      <div className="mt-6">
+        <SubmitButton loading={loading} onClick={handleSubmit} disabled={!files[0]}>
+          Convertir en images
+        </SubmitButton>
+      </div>
+    </ToolPage>
   )
 }

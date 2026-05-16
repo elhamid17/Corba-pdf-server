@@ -1,66 +1,134 @@
 import { useEffect, useState } from 'react'
-import { ping } from '../api/pdfApi'
+import { Link } from 'react-router-dom'
 import ServiceCard from '../components/ServiceCard'
+import { ping } from '../api/pdfApi'
 import {
-  Layers, Scissors, Archive, RotateCw,
-  Droplets, Lock, Image, FileText, ScanText, Plus
+  Layers, Scissors, FileMinus, FileSearch, Archive, RotateCw,
+  Droplets, Lock, Image as ImageIcon, FileText, ScanText, PenTool,
+  Info, Plus, Sparkles, ShieldCheck, Network, Cpu, ArrowRight,
 } from 'lucide-react'
 
-const services = [
-  { icon: Layers,   title: 'Fusion',      description: 'Fusionnez plusieurs PDFs en un seul',      to: '/merge'        },
-  { icon: Scissors, title: 'Découpage',   description: 'Découpez un PDF en segments',               to: '/split'        },
-  { icon: Archive,  title: 'Compression', description: 'Réduisez la taille de vos PDFs',            to: '/compress'     },
-  { icon: RotateCw, title: 'Rotation',    description: 'Pivotez les pages de votre PDF',            to: '/rotate'       },
-  { icon: Droplets, title: 'Filigrane',   description: 'Ajoutez un filigrane texte',                to: '/watermark'    },
-  { icon: Lock,     title: 'Protection',  description: 'Protégez votre PDF par mot de passe',       to: '/protect'      },
-  { icon: Image,    title: 'Images',      description: 'Convertissez chaque page en image',         to: '/convert'      },
-  { icon: FileText, title: 'Texte',       description: 'Extrayez le texte brut du PDF',             to: '/extract-text' },
-  { icon: ScanText, title: 'OCR',         description: 'Reconnaissance de texte sur PDF scanné',    to: '/ocr'          },
-  { icon: Plus,     title: 'Création',    description: 'Créez un PDF depuis du texte',              to: '/create'       },
+const SERVICES = [
+  { icon: Layers,     title: 'Fusion',          description: 'Assemblez plusieurs PDF en un document unique.',         to: '/merge',         tone: 'brand'   },
+  { icon: Scissors,   title: 'Découpage',       description: 'Découpez un PDF en plusieurs documents par intervalles.', to: '/split',         tone: 'cyan'    },
+  { icon: FileSearch, title: 'Extraction',      description: 'Extrayez précisément les pages souhaitées.',              to: '/extract-pages', tone: 'violet'  },
+  { icon: FileMinus,  title: 'Suppression',     description: 'Retirez les pages inutiles d’un document.',               to: '/delete-pages',  tone: 'rose'    },
+  { icon: Archive,    title: 'Compression',     description: 'Réduisez la taille de vos PDF sans sacrifier la qualité.', to: '/compress',     tone: 'emerald' },
+  { icon: RotateCw,   title: 'Rotation',        description: 'Pivotez les pages en 90°, 180° ou 270°.',                 to: '/rotate',        tone: 'amber'   },
+  { icon: Droplets,   title: 'Filigrane',       description: 'Ajoutez un filigrane texte sur chaque page.',             to: '/watermark',     tone: 'cyan'    },
+  { icon: Lock,       title: 'Protection',      description: 'Verrouillez vos PDF avec un mot de passe.',               to: '/protect',       tone: 'rose'    },
+  { icon: PenTool,    title: 'Signature',       description: 'Signez vos PDF via un certificat PKCS#12.',               to: '/sign',          tone: 'violet', badge: 'PKI' },
+  { icon: ImageIcon,  title: 'PDF → Images',    description: 'Convertissez chaque page en PNG, JPEG ou TIFF.',          to: '/convert',       tone: 'brand'   },
+  { icon: FileText,   title: 'Extraction texte',description: 'Extrayez le contenu textuel brut de vos PDF.',            to: '/extract-text',  tone: 'emerald' },
+  { icon: ScanText,   title: 'OCR',             description: 'Reconnaissance optique pour PDF scannés.',                to: '/ocr',           tone: 'amber',  badge: 'Tess4J' },
+  { icon: Info,       title: 'Métadonnées',     description: 'Inspectez auteur, titre, dates et plus encore.',          to: '/metadata',      tone: 'cyan'    },
+  { icon: Plus,       title: 'Création',        description: 'Générez un PDF à partir d’un texte brut.',                to: '/create',        tone: 'brand'   },
+]
+
+const HIGHLIGHTS = [
+  { icon: Network,     title: 'Architecture CORBA',     text: 'Communication IIOP sécurisée entre la gateway et le serveur de traitement.' },
+  { icon: Cpu,         title: 'PDFBox + Tess4J',        text: 'Pipeline robuste pour la manipulation, l’OCR et la signature numérique.' },
+  { icon: ShieldCheck, title: 'Sécurité PKI',           text: 'Signatures PKCS#12, chiffrement AES, protection par mot de passe.' },
 ]
 
 export default function Home() {
   const [status, setStatus] = useState(null)
+  const [info,   setInfo]   = useState(null)
 
   useEffect(() => {
     ping()
-      .then(d => setStatus(d.status))
+      .then(d => { setStatus(d.status); setInfo(d.server || null) })
       .catch(() => setStatus('ERROR'))
   }, [])
 
   return (
-    <div className="max-w-7xl mx-auto px-4 py-10">
-
-      {/* Hero */}
-      <div className="text-center mb-12">
-        <h1 className="text-4xl font-bold text-gray-900 mb-3">
-          CORBA PDF Server
-        </h1>
-        <p className="text-lg text-gray-500 max-w-xl mx-auto">
-          Plateforme distribuée de traitement PDF — propulsée par CORBA, JacORB et Apache PDFBox
-        </p>
-        <div className="mt-4 inline-flex items-center gap-2 text-sm">
-          <span className={`w-2.5 h-2.5 rounded-full ${
-            status === 'OK' ? 'bg-green-400' :
-            status === 'ERROR' ? 'bg-red-400' : 'bg-yellow-400'
-          }`}/>
-          <span className="text-gray-500">
-            Serveur : {status ?? 'vérification...'}
+    <>
+      {/* ───────── Hero ───────── */}
+      <section className="relative overflow-hidden">
+        <div className="absolute inset-0 bg-radial-brand" />
+        <div className="absolute inset-0 bg-grid-faint bg-[size:36px_36px] [mask-image:linear-gradient(180deg,white,transparent_70%)]" />
+        <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pt-16 pb-12 text-center">
+          <span className="eyebrow mb-5">
+            <Sparkles size={14} /> Plateforme PDF distribuée
           </span>
+          <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold font-display text-ink-900 tracking-tight leading-[1.05]">
+            Traitez vos PDF, <br className="hidden sm:block"/>
+            <span className="bg-gradient-to-r from-brand-600 via-brand-500 to-accent-500 bg-clip-text text-transparent">
+              à l’échelle entreprise.
+            </span>
+          </h1>
+          <p className="mt-5 max-w-2xl mx-auto text-lg text-ink-500 leading-relaxed">
+            Suite complète de 14 services PDF — fusion, OCR, signature numérique, conversion et plus — propulsée par CORBA, JacORB et Apache PDFBox.
+          </p>
+
+          <div className="mt-7 flex flex-wrap items-center justify-center gap-3">
+            <Link to="/merge" className="btn-primary">
+              Commencer <ArrowRight size={16} />
+            </Link>
+            <a href="#services" className="btn-secondary">
+              Explorer les services
+            </a>
+          </div>
+
+          <div className="mt-8 inline-flex items-center gap-2 text-xs">
+            <span className={`relative flex h-2.5 w-2.5 rounded-full ${
+              status === 'OK' ? 'bg-emerald-500' : status === 'ERROR' ? 'bg-rose-500' : 'bg-amber-500'
+            }`}>
+              {status === 'OK' && <span className="absolute inset-0 rounded-full bg-emerald-500 animate-pulse-dot" />}
+            </span>
+            <span className="text-ink-500 font-mono">
+              {status === 'OK' ? 'Serveur CORBA en ligne' : status === 'ERROR' ? 'Serveur indisponible' : 'Vérification…'}
+              {info && <span className="text-ink-400"> · {info}</span>}
+            </span>
+          </div>
         </div>
-      </div>
+      </section>
 
-      {/* Grille des services */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-        {services.map(s => (
-          <ServiceCard key={s.to} {...s} />
-        ))}
-      </div>
+      {/* ───────── Highlights ───────── */}
+      <section className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-6">
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {HIGHLIGHTS.map(({ icon: Icon, title, text }) => (
+            <div key={title} className="card p-5 flex gap-4 items-start animate-fade-in">
+              <div className="shrink-0 grid h-11 w-11 place-items-center rounded-xl bg-brand-50 text-brand-700 ring-1 ring-brand-100">
+                <Icon size={20} />
+              </div>
+              <div>
+                <p className="font-semibold text-ink-900">{title}</p>
+                <p className="text-sm text-ink-500 leading-relaxed">{text}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
 
-      {/* Footer */}
-      <p className="text-center text-xs text-gray-400 mt-16">
-        USSEIN — L2 AgroTIC · Projet académique CORBA
-      </p>
-    </div>
+      {/* ───────── Services ───────── */}
+      <section id="services" className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-12">
+        <div className="flex items-end justify-between mb-6">
+          <div>
+            <span className="eyebrow">14 modules de traitement</span>
+            <h2 className="mt-1 text-2xl sm:text-3xl font-bold font-display text-ink-900">
+              Services PDF disponibles
+            </h2>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+          {SERVICES.map(s => <ServiceCard key={s.to} {...s} />)}
+        </div>
+      </section>
+
+      {/* ───────── Bandeau stack ───────── */}
+      <section className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pb-16">
+        <div className="card p-6 sm:p-8 flex flex-wrap items-center justify-between gap-4">
+          <div>
+            <p className="font-semibold text-ink-900">Stack technique</p>
+            <p className="text-sm text-ink-500">React 18 · Vite · Tailwind · Spring Boot 3 · JacORB · PDFBox · Tess4J · Docker</p>
+          </div>
+          <Link to="/create" className="btn-secondary">
+            Créer un PDF à partir de texte
+          </Link>
+        </div>
+      </section>
+    </>
   )
 }

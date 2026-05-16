@@ -70,7 +70,7 @@ public class ExtractHandler {
                 return res;
             }
 
-        } catch (PDFException | InvalidPageException e) {
+        } catch (InvalidPageException e) {
             throw e;
         } catch (Exception e) {
             log.error("Erreur lors de l'extraction de pages", e);

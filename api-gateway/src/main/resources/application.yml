@@ -36,3 +36,7 @@ logging:
     org.springframework: WARN
   pattern:
     console: "%d{HH:mm:ss} [%thread] %-5level %logger{36} — %msg%n"
+
+app:
+  cors:
+    allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:5173,http://localhost}

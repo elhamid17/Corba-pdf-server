@@ -12,7 +12,8 @@ echo "════════════════════════�
 # Compiler les modules Java
 echo ""
 echo "▶ Compilation Maven..."
-mvn clean package -DskipTests -q
+mkdir -p .m2/repository
+mvn clean package -DskipTests -Dmaven.repo.local="$(pwd)/.m2/repository" -q
 echo "✓ Compilation réussie"
 
 # Lancer Docker Compose

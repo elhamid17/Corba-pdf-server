@@ -97,7 +97,6 @@ public class CreateHandler {
                     cs.endText();
                     y -= TITLE_SIZE + LEADING;
                     firstPage = false;
-                    continue;
                 }
 
                 if (!line.isEmpty()) {
@@ -125,9 +124,6 @@ public class CreateHandler {
             res.message = "PDF créé avec succès — "
                 + doc.getNumberOfPages() + " page(s)";
             return res;
-
-        } catch (PDFException e) {
-            throw e;
         } catch (Exception e) {
             log.error("Erreur lors de la création du PDF", e);
             throw new PDFException("CREATE_ERROR", e.getMessage());
