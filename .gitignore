@@ -1,0 +1,37 @@
+# Maven
+target/
+*.class
+*.jar
+*.war
+
+# IDL generated sources
+corba-idl/src/main/java/generated/
+
+# IntelliJ / VSCode
+.idea/
+*.iml
+.vscode/
+*.code-workspace
+
+# Node / React
+node_modules/
+dist/
+frontend/dist/
+
+# Docker volumes locaux
+volumes/pdf-storage/*
+volumes/tessdata/*
+!volumes/pdf-storage/.gitkeep
+!volumes/tessdata/.gitkeep
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+logs/
+
+# Secrets
+*.env
+.env
