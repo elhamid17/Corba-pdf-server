@@ -41,3 +41,7 @@ logs/
 # Secrets
 *.env
 .env
+
+# Rapport local (ne pas publier sur GitHub)
+RAPPORT.md
+RAPPORT.pdf
