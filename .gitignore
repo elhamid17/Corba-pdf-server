@@ -44,4 +44,9 @@ logs/
 
 # Rapport local (ne pas publier sur GitHub)
 RAPPORT.md
+RAPPORT.tex
 RAPPORT.pdf
+RAPPORT.aux
+RAPPORT.log
+RAPPORT.out
+RAPPORT.toc
