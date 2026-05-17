@@ -1,0 +1,45 @@
+# ═══════════════════════════════════════════════════════════════
+#  Render Blueprint — déploiement en 1 clic
+#  https://render.com/docs/blueprint-spec
+# ═══════════════════════════════════════════════════════════════
+
+services:
+  # ── Backend : CORBA + Gateway (Docker, free 512 MB) ──────────
+  - type: web
+    name: corba-pdf-api
+    runtime: docker
+    dockerfilePath: ./Dockerfile.render
+    region: frankfurt          # plus proche du Sénégal/Europe
+    plan: free
+    healthCheckPath: /api/pdf/ping
+    autoDeploy: true
+    envVars:
+      - key: PORT
+        value: 8080
+      - key: CORBA_HOST
+        value: localhost
+      - key: CORBA_PORT
+        value: 2809
+      - key: JAVA_OPTS_CORBA
+        value: -Xmx180m -Xss256k -XX:+UseSerialGC -Djava.security.egd=file:/dev/./urandom
+      - key: JAVA_OPTS_GATEWAY
+        value: -Xmx240m -Xss256k -XX:+UseSerialGC -Djava.security.egd=file:/dev/./urandom
+      - key: CORS_ALLOWED_ORIGINS
+        # Render assigne <name>.onrender.com ; ajuste si custom domain
+        value: https://corba-pdf.onrender.com
+
+  # ── Frontend : React statique (free, CDN, jamais de cold start) ──
+  - type: web
+    name: corba-pdf
+    runtime: static
+    rootDir: frontend
+    buildCommand: npm ci && npm run build
+    staticPublishPath: ./dist
+    pullRequestPreviewsEnabled: false
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html  # SPA fallback
+    envVars:
+      - key: VITE_API_URL
+        value: https://corba-pdf-api.onrender.com/api/pdf

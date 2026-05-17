@@ -1,9 +1,10 @@
 // ═══════════════════════════════════════════════════════════
 // Couche API — appels REST vers l'API Gateway /api/pdf/*
-// Toutes les méthodes encapsulent fetch + gestion d'erreur HTTP
+// En dev/local : utilise /api/pdf (proxy Vite ou nginx).
+// En prod (Render) : VITE_API_URL pointe sur l'URL publique du backend.
 // ═══════════════════════════════════════════════════════════
 
-const BASE = '/api/pdf'
+const BASE = (import.meta.env.VITE_API_URL || '/api/pdf').replace(/\/+$/, '')
 
 /** Construit un message d'erreur lisible à partir d'une réponse non-OK. */
 async function readError(res) {

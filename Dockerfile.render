@@ -1,0 +1,48 @@
+# ════════════════════════════════════════════════════════════════
+#  Image Render — combine CORBA server + API Gateway via supervisord
+#  Tout en un seul conteneur (contrainte 512 MB du free tier).
+# ════════════════════════════════════════════════════════════════
+
+# ── Stage 1 : compile Maven ─────────────────────────────────────
+FROM maven:3.9-eclipse-temurin-17 AS build
+WORKDIR /build
+
+COPY pom.xml ./
+COPY corba-idl ./corba-idl
+COPY corba-server ./corba-server
+COPY api-gateway ./api-gateway
+
+RUN mvn -B -q clean package -DskipTests
+
+# ── Stage 2 : runtime léger ─────────────────────────────────────
+FROM eclipse-temurin:17-jre-alpine
+
+RUN apk add --no-cache \
+      tesseract-ocr \
+      tesseract-ocr-data-fra \
+      tesseract-ocr-data-eng \
+      fontconfig \
+      ttf-dejavu \
+      supervisor
+
+WORKDIR /app
+
+COPY --from=build /build/corba-server/target/corba-server-jar-with-dependencies.jar /app/corba-server.jar
+COPY --from=build /build/api-gateway/target/api-gateway-1.0.0-SNAPSHOT.jar          /app/api-gateway.jar
+
+# Volume partagé pour l'IOR entre les deux process locaux
+RUN mkdir -p /volumes/pdf-storage /volumes/tessdata
+
+COPY supervisord.conf /etc/supervisord.conf
+
+# Valeurs par défaut surchargées via render.yaml
+ENV PORT=8080 \
+    CORBA_HOST=localhost \
+    CORBA_PORT=2809 \
+    JAVA_OPTS_CORBA="-Xmx180m -Xss256k -XX:+UseSerialGC" \
+    JAVA_OPTS_GATEWAY="-Xmx240m -Xss256k -XX:+UseSerialGC" \
+    TESSDATA_PATH=/usr/share/tessdata
+
+EXPOSE 8080
+
+CMD ["/usr/bin/supervisord", "-c", "/etc/supervisord.conf"]
