@@ -20,6 +20,10 @@ const ExtractTextPage  = lazy(() => import('./pages/ExtractTextPage'))
 const OcrPage          = lazy(() => import('./pages/OcrPage'))
 const MetadataPage     = lazy(() => import('./pages/MetadataPage'))
 const CreatePage       = lazy(() => import('./pages/CreatePage'))
+const PdfToWordPage    = lazy(() => import('./pages/PdfToWordPage'))
+const PdfToExcelPage   = lazy(() => import('./pages/PdfToExcelPage'))
+const WordToPdfPage    = lazy(() => import('./pages/WordToPdfPage'))
+const ImagesToPdfPage  = lazy(() => import('./pages/ImagesToPdfPage'))
 const NotFound         = lazy(() => import('./pages/NotFound'))
 
 function Loading() {
@@ -55,6 +59,10 @@ export default function App() {
                 <Route path="/ocr"           element={<OcrPage />} />
                 <Route path="/metadata"      element={<MetadataPage />} />
                 <Route path="/create"        element={<CreatePage />} />
+                <Route path="/pdf-to-word"   element={<PdfToWordPage />} />
+                <Route path="/pdf-to-excel"  element={<PdfToExcelPage />} />
+                <Route path="/word-to-pdf"   element={<WordToPdfPage />} />
+                <Route path="/images-to-pdf" element={<ImagesToPdfPage />} />
                 <Route path="*"              element={<NotFound />} />
               </Routes>
             </Suspense>

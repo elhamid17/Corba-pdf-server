@@ -47,6 +47,16 @@
             <artifactId>pdfbox</artifactId>
         </dependency>
 
+        <!-- Apache POI — conversions Word & Excel -->
+        <dependency>
+            <groupId>org.apache.poi</groupId>
+            <artifactId>poi</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.poi</groupId>
+            <artifactId>poi-ooxml</artifactId>
+        </dependency>
+
         <!-- Tess4J OCR -->
         <dependency>
             <groupId>net.sourceforge.tess4j</groupId>

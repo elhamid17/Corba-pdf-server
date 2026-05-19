@@ -36,6 +36,7 @@
         <pdfbox.version>2.0.31</pdfbox.version>
         <tess4j.version>5.8.0</tess4j.version>
         <bouncycastle.version>1.78.1</bouncycastle.version>
+        <poi.version>5.2.5</poi.version>
         <springboot.version>3.2.5</springboot.version>
         <junit.version>5.10.2</junit.version>
     </properties>
@@ -80,6 +81,18 @@
                 <groupId>org.bouncycastle</groupId>
                 <artifactId>bcpkix-jdk18on</artifactId>
                 <version>${bouncycastle.version}</version>
+            </dependency>
+
+            <!-- Apache POI — Word (DOCX) & Excel (XLSX) -->
+            <dependency>
+                <groupId>org.apache.poi</groupId>
+                <artifactId>poi</artifactId>
+                <version>${poi.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.poi</groupId>
+                <artifactId>poi-ooxml</artifactId>
+                <version>${poi.version}</version>
             </dependency>
 
             <!-- Spring Boot BOM -->

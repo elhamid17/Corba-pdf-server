@@ -317,6 +317,83 @@ public class PDFController {
         }
     }
 
+    @PostMapping("/pdf-to-word")
+    public ResponseEntity<byte[]> pdfToWord(@RequestParam("file") MultipartFile file) {
+        validatePdfFile(file, "file");
+        try {
+            PDFResult r = corba.getPdfService().pdfToWord(file.getBytes());
+            return binaryResponse(r, "converted.docx",
+                "application/vnd.openxmlformats-officedocument.wordprocessingml.document");
+        } catch (IOException e) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Lecture du fichier impossible", e);
+        } catch (Exception e) {
+            log.error("Erreur /pdf-to-word", e);
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Erreur lors de la conversion PDF -> Word", e);
+        }
+    }
+
+    @PostMapping("/pdf-to-excel")
+    public ResponseEntity<byte[]> pdfToExcel(@RequestParam("file") MultipartFile file) {
+        validatePdfFile(file, "file");
+        try {
+            PDFResult r = corba.getPdfService().pdfToExcel(file.getBytes());
+            return binaryResponse(r, "converted.xlsx",
+                "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+        } catch (IOException e) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Lecture du fichier impossible", e);
+        } catch (Exception e) {
+            log.error("Erreur /pdf-to-excel", e);
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Erreur lors de la conversion PDF -> Excel", e);
+        }
+    }
+
+    @PostMapping("/word-to-pdf")
+    public ResponseEntity<byte[]> wordToPdf(@RequestParam("file") MultipartFile file) {
+        if (file == null || file.isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "file est requis");
+        }
+        String name = file.getOriginalFilename();
+        if (name == null || !name.toLowerCase().endsWith(".docx")) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Le fichier doit avoir l'extension .docx");
+        }
+        try {
+            return pdfResponse(corba.getPdfService().wordToPdf(file.getBytes()), "converted.pdf");
+        } catch (IOException e) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Lecture du fichier impossible", e);
+        } catch (Exception e) {
+            log.error("Erreur /word-to-pdf", e);
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Erreur lors de la conversion Word -> PDF", e);
+        }
+    }
+
+    @PostMapping("/images-to-pdf")
+    public ResponseEntity<byte[]> imagesToPdf(@RequestParam("files") MultipartFile[] files) {
+        if (files == null || files.length == 0) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Au moins une image est requise");
+        }
+        try {
+            byte[][] images = new byte[files.length][];
+            for (int i = 0; i < files.length; i++) {
+                MultipartFile f = files[i];
+                if (f == null || f.isEmpty()) {
+                    throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "files[" + i + "] est vide");
+                }
+                String ct = f.getContentType();
+                if (ct == null || !ct.startsWith("image/")) {
+                    throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                        "files[" + i + "] doit etre une image (JPG/PNG)");
+                }
+                images[i] = f.getBytes();
+            }
+            return pdfResponse(corba.getPdfService().imagesToPdf(images), "images.pdf");
+        } catch (IOException e) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Lecture des fichiers impossible", e);
+        } catch (Exception e) {
+            log.error("Erreur /images-to-pdf", e);
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Erreur lors de la conversion Images -> PDF", e);
+        }
+    }
+
     @PostMapping("/page-count")
     public ResponseEntity<Map<String, Integer>> pageCount(@RequestParam("file") MultipartFile file) {
         validatePdfFile(file, "file");
@@ -376,6 +453,17 @@ public class PDFController {
         return ResponseEntity.ok()
                 .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + filename + "\"")
                 .contentType(MediaType.APPLICATION_PDF)
+                .body(result.data);
+    }
+
+    private ResponseEntity<byte[]> binaryResponse(PDFResult result, String filename, String contentType) {
+        if (result == null || !result.success || result.data == null) {
+            String message = (result != null && result.message != null) ? result.message : "Operation echouee";
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, message);
+        }
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + filename + "\"")
+                .contentType(MediaType.parseMediaType(contentType))
                 .body(result.data);
     }
 

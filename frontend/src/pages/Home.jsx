@@ -6,6 +6,7 @@ import {
   Layers, Scissors, FileMinus, FileSearch, Archive, RotateCw,
   Droplets, Lock, Image as ImageIcon, FileText, ScanText, PenTool,
   Info, Plus, Sparkles, ShieldCheck, Network, Cpu, ArrowRight,
+  FileType2, Sheet, Images,
 } from 'lucide-react'
 
 const SERVICES = [
@@ -15,10 +16,14 @@ const SERVICES = [
   { icon: FileMinus,  title: 'Suppression',     description: 'Retirez les pages inutiles d’un document.',               to: '/delete-pages',  tone: 'rose'    },
   { icon: Archive,    title: 'Compression',     description: 'Réduisez la taille de vos PDF sans sacrifier la qualité.', to: '/compress',     tone: 'emerald' },
   { icon: RotateCw,   title: 'Rotation',        description: 'Pivotez les pages en 90°, 180° ou 270°.',                 to: '/rotate',        tone: 'amber'   },
+  { icon: FileType2,  title: 'PDF → Word',      description: 'Convertissez un PDF en document Word (DOCX).',            to: '/pdf-to-word',   tone: 'violet', badge: 'Nouveau' },
+  { icon: Sheet,      title: 'PDF → Excel',     description: 'Convertissez un PDF en classeur Excel (XLSX).',           to: '/pdf-to-excel',  tone: 'emerald', badge: 'Nouveau' },
+  { icon: FileText,   title: 'Word → PDF',      description: 'Convertissez un document Word (DOCX) en PDF.',            to: '/word-to-pdf',   tone: 'brand',  badge: 'Nouveau' },
+  { icon: Images,     title: 'Images → PDF',    description: 'Assemblez JPG/PNG en un seul PDF (une page par image).',  to: '/images-to-pdf', tone: 'amber',  badge: 'Nouveau' },
+  { icon: ImageIcon,  title: 'PDF → Images',    description: 'Convertissez chaque page en PNG, JPEG ou TIFF.',          to: '/convert',       tone: 'brand'   },
   { icon: Droplets,   title: 'Filigrane',       description: 'Ajoutez un filigrane texte sur chaque page.',             to: '/watermark',     tone: 'cyan'    },
   { icon: Lock,       title: 'Protection',      description: 'Verrouillez vos PDF avec un mot de passe.',               to: '/protect',       tone: 'rose'    },
   { icon: PenTool,    title: 'Signature',       description: 'Signez vos PDF via un certificat PKCS#12.',               to: '/sign',          tone: 'violet', badge: 'PKI' },
-  { icon: ImageIcon,  title: 'PDF → Images',    description: 'Convertissez chaque page en PNG, JPEG ou TIFF.',          to: '/convert',       tone: 'brand'   },
   { icon: FileText,   title: 'Extraction texte',description: 'Extrayez le contenu textuel brut de vos PDF.',            to: '/extract-text',  tone: 'emerald' },
   { icon: ScanText,   title: 'OCR',             description: 'Reconnaissance optique pour PDF scannés.',                to: '/ocr',           tone: 'amber',  badge: 'Tess4J' },
   { icon: Info,       title: 'Métadonnées',     description: 'Inspectez auteur, titre, dates et plus encore.',          to: '/metadata',      tone: 'cyan'    },
@@ -58,7 +63,7 @@ export default function Home() {
             </span>
           </h1>
           <p className="mt-5 max-w-2xl mx-auto text-lg text-ink-500 leading-relaxed">
-            Suite complète de 14 services PDF — fusion, OCR, signature numérique, conversion et plus — propulsée par CORBA, JacORB et Apache PDFBox.
+            Suite complète de 18 services PDF — fusion, OCR, signature numérique, conversion Word/Excel et plus — propulsée par CORBA, JacORB et Apache PDFBox.
           </p>
 
           <div className="mt-7 flex flex-wrap items-center justify-center gap-3">
@@ -105,7 +110,7 @@ export default function Home() {
       <section id="services" className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-12">
         <div className="flex items-end justify-between mb-6">
           <div>
-            <span className="eyebrow">14 modules de traitement</span>
+            <span className="eyebrow">18 modules de traitement</span>
             <h2 className="mt-1 text-2xl sm:text-3xl font-bold font-display text-ink-900">
               Services PDF disponibles
             </h2>

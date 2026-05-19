@@ -31,6 +31,10 @@ public class PDFServiceImpl extends PDFServicePOA {
     private final SignHandler        signHandler        = new SignHandler();
     private final MetadataHandler    metadataHandler    = new MetadataHandler();
     private final CreateHandler      createHandler      = new CreateHandler();
+    private final PdfToWordHandler   pdfToWordHandler   = new PdfToWordHandler();
+    private final PdfToExcelHandler  pdfToExcelHandler  = new PdfToExcelHandler();
+    private final WordToPdfHandler   wordToPdfHandler   = new WordToPdfHandler();
+    private final ImagesToPdfHandler imagesToPdfHandler = new ImagesToPdfHandler();
 
     // ════════════════════════════════════════
     //  1. Fusion
@@ -179,6 +183,42 @@ public class PDFServiceImpl extends PDFServicePOA {
             throws PDFException {
         log.info("→ createFromText() — titre : '{}'", title);
         return createHandler.createFromText(text, title);
+    }
+
+    // ════════════════════════════════════════
+    //  15. PDF → Word
+    // ════════════════════════════════════════
+    @Override
+    public PDFResult pdfToWord(byte[] pdf) throws PDFException {
+        log.info("→ pdfToWord()");
+        return pdfToWordHandler.pdfToWord(pdf);
+    }
+
+    // ════════════════════════════════════════
+    //  16. PDF → Excel
+    // ════════════════════════════════════════
+    @Override
+    public PDFResult pdfToExcel(byte[] pdf) throws PDFException {
+        log.info("→ pdfToExcel()");
+        return pdfToExcelHandler.pdfToExcel(pdf);
+    }
+
+    // ════════════════════════════════════════
+    //  17. Word → PDF
+    // ════════════════════════════════════════
+    @Override
+    public PDFResult wordToPdf(byte[] docx) throws PDFException {
+        log.info("→ wordToPdf()");
+        return wordToPdfHandler.wordToPdf(docx);
+    }
+
+    // ════════════════════════════════════════
+    //  18. Images → PDF
+    // ════════════════════════════════════════
+    @Override
+    public PDFResult imagesToPdf(byte[][] images) throws PDFException {
+        log.info("→ imagesToPdf() — {} images", images != null ? images.length : 0);
+        return imagesToPdfHandler.imagesToPdf(images);
     }
 
     // ════════════════════════════════════════

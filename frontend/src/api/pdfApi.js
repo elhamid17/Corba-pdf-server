@@ -183,3 +183,35 @@ export async function createPDF(text, title) {
   const blob = await postForm('/create', form)
   downloadBlob(blob, 'created.pdf')
 }
+
+/* ───────── PDF → Word ───────── */
+export async function pdfToWord(file) {
+  const form = new FormData()
+  form.append('file', file)
+  const blob = await postForm('/pdf-to-word', form)
+  downloadBlob(blob, 'converted.docx')
+}
+
+/* ───────── PDF → Excel ───────── */
+export async function pdfToExcel(file) {
+  const form = new FormData()
+  form.append('file', file)
+  const blob = await postForm('/pdf-to-excel', form)
+  downloadBlob(blob, 'converted.xlsx')
+}
+
+/* ───────── Word → PDF ───────── */
+export async function wordToPdf(file) {
+  const form = new FormData()
+  form.append('file', file)
+  const blob = await postForm('/word-to-pdf', form)
+  downloadBlob(blob, 'converted.pdf')
+}
+
+/* ───────── Images → PDF ───────── */
+export async function imagesToPdf(files) {
+  const form = new FormData()
+  files.forEach(f => form.append('files', f))
+  const blob = await postForm('/images-to-pdf', form)
+  downloadBlob(blob, 'images.pdf')
+}

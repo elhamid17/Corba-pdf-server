@@ -95,6 +95,28 @@ module sn {
         PDFResult createFromText(in string text, in string title)
           raises (PDFException);
 
+        // ═══ 15. Conversion PDF → Word (DOCX) ═══
+        // Convertit un PDF en document Word (extrait le texte page par page)
+        PDFResult pdfToWord(in PDFData pdf)
+          raises (PDFException);
+
+        // ═══ 16. Conversion PDF → Excel (XLSX) ═══
+        // Convertit un PDF en classeur Excel — une feuille par page,
+        // chaque ligne de texte du PDF devient une ligne du tableur
+        PDFResult pdfToExcel(in PDFData pdf)
+          raises (PDFException);
+
+        // ═══ 17. Conversion Word (DOCX) → PDF ═══
+        // Convertit un document Word en PDF
+        PDFResult wordToPdf(in PDFData docx)
+          raises (PDFException);
+
+        // ═══ 18. Conversion Images → PDF ═══
+        // Convertit une ou plusieurs images (JPG/PNG) en un PDF
+        // — une page par image
+        PDFResult imagesToPdf(in PDFList images)
+          raises (PDFException);
+
         // ═══ Utilitaire ═══
         // Retourne le nombre de pages d'un PDF
         long getPageCount(in PDFData pdf)
