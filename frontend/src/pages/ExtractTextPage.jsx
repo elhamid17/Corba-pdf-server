@@ -50,7 +50,7 @@ export default function ExtractTextPage() {
       {text && (
         <div className="mt-6">
           <div className="flex items-center justify-between mb-2">
-            <p className="text-xs font-semibold uppercase tracking-wider text-ink-500">Résultat — {text.length} caractères</p>
+            <p className="text-xs font-semibold uppercase tracking-wider text-ink-500 dark:text-ink-400">Résultat — {text.length} caractères</p>
             <button onClick={copy} className="btn-ghost py-1 px-3 text-xs">
               {copied ? <><Check size={14}/> Copié</> : <><Copy size={14}/> Copier</>}
             </button>

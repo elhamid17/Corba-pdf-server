@@ -44,7 +44,7 @@ export default function SplitPage() {
           className="field font-mono"
           placeholder="1,3,4,6 — produira 2 PDF : pages 1-3, pages 4-6"
         />
-        <p className="mt-1.5 text-xs text-ink-400">Format : paires <code className="font-mono">début,fin,début,fin…</code></p>
+        <p className="mt-1.5 text-xs text-ink-400 dark:text-ink-500">Format : paires <code className="font-mono">début,fin,début,fin…</code></p>
       </div>
       <div className="mt-6">
         <SubmitButton loading={loading} onClick={handleSubmit} disabled={!files[0]}>

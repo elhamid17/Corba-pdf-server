@@ -56,13 +56,13 @@ export default function Home() {
           <span className="eyebrow mb-5">
             <Sparkles size={14} /> Plateforme PDF distribuée
           </span>
-          <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold font-display text-ink-900 tracking-tight leading-[1.05]">
+          <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold font-display text-ink-900 dark:text-ink-100 tracking-tight leading-[1.05]">
             Traitez vos PDF, <br className="hidden sm:block"/>
-            <span className="bg-gradient-to-r from-brand-600 via-brand-500 to-accent-500 bg-clip-text text-transparent">
+            <span className="bg-gradient-to-r from-brand-600 via-brand-500 to-accent-500 dark:from-brand-400 dark:via-brand-300 dark:to-accent-400 bg-clip-text text-transparent">
               à l’échelle entreprise.
             </span>
           </h1>
-          <p className="mt-5 max-w-2xl mx-auto text-lg text-ink-500 leading-relaxed">
+          <p className="mt-5 max-w-2xl mx-auto text-lg text-ink-500 dark:text-ink-400 leading-relaxed">
             Suite complète de 18 services PDF — fusion, OCR, signature numérique, conversion Word/Excel et plus — propulsée par CORBA, JacORB et Apache PDFBox.
           </p>
 
@@ -81,9 +81,9 @@ export default function Home() {
             }`}>
               {status === 'OK' && <span className="absolute inset-0 rounded-full bg-emerald-500 animate-pulse-dot" />}
             </span>
-            <span className="text-ink-500 font-mono">
+            <span className="text-ink-500 dark:text-ink-400 font-mono">
               {status === 'OK' ? 'Serveur CORBA en ligne' : status === 'ERROR' ? 'Serveur indisponible' : 'Vérification…'}
-              {info && <span className="text-ink-400"> · {info}</span>}
+              {info && <span className="text-ink-400 dark:text-ink-500"> · {info}</span>}
             </span>
           </div>
         </div>
@@ -94,12 +94,12 @@ export default function Home() {
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {HIGHLIGHTS.map(({ icon: Icon, title, text }) => (
             <div key={title} className="card p-5 flex gap-4 items-start animate-fade-in">
-              <div className="shrink-0 grid h-11 w-11 place-items-center rounded-xl bg-brand-50 text-brand-700 ring-1 ring-brand-100">
+              <div className="shrink-0 grid h-11 w-11 place-items-center rounded-xl bg-brand-50 text-brand-700 ring-1 ring-brand-100 dark:bg-brand-950/50 dark:text-brand-300 dark:ring-brand-800">
                 <Icon size={20} />
               </div>
               <div>
-                <p className="font-semibold text-ink-900">{title}</p>
-                <p className="text-sm text-ink-500 leading-relaxed">{text}</p>
+                <p className="font-semibold text-ink-900 dark:text-ink-100">{title}</p>
+                <p className="text-sm text-ink-500 dark:text-ink-400 leading-relaxed">{text}</p>
               </div>
             </div>
           ))}
@@ -111,7 +111,7 @@ export default function Home() {
         <div className="flex items-end justify-between mb-6">
           <div>
             <span className="eyebrow">18 modules de traitement</span>
-            <h2 className="mt-1 text-2xl sm:text-3xl font-bold font-display text-ink-900">
+            <h2 className="mt-1 text-2xl sm:text-3xl font-bold font-display text-ink-900 dark:text-ink-100">
               Services PDF disponibles
             </h2>
           </div>
@@ -126,8 +126,8 @@ export default function Home() {
       <section className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pb-16">
         <div className="card p-6 sm:p-8 flex flex-wrap items-center justify-between gap-4">
           <div>
-            <p className="font-semibold text-ink-900">Stack technique</p>
-            <p className="text-sm text-ink-500">React 18 · Vite · Tailwind · Spring Boot 3 · JacORB · PDFBox · Tess4J · Docker</p>
+            <p className="font-semibold text-ink-900 dark:text-ink-100">Stack technique</p>
+            <p className="text-sm text-ink-500 dark:text-ink-400">React 18 · Vite · Tailwind · Spring Boot 3 · JacORB · PDFBox · Tess4J · Docker</p>
           </div>
           <Link to="/create" className="btn-secondary">
             Créer un PDF à partir de texte

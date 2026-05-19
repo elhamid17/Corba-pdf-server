@@ -50,7 +50,7 @@ export default function ProtectPage() {
           <button
             type="button"
             onClick={() => setShow(s => !s)}
-            className="absolute right-3 top-1/2 -translate-y-1/2 text-ink-400 hover:text-ink-700 transition-colors"
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-ink-400 hover:text-ink-700 dark:text-ink-500 dark:hover:text-ink-200 transition-colors"
             aria-label={show ? 'Masquer' : 'Afficher'}
           >
             {show ? <EyeOff size={16} /> : <Eye size={16} />}

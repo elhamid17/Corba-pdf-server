@@ -57,10 +57,12 @@ export default function OcrPage() {
               type="button"
               onClick={() => setLanguage(l.code)}
               className={`rounded-lg border py-2.5 text-sm font-semibold transition-all ${
-                language === l.code ? 'border-brand-500 bg-brand-50 text-brand-700' : 'border-ink-200 hover:border-ink-300 text-ink-600'
+                language === l.code
+                  ? 'border-brand-500 bg-brand-50 text-brand-700 dark:bg-brand-950/50 dark:text-brand-300'
+                  : 'border-ink-200 hover:border-ink-300 text-ink-600 dark:border-ink-700 dark:hover:border-ink-600 dark:text-ink-300'
               }`}
             >
-              {l.label} <span className="text-ink-400 font-mono text-xs">{l.code}</span>
+              {l.label} <span className="text-ink-400 dark:text-ink-500 font-mono text-xs">{l.code}</span>
             </button>
           ))}
         </div>
@@ -75,7 +77,7 @@ export default function OcrPage() {
       {text && (
         <div className="mt-6">
           <div className="flex items-center justify-between mb-2">
-            <p className="text-xs font-semibold uppercase tracking-wider text-ink-500">Texte reconnu</p>
+            <p className="text-xs font-semibold uppercase tracking-wider text-ink-500 dark:text-ink-400">Texte reconnu</p>
             <button onClick={copy} className="btn-ghost py-1 px-3 text-xs">
               {copied ? <><Check size={14}/> Copié</> : <><Copy size={14}/> Copier</>}
             </button>

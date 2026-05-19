@@ -39,8 +39,8 @@ export default function CompressPage() {
         <label className="flex items-start gap-3 cursor-pointer">
           <input type="checkbox" checked={compressImages} onChange={e => setCompressImages(e.target.checked)} className="h-4 w-4 mt-0.5 rounded text-brand-600 focus:ring-brand-500/30" />
           <div>
-            <p className="text-sm font-medium text-ink-800">Compresser les images</p>
-            <p className="text-xs text-ink-500">Réduit la qualité des images embarquées selon le pourcentage choisi.</p>
+            <p className="text-sm font-medium text-ink-800 dark:text-ink-100">Compresser les images</p>
+            <p className="text-xs text-ink-500 dark:text-ink-400">Réduit la qualité des images embarquées selon le pourcentage choisi.</p>
           </div>
         </label>
 
@@ -53,7 +53,7 @@ export default function CompressPage() {
             disabled={!compressImages}
             className="w-full accent-brand-600 disabled:opacity-40"
           />
-          <div className="flex justify-between text-xs text-ink-400 mt-1">
+          <div className="flex justify-between text-xs text-ink-400 dark:text-ink-500 mt-1">
             <span>Forte compression</span>
             <span>Qualité maximale</span>
           </div>
@@ -62,8 +62,8 @@ export default function CompressPage() {
         <label className="flex items-start gap-3 cursor-pointer">
           <input type="checkbox" checked={removeMetadata} onChange={e => setRemoveMetadata(e.target.checked)} className="h-4 w-4 mt-0.5 rounded text-brand-600 focus:ring-brand-500/30" />
           <div>
-            <p className="text-sm font-medium text-ink-800">Supprimer les métadonnées</p>
-            <p className="text-xs text-ink-500">Auteur, titre, dates, logiciel d’origine.</p>
+            <p className="text-sm font-medium text-ink-800 dark:text-ink-100">Supprimer les métadonnées</p>
+            <p className="text-xs text-ink-500 dark:text-ink-400">Auteur, titre, dates, logiciel d’origine.</p>
           </div>
         </label>
       </div>

@@ -52,14 +52,14 @@ export default function MetadataPage() {
       </div>
 
       {meta && (
-        <dl className="mt-6 grid sm:grid-cols-2 gap-x-6 gap-y-3 rounded-xl bg-ink-50/60 p-5 ring-1 ring-ink-200/70">
+        <dl className="mt-6 grid sm:grid-cols-2 gap-x-6 gap-y-3 rounded-xl bg-ink-50/60 dark:bg-ink-800/40 p-5 ring-1 ring-ink-200/70 dark:ring-ink-700/70">
           {Object.entries(LABELS).map(([k, label]) => (
             <div key={k} className="min-w-0">
-              <dt className="text-xs font-semibold uppercase tracking-wider text-ink-500">{label}</dt>
-              <dd className="mt-0.5 text-sm font-medium text-ink-900 truncate">
+              <dt className="text-xs font-semibold uppercase tracking-wider text-ink-500 dark:text-ink-400">{label}</dt>
+              <dd className="mt-0.5 text-sm font-medium text-ink-900 dark:text-ink-100 truncate">
                 {meta[k] !== undefined && meta[k] !== null && meta[k] !== ''
                   ? String(meta[k])
-                  : <span className="text-ink-400 italic">—</span>}
+                  : <span className="text-ink-400 dark:text-ink-500 italic">—</span>}
               </dd>
             </div>
           ))}

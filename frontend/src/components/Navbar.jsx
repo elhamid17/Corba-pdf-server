@@ -4,8 +4,10 @@ import {
   Layers, Scissors, FileMinus, FileSearch, Archive, RotateCw,
   Droplets, Lock, Image as ImageIcon, FileText, ScanText, PenTool,
   Info, Plus, Github, Wand2, Menu, X, FileType2, Sheet, Images,
+  Sun, Moon, Monitor,
 } from 'lucide-react'
 import { ping } from '../api/pdfApi'
+import { useTheme } from '../hooks/useTheme'
 
 /**
  * Services organisés par catégorie — partagés entre Navbar et Home.
@@ -88,7 +90,11 @@ export default function Navbar() {
 
   return (
     <>
-      <header className={`sticky top-0 z-40 transition-all ${scrolled ? 'backdrop-blur bg-white/85 border-b border-ink-200/70 shadow-card' : 'bg-transparent'}`}>
+      <header className={`sticky top-0 z-40 transition-all ${
+        scrolled
+          ? 'backdrop-blur bg-white/85 dark:bg-ink-950/85 border-b border-ink-200/70 dark:border-ink-800/70 shadow-card'
+          : 'bg-transparent'
+      }`}>
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="flex h-16 items-center justify-between gap-3">
             {/* Hamburger + Logo */}
@@ -97,7 +103,7 @@ export default function Navbar() {
                 type="button"
                 onClick={() => setOpen(true)}
                 aria-label="Ouvrir le menu des services"
-                className="grid place-items-center h-10 w-10 rounded-lg text-ink-700 hover:bg-ink-100 transition-colors"
+                className="grid place-items-center h-10 w-10 rounded-lg text-ink-700 hover:bg-ink-100 dark:text-ink-200 dark:hover:bg-ink-800 transition-colors"
               >
                 <Menu size={22} strokeWidth={2.2} />
               </button>
@@ -106,8 +112,8 @@ export default function Navbar() {
                 <span className="grid place-items-center h-9 w-9 rounded-xl bg-gradient-to-br from-brand-600 to-accent-500 text-white shadow-glow group-hover:scale-105 transition-transform">
                   <Wand2 size={18} strokeWidth={2.5} />
                 </span>
-                <span className="font-display font-extrabold text-lg text-ink-900 tracking-tight whitespace-nowrap">
-                  CORBA <span className="text-brand-600">PDF</span>
+                <span className="font-display font-extrabold text-lg text-ink-900 dark:text-ink-100 tracking-tight whitespace-nowrap">
+                  CORBA <span className="text-brand-600 dark:text-brand-400">PDF</span>
                 </span>
                 <span className="hidden md:inline-flex badge-info -ml-1">Suite</span>
               </Link>
@@ -121,7 +127,9 @@ export default function Navbar() {
                   to={l.to}
                   className={({ isActive }) =>
                     `px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
-                      isActive ? 'bg-brand-50 text-brand-700' : 'text-ink-600 hover:bg-ink-100 hover:text-ink-900'
+                      isActive
+                        ? 'bg-brand-50 text-brand-700 dark:bg-brand-950/50 dark:text-brand-300'
+                        : 'text-ink-600 hover:bg-ink-100 hover:text-ink-900 dark:text-ink-300 dark:hover:bg-ink-800 dark:hover:text-ink-100'
                     }`
                   }
                 >
@@ -130,9 +138,10 @@ export default function Navbar() {
               ))}
             </nav>
 
-            {/* Statut serveur */}
-            <div className="flex items-center gap-3 shrink-0">
+            {/* Statut serveur + theme + github */}
+            <div className="flex items-center gap-2 sm:gap-3 shrink-0">
               <StatusPill status={status} />
+              <ThemeToggle />
               <a
                 href="https://github.com"
                 target="_blank" rel="noreferrer"
@@ -158,7 +167,7 @@ function DrawerMenu({ open, onClose }) {
       {/* Backdrop */}
       <div
         onClick={onClose}
-        className={`fixed inset-0 z-50 bg-ink-900/50 backdrop-blur-sm transition-opacity ${
+        className={`fixed inset-0 z-50 bg-ink-900/50 dark:bg-black/70 backdrop-blur-sm transition-opacity ${
           open ? 'opacity-100' : 'opacity-0 pointer-events-none'
         }`}
         aria-hidden="true"
@@ -166,22 +175,22 @@ function DrawerMenu({ open, onClose }) {
 
       {/* Panel */}
       <aside
-        className={`fixed top-0 left-0 z-50 h-full w-[88%] max-w-sm bg-white shadow-2xl flex flex-col transition-transform duration-300 ${
+        className={`fixed top-0 left-0 z-50 h-full w-[88%] max-w-sm bg-white dark:bg-ink-900 shadow-2xl flex flex-col transition-transform duration-300 ${
           open ? 'translate-x-0' : '-translate-x-full'
         }`}
         role="dialog"
         aria-label="Menu des services"
       >
-        <div className="flex items-center justify-between px-5 py-4 border-b border-ink-100">
+        <div className="flex items-center justify-between px-5 py-4 border-b border-ink-100 dark:border-ink-800">
           <div className="flex items-center gap-2.5">
             <span className="grid place-items-center h-9 w-9 rounded-xl bg-gradient-to-br from-brand-600 to-accent-500 text-white shadow-glow">
               <Wand2 size={18} strokeWidth={2.5} />
             </span>
             <div>
-              <p className="font-display font-extrabold text-base text-ink-900 leading-none">
+              <p className="font-display font-extrabold text-base text-ink-900 dark:text-ink-100 leading-none">
                 Tous les services
               </p>
-              <p className="text-xs text-ink-500 mt-0.5">
+              <p className="text-xs text-ink-500 dark:text-ink-400 mt-0.5">
                 {ALL_SERVICES.length} outils PDF
               </p>
             </div>
@@ -190,7 +199,7 @@ function DrawerMenu({ open, onClose }) {
             type="button"
             onClick={onClose}
             aria-label="Fermer"
-            className="grid place-items-center h-9 w-9 rounded-lg text-ink-500 hover:text-ink-900 hover:bg-ink-100 transition-colors"
+            className="grid place-items-center h-9 w-9 rounded-lg text-ink-500 hover:text-ink-900 hover:bg-ink-100 dark:text-ink-400 dark:hover:text-ink-100 dark:hover:bg-ink-800 transition-colors"
           >
             <X size={20} />
           </button>
@@ -199,7 +208,7 @@ function DrawerMenu({ open, onClose }) {
         <nav className="flex-1 overflow-y-auto px-3 py-4 space-y-5">
           {SERVICE_GROUPS.map(group => (
             <div key={group.title}>
-              <p className="px-3 mb-1.5 text-[11px] font-semibold uppercase tracking-wider text-ink-400">
+              <p className="px-3 mb-1.5 text-[11px] font-semibold uppercase tracking-wider text-ink-400 dark:text-ink-500">
                 {group.title}
               </p>
               <ul className="space-y-0.5">
@@ -213,8 +222,8 @@ function DrawerMenu({ open, onClose }) {
                         className={({ isActive }) =>
                           `flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
                             isActive
-                              ? 'bg-brand-50 text-brand-700'
-                              : 'text-ink-700 hover:bg-ink-100'
+                              ? 'bg-brand-50 text-brand-700 dark:bg-brand-950/50 dark:text-brand-300'
+                              : 'text-ink-700 hover:bg-ink-100 dark:text-ink-300 dark:hover:bg-ink-800'
                           }`
                         }
                       >
@@ -229,7 +238,7 @@ function DrawerMenu({ open, onClose }) {
           ))}
         </nav>
 
-        <div className="px-5 py-3 border-t border-ink-100 text-xs text-ink-500">
+        <div className="px-5 py-3 border-t border-ink-100 dark:border-ink-800 text-xs text-ink-500 dark:text-ink-400">
           CORBA PDF Suite — USSEIN
         </div>
       </aside>
@@ -239,18 +248,45 @@ function DrawerMenu({ open, onClose }) {
 
 function StatusPill({ status }) {
   const cfg = {
-    online:   { dot: 'bg-emerald-500', text: 'Opérationnel', ring: 'ring-emerald-200' },
-    degraded: { dot: 'bg-amber-500',   text: 'Dégradé',      ring: 'ring-amber-200'   },
-    offline:  { dot: 'bg-rose-500',    text: 'Hors ligne',   ring: 'ring-rose-200'    },
-    checking: { dot: 'bg-ink-400',     text: 'Vérification', ring: 'ring-ink-200'     },
-  }[status] || { dot: 'bg-ink-400', text: '—', ring: 'ring-ink-200' }
+    online:   { dot: 'bg-emerald-500', text: 'Opérationnel', ring: 'ring-emerald-200 dark:ring-emerald-800' },
+    degraded: { dot: 'bg-amber-500',   text: 'Dégradé',      ring: 'ring-amber-200 dark:ring-amber-800'   },
+    offline:  { dot: 'bg-rose-500',    text: 'Hors ligne',   ring: 'ring-rose-200 dark:ring-rose-800'    },
+    checking: { dot: 'bg-ink-400',     text: 'Vérification', ring: 'ring-ink-200 dark:ring-ink-700'     },
+  }[status] || { dot: 'bg-ink-400', text: '—', ring: 'ring-ink-200 dark:ring-ink-700' }
 
   return (
-    <span className={`inline-flex items-center gap-2 rounded-full bg-white px-2.5 sm:px-3 py-1 text-xs font-semibold text-ink-700 ring-1 ${cfg.ring} shadow-card`}>
+    <span className={`inline-flex items-center gap-2 rounded-full bg-white dark:bg-ink-900 px-2.5 sm:px-3 py-1 text-xs font-semibold text-ink-700 dark:text-ink-200 ring-1 ${cfg.ring} shadow-card`}>
       <span className={`relative inline-flex h-2 w-2 ${cfg.dot} rounded-full`}>
         {status === 'online' && <span className={`absolute inset-0 ${cfg.dot} rounded-full animate-pulse-dot`} />}
       </span>
       <span className="hidden sm:inline">{cfg.text}</span>
     </span>
+  )
+}
+
+/**
+ * Bouton 3 etats : light -> dark -> auto -> light...
+ * L'icone affichee correspond au mode actif (auto = Monitor).
+ */
+function ThemeToggle() {
+  const { theme, setTheme } = useTheme()
+  const next = { light: 'dark', dark: 'auto', auto: 'light' }[theme] || 'light'
+  const Icon = { light: Sun, dark: Moon, auto: Monitor }[theme] || Sun
+  const labels = {
+    light: 'Theme clair — cliquer pour passer en sombre',
+    dark:  'Theme sombre — cliquer pour suivre le systeme',
+    auto:  'Theme automatique — cliquer pour passer en clair',
+  }
+
+  return (
+    <button
+      type="button"
+      onClick={() => setTheme(next)}
+      aria-label={labels[theme]}
+      title={labels[theme]}
+      className="grid place-items-center h-9 w-9 rounded-lg text-ink-600 hover:bg-ink-100 dark:text-ink-300 dark:hover:bg-ink-800 transition-colors"
+    >
+      <Icon size={18} />
+    </button>
   )
 }

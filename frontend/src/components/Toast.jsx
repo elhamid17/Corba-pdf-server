@@ -45,10 +45,10 @@ function ToastItem({ toast, onClose }) {
   }, [toast.duration, onClose])
 
   const cfg = {
-    success: { icon: CheckCircle2, cls: 'border-emerald-200 bg-white text-ink-800', iconCls: 'text-emerald-600' },
-    error:   { icon: AlertTriangle,cls: 'border-rose-200 bg-white text-ink-800',    iconCls: 'text-rose-600'    },
-    info:    { icon: Info,          cls: 'border-brand-200 bg-white text-ink-800',  iconCls: 'text-brand-600'   },
-  }[toast.type] || { icon: Info, cls: 'border-ink-200 bg-white text-ink-800', iconCls: 'text-ink-500' }
+    success: { icon: CheckCircle2,  cls: 'border-emerald-200 bg-white text-ink-800 dark:border-emerald-800 dark:bg-ink-900 dark:text-ink-100', iconCls: 'text-emerald-600 dark:text-emerald-400' },
+    error:   { icon: AlertTriangle, cls: 'border-rose-200 bg-white text-ink-800 dark:border-rose-800 dark:bg-ink-900 dark:text-ink-100',       iconCls: 'text-rose-600 dark:text-rose-400'    },
+    info:    { icon: Info,          cls: 'border-brand-200 bg-white text-ink-800 dark:border-brand-800 dark:bg-ink-900 dark:text-ink-100',     iconCls: 'text-brand-600 dark:text-brand-400'   },
+  }[toast.type] || { icon: Info, cls: 'border-ink-200 bg-white text-ink-800 dark:border-ink-700 dark:bg-ink-900 dark:text-ink-100', iconCls: 'text-ink-500 dark:text-ink-400' }
 
   const Icon = cfg.icon
 
@@ -56,7 +56,7 @@ function ToastItem({ toast, onClose }) {
     <div className={`pointer-events-auto flex items-start gap-3 rounded-xl border px-4 py-3 shadow-card animate-slide-up ${cfg.cls}`}>
       <Icon className={`shrink-0 mt-0.5 ${cfg.iconCls}`} size={18} />
       <p className="flex-1 text-sm leading-snug">{toast.text}</p>
-      <button onClick={onClose} className="text-ink-400 hover:text-ink-700 transition-colors">
+      <button onClick={onClose} className="text-ink-400 hover:text-ink-700 dark:text-ink-500 dark:hover:text-ink-200 transition-colors">
         <X size={16} />
       </button>
     </div>

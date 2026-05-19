@@ -2,12 +2,12 @@ import { Link } from 'react-router-dom'
 import { ArrowUpRight } from 'lucide-react'
 
 const TONES = {
-  brand:   { iconBg: 'from-brand-500/15 to-brand-500/0',   icon: 'text-brand-600',   ring: 'group-hover:ring-brand-200' },
-  cyan:    { iconBg: 'from-accent-500/15 to-accent-500/0', icon: 'text-accent-600',  ring: 'group-hover:ring-accent-400/40' },
-  emerald: { iconBg: 'from-emerald-500/15 to-emerald-500/0', icon: 'text-emerald-600', ring: 'group-hover:ring-emerald-200' },
-  amber:   { iconBg: 'from-amber-500/15 to-amber-500/0',   icon: 'text-amber-600',   ring: 'group-hover:ring-amber-200' },
-  rose:    { iconBg: 'from-rose-500/15 to-rose-500/0',     icon: 'text-rose-600',    ring: 'group-hover:ring-rose-200' },
-  violet:  { iconBg: 'from-violet-500/15 to-violet-500/0', icon: 'text-violet-600',  ring: 'group-hover:ring-violet-200' },
+  brand:   { iconBg: 'from-brand-500/15 to-brand-500/0',     icon: 'text-brand-600 dark:text-brand-400',     ring: 'group-hover:ring-brand-200 dark:group-hover:ring-brand-700' },
+  cyan:    { iconBg: 'from-accent-500/15 to-accent-500/0',   icon: 'text-accent-600 dark:text-accent-400',   ring: 'group-hover:ring-accent-400/40 dark:group-hover:ring-accent-500/40' },
+  emerald: { iconBg: 'from-emerald-500/15 to-emerald-500/0', icon: 'text-emerald-600 dark:text-emerald-400', ring: 'group-hover:ring-emerald-200 dark:group-hover:ring-emerald-700' },
+  amber:   { iconBg: 'from-amber-500/15 to-amber-500/0',     icon: 'text-amber-600 dark:text-amber-400',     ring: 'group-hover:ring-amber-200 dark:group-hover:ring-amber-700' },
+  rose:    { iconBg: 'from-rose-500/15 to-rose-500/0',       icon: 'text-rose-600 dark:text-rose-400',       ring: 'group-hover:ring-rose-200 dark:group-hover:ring-rose-700' },
+  violet:  { iconBg: 'from-violet-500/15 to-violet-500/0',   icon: 'text-violet-600 dark:text-violet-400',   ring: 'group-hover:ring-violet-200 dark:group-hover:ring-violet-700' },
 }
 
 export default function ServiceCard({ icon: Icon, title, description, to, tone = 'brand', badge }) {
@@ -21,13 +21,13 @@ export default function ServiceCard({ icon: Icon, title, description, to, tone =
         <div className={`grid h-11 w-11 place-items-center rounded-xl bg-gradient-to-br ${t.iconBg}`}>
           <Icon className={t.icon} size={22} strokeWidth={2} />
         </div>
-        <ArrowUpRight className="text-ink-300 group-hover:text-brand-600 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-all" size={18} />
+        <ArrowUpRight className="text-ink-300 dark:text-ink-600 group-hover:text-brand-600 dark:group-hover:text-brand-400 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-all" size={18} />
       </div>
-      <h3 className="font-display font-bold text-ink-900 text-base mb-1">
+      <h3 className="font-display font-bold text-ink-900 dark:text-ink-100 text-base mb-1">
         {title}
         {badge && <span className="ml-2 badge-info text-[10px] py-0">{badge}</span>}
       </h3>
-      <p className="text-sm text-ink-500 leading-relaxed">{description}</p>
+      <p className="text-sm text-ink-500 dark:text-ink-400 leading-relaxed">{description}</p>
     </Link>
   )
 }

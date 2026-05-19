@@ -11,18 +11,20 @@
     text-rendering: optimizeLegibility;
   }
   body {
-    @apply bg-ink-50 text-ink-900 font-sans antialiased;
+    @apply bg-ink-50 text-ink-900 font-sans antialiased
+           dark:bg-ink-950 dark:text-ink-100;
     font-feature-settings: 'cv11', 'ss01', 'ss03';
   }
   h1, h2, h3, h4 { @apply font-display tracking-tight; }
   /* Scrollbar fin et discret */
   ::-webkit-scrollbar          { width: 10px; height: 10px; }
   ::-webkit-scrollbar-track    { background: transparent; }
-  ::-webkit-scrollbar-thumb    { @apply bg-ink-200 rounded-full; }
-  ::-webkit-scrollbar-thumb:hover { @apply bg-ink-300; }
+  ::-webkit-scrollbar-thumb    { @apply bg-ink-200 rounded-full dark:bg-ink-700; }
+  ::-webkit-scrollbar-thumb:hover { @apply bg-ink-300 dark:bg-ink-600; }
   /* Focus ring uniforme */
   :focus-visible {
-    @apply outline-none ring-2 ring-brand-500/40 ring-offset-2 ring-offset-white rounded-md;
+    @apply outline-none ring-2 ring-brand-500/40 ring-offset-2 ring-offset-white rounded-md
+           dark:ring-offset-ink-950;
   }
 }
 
@@ -36,14 +38,18 @@
   .btn-primary {
     @apply btn bg-brand-600 text-white shadow-sm
            hover:bg-brand-700 hover:shadow-glow
-           active:translate-y-px;
+           active:translate-y-px
+           dark:bg-brand-500 dark:hover:bg-brand-400;
   }
   .btn-secondary {
     @apply btn bg-white text-ink-700 border border-ink-200
-           hover:bg-ink-50 hover:border-ink-300;
+           hover:bg-ink-50 hover:border-ink-300
+           dark:bg-ink-900 dark:text-ink-200 dark:border-ink-700
+           dark:hover:bg-ink-800 dark:hover:border-ink-600;
   }
   .btn-ghost {
-    @apply btn text-ink-600 hover:bg-ink-100;
+    @apply btn text-ink-600 hover:bg-ink-100
+           dark:text-ink-300 dark:hover:bg-ink-800;
   }
 
   /* ─── Champs de formulaire ─── */
@@ -52,18 +58,24 @@
            text-ink-900 placeholder:text-ink-400
            transition-all duration-150
            hover:border-ink-300
-           focus:border-brand-500 focus:ring-4 focus:ring-brand-500/15 focus:outline-none;
+           focus:border-brand-500 focus:ring-4 focus:ring-brand-500/15 focus:outline-none
+           dark:bg-ink-900 dark:border-ink-700 dark:text-ink-100
+           dark:placeholder:text-ink-500 dark:hover:border-ink-600
+           dark:focus:border-brand-400 dark:focus:ring-brand-400/20;
   }
   .field-label {
-    @apply block mb-1.5 text-xs font-semibold uppercase tracking-wider text-ink-500;
+    @apply block mb-1.5 text-xs font-semibold uppercase tracking-wider text-ink-500
+           dark:text-ink-400;
   }
 
   /* ─── Carte de surface ─── */
   .card {
-    @apply rounded-2xl bg-white border border-ink-200/70 shadow-card;
+    @apply rounded-2xl bg-white border border-ink-200/70 shadow-card
+           dark:bg-ink-900 dark:border-ink-800/70;
   }
   .card-hover {
-    @apply transition-all duration-200 hover:-translate-y-0.5 hover:shadow-cardHover hover:border-brand-200;
+    @apply transition-all duration-200 hover:-translate-y-0.5 hover:shadow-cardHover hover:border-brand-200
+           dark:hover:border-brand-500/40;
   }
 
   /* ─── Badges ─── */
@@ -71,18 +83,39 @@
     @apply inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5
            text-xs font-medium ring-1 ring-inset;
   }
-  .badge-success { @apply badge bg-emerald-50 text-emerald-700 ring-emerald-200; }
-  .badge-error   { @apply badge bg-rose-50    text-rose-700    ring-rose-200;   }
-  .badge-warn    { @apply badge bg-amber-50   text-amber-700   ring-amber-200;  }
-  .badge-info    { @apply badge bg-brand-50   text-brand-700   ring-brand-200;  }
+  .badge-success {
+    @apply badge bg-emerald-50 text-emerald-700 ring-emerald-200
+           dark:bg-emerald-950/40 dark:text-emerald-300 dark:ring-emerald-800;
+  }
+  .badge-error {
+    @apply badge bg-rose-50 text-rose-700 ring-rose-200
+           dark:bg-rose-950/40 dark:text-rose-300 dark:ring-rose-800;
+  }
+  .badge-warn {
+    @apply badge bg-amber-50 text-amber-700 ring-amber-200
+           dark:bg-amber-950/40 dark:text-amber-300 dark:ring-amber-800;
+  }
+  .badge-info {
+    @apply badge bg-brand-50 text-brand-700 ring-brand-200
+           dark:bg-brand-950/40 dark:text-brand-300 dark:ring-brand-800;
+  }
 
   /* ─── Alerts ─── */
   .alert {
     @apply rounded-xl border px-4 py-3 text-sm font-medium animate-fade-in;
   }
-  .alert-success { @apply alert bg-emerald-50/80 border-emerald-200 text-emerald-800; }
-  .alert-error   { @apply alert bg-rose-50/80    border-rose-200    text-rose-800;    }
-  .alert-info    { @apply alert bg-brand-50/80   border-brand-200   text-brand-800;   }
+  .alert-success {
+    @apply alert bg-emerald-50/80 border-emerald-200 text-emerald-800
+           dark:bg-emerald-950/40 dark:border-emerald-800 dark:text-emerald-200;
+  }
+  .alert-error {
+    @apply alert bg-rose-50/80 border-rose-200 text-rose-800
+           dark:bg-rose-950/40 dark:border-rose-800 dark:text-rose-200;
+  }
+  .alert-info {
+    @apply alert bg-brand-50/80 border-brand-200 text-brand-800
+           dark:bg-brand-950/40 dark:border-brand-800 dark:text-brand-200;
+  }
 
   /* ─── Loader shimmer ─── */
   .shimmer {
@@ -93,7 +126,8 @@
 
   /* Section header */
   .eyebrow {
-    @apply inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.18em] text-brand-600;
+    @apply inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.18em] text-brand-600
+           dark:text-brand-400;
   }
 }
 

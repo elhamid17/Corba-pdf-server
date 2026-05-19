@@ -67,8 +67,8 @@ export default function WatermarkPage() {
         <label className="flex items-start gap-3 cursor-pointer">
           <input type="checkbox" checked={diagonal} onChange={e => setDiagonal(e.target.checked)} className="h-4 w-4 mt-0.5 rounded text-brand-600 focus:ring-brand-500/30" />
           <div>
-            <p className="text-sm font-medium text-ink-800">Filigrane en diagonale</p>
-            <p className="text-xs text-ink-500">Décochez pour un filigrane horizontal classique.</p>
+            <p className="text-sm font-medium text-ink-800 dark:text-ink-100">Filigrane en diagonale</p>
+            <p className="text-xs text-ink-500 dark:text-ink-400">Décochez pour un filigrane horizontal classique.</p>
           </div>
         </label>
       </div>

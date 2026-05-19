@@ -47,7 +47,9 @@ export default function ConvertPage() {
                 type="button"
                 onClick={() => setFormat(f)}
                 className={`rounded-lg border py-2 text-sm font-semibold transition-all ${
-                  format === f ? 'border-brand-500 bg-brand-50 text-brand-700' : 'border-ink-200 hover:border-ink-300 text-ink-600'
+                  format === f
+                    ? 'border-brand-500 bg-brand-50 text-brand-700 dark:bg-brand-950/50 dark:text-brand-300'
+                    : 'border-ink-200 hover:border-ink-300 text-ink-600 dark:border-ink-700 dark:hover:border-ink-600 dark:text-ink-300'
                 }`}
               >{f}</button>
             ))}
@@ -62,7 +64,9 @@ export default function ConvertPage() {
                 type="button"
                 onClick={() => setDpi(d)}
                 className={`rounded-lg border py-2 text-sm font-semibold transition-all ${
-                  dpi === d ? 'border-brand-500 bg-brand-50 text-brand-700' : 'border-ink-200 hover:border-ink-300 text-ink-600'
+                  dpi === d
+                    ? 'border-brand-500 bg-brand-50 text-brand-700 dark:bg-brand-950/50 dark:text-brand-300'
+                    : 'border-ink-200 hover:border-ink-300 text-ink-600 dark:border-ink-700 dark:hover:border-ink-600 dark:text-ink-300'
                 }`}
               >{d}</button>
             ))}

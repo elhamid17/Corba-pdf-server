@@ -54,19 +54,19 @@ export default function RotatePage() {
               onClick={() => setAngle(a.value)}
               className={`rounded-xl border p-3 text-left transition-all ${
                 angle === a.value
-                  ? 'border-brand-500 bg-brand-50/70 ring-2 ring-brand-500/20'
-                  : 'border-ink-200 hover:border-ink-300'
+                  ? 'border-brand-500 bg-brand-50/70 ring-2 ring-brand-500/20 dark:bg-brand-950/40'
+                  : 'border-ink-200 hover:border-ink-300 dark:border-ink-700 dark:hover:border-ink-600'
               }`}
             >
-              <p className="font-bold text-ink-900">{a.label}</p>
-              <p className="text-xs text-ink-500">{a.desc}</p>
+              <p className="font-bold text-ink-900 dark:text-ink-100">{a.label}</p>
+              <p className="text-xs text-ink-500 dark:text-ink-400">{a.desc}</p>
             </button>
           ))}
         </div>
       </div>
 
       <div className="mt-6">
-        <label className="field-label">Pages spécifiques <span className="text-ink-400 normal-case tracking-normal">(optionnel)</span></label>
+        <label className="field-label">Pages spécifiques <span className="text-ink-400 dark:text-ink-500 normal-case tracking-normal">(optionnel)</span></label>
         <input
           value={pages}
           onChange={e => setPages(e.target.value)}
