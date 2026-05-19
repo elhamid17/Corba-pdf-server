@@ -49,25 +49,34 @@ public class WordToPdfHandler {
 
             List<String> lines = new ArrayList<>();
             for (XWPFParagraph p : word.getParagraphs()) {
-                String text = p.getText();
-                if (text == null || text.isEmpty()) {
+                String raw = p.getText();
+                if (raw == null || raw.isEmpty()) {
                     lines.add("");
                     continue;
                 }
-                // Découpage des lignes trop longues
-                String[] words = text.split(" ");
-                StringBuilder current = new StringBuilder();
-                for (String w : words) {
-                    String test = current.length() == 0 ? w : current + " " + w;
-                    float testWidth = font.getStringWidth(test) / 1000 * FONT_SIZE;
-                    if (testWidth > maxWidth && current.length() > 0) {
-                        lines.add(current.toString());
-                        current = new StringBuilder(w);
-                    } else {
-                        current = new StringBuilder(test);
+                // Un paragraphe DOCX peut contenir des \n / \r / \t — on les
+                // traite comme des sauts de ligne ou des espaces avant tout
+                // calcul (PDFBox/Helvetica rejette ces caracteres de controle).
+                for (String rawLine : raw.split("\\r?\\n")) {
+                    String text = sanitize(rawLine.replace('\t', ' ')).trim();
+                    if (text.isEmpty()) {
+                        lines.add("");
+                        continue;
                     }
+                    String[] words = text.split(" +");
+                    StringBuilder current = new StringBuilder();
+                    for (String w : words) {
+                        String test = current.length() == 0 ? w : current + " " + w;
+                        float testWidth = font.getStringWidth(test) / 1000 * FONT_SIZE;
+                        if (testWidth > maxWidth && current.length() > 0) {
+                            lines.add(current.toString());
+                            current = new StringBuilder(w);
+                        } else {
+                            current = new StringBuilder(test);
+                        }
+                    }
+                    if (current.length() > 0) lines.add(current.toString());
                 }
-                if (current.length() > 0) lines.add(current.toString());
             }
 
             float y = pageHeight - MARGIN;
@@ -113,9 +122,11 @@ public class WordToPdfHandler {
     }
 
     private static String sanitize(String s) {
-        // Helvetica ne supporte que le jeu WinAnsi — on remplace les caractères hors plage par ?
+        // Helvetica ne supporte que le jeu WinAnsi — on remplace les caracteres hors plage par ?
+        // et on filtre les caracteres de controle (sauf espace) que PDFBox refuse.
         StringBuilder sb = new StringBuilder(s.length());
         for (char c : s.toCharArray()) {
+            if (c < 0x20 || c == 0x7F) continue;     // controles ASCII
             sb.append(c < 0x100 ? c : '?');
         }
         return sb.toString();
