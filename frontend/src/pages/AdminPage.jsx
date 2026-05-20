@@ -20,20 +20,23 @@ function AdminShell({ children, tab, setTab, user }) {
     <div className="min-h-[calc(100vh-4rem)] bg-ink-50 dark:bg-ink-950">
       {/* Bandeau admin sombre */}
       <header className="bg-gradient-to-br from-ink-900 to-ink-800 dark:from-black dark:to-ink-900 text-white">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-6">
-          <div className="flex items-center gap-3">
-            <span className="grid place-items-center h-11 w-11 rounded-xl bg-gradient-to-br from-accent-500 to-rose-500 shadow-glow">
-              <Shield size={22} strokeWidth={2.4} />
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-5 sm:py-6">
+          <div className="flex items-start sm:items-center gap-3">
+            <span className="shrink-0 grid place-items-center h-10 w-10 sm:h-11 sm:w-11 rounded-xl bg-gradient-to-br from-accent-500 to-rose-500 shadow-glow">
+              <Shield size={20} strokeWidth={2.4} />
             </span>
             <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-2">
-                <h1 className="text-2xl font-extrabold font-display tracking-tight">Console administrateur</h1>
-                <span className="inline-flex items-center gap-1 rounded-full bg-rose-500/20 text-rose-200 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider">
+              <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+                <h1 className="text-xl sm:text-2xl font-extrabold font-display tracking-tight">
+                  Console administrateur
+                </h1>
+                <span className="inline-flex items-center gap-1 rounded-full bg-rose-500/20 text-rose-200 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider whitespace-nowrap">
                   <Shield size={10} /> Admin
                 </span>
               </div>
-              <p className="mt-0.5 text-sm text-ink-300">
-                Connecte en tant que <span className="font-medium text-white">{user?.username || '—'}</span> — gerez utilisateurs, jobs et statistiques globales.
+              <p className="mt-0.5 text-xs sm:text-sm text-ink-300">
+                Connecte en tant que <span className="font-medium text-white">{user?.username || '—'}</span>
+                <span className="hidden sm:inline"> — gerez utilisateurs, jobs et statistiques globales.</span>
               </p>
             </div>
           </div>
@@ -251,16 +254,17 @@ function UsersTab() {
   return (
     <div className="space-y-4">
       <div className="flex items-center gap-2">
-        <div className="relative flex-1">
+        <div className="relative flex-1 min-w-0">
           <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-ink-400" />
           <input
             value={search}
             onChange={e => { setSearch(e.target.value); setPage(0) }}
-            className="field pl-9 h-10"
-            placeholder="Rechercher par email ou nom d'utilisateur…"
+            className="field pl-9 h-10 w-full"
+            placeholder="Rechercher…"
+            aria-label="Rechercher par email ou nom d'utilisateur"
           />
         </div>
-        <button type="button" onClick={load} className="btn-ghost h-10 px-3 text-sm">
+        <button type="button" onClick={load} className="shrink-0 btn-ghost h-10 px-3 text-sm">
           <RefreshCw size={14} className={loading ? 'animate-spin' : ''} />
         </button>
       </div>
@@ -417,7 +421,9 @@ function JobsTab() {
                     <span className="text-xs text-ink-400">invite {j.guestId?.slice(0, 8) || '—'}</span>
                   )}
                 </td>
-                <td className="py-2 pr-3 text-ink-600 dark:text-ink-300 truncate max-w-[200px]">{j.outputFilename || '—'}</td>
+                <td className="py-2 pr-3 text-ink-600 dark:text-ink-300 max-w-[200px]">
+                  <span className="block truncate" title={j.outputFilename}>{j.outputFilename || '—'}</span>
+                </td>
                 <td className="py-2 pr-3 text-ink-700 dark:text-ink-200">{formatBytes(j.resultSizeBytes)}</td>
                 <td className="py-2 pr-3">
                   <StatusBadge status={j.status} />

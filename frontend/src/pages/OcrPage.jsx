@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { ScanText, Copy, Check } from 'lucide-react'
+import { ScanText, Copy, Check, AlertTriangle } from 'lucide-react'
 import DropZone from '../components/DropZone'
 import ToolPage from '../components/ToolPage'
 import SubmitButton from '../components/SubmitButton'
@@ -46,6 +46,14 @@ export default function OcrPage() {
       title="Reconnaissance optique (OCR)"
       subtitle="Extrayez le texte d’un PDF scanné grâce à Tesseract / Tess4J."
     >
+      <div className="mb-4 flex items-start gap-2.5 rounded-xl border border-amber-200 dark:border-amber-800 bg-amber-50/60 dark:bg-amber-950/30 p-3 text-sm">
+        <AlertTriangle size={16} className="shrink-0 mt-0.5 text-amber-600 dark:text-amber-400" />
+        <div className="text-ink-700 dark:text-ink-200">
+          L'OCR est lent (~5-10s par page) et limite à <strong>30 pages</strong> max.
+          Pour un long document, découpez-le d'abord via l'outil <strong>Découpage</strong>.
+        </div>
+      </div>
+
       <DropZone onFiles={setFiles} label="Déposez votre PDF scanné" />
 
       <div className="mt-6">
