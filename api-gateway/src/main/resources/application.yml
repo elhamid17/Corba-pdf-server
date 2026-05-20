@@ -23,7 +23,9 @@ spring:
     mongodb:
       uri: ${MONGO_URI:mongodb://${MONGO_USER:corba}:${MONGO_PASSWORD:corba_dev_pwd}@${MONGO_HOST:localhost}:${MONGO_PORT:27017}/${MONGO_DB:corba_pdf}?authSource=admin}
       database: ${MONGO_DB:corba_pdf}
-      auto-index-creation: true
+      # Cree les indexes a la 1ere utilisation au lieu du startup ; evite
+      # de bloquer le boot si la connexion Atlas est lente (Render free tier).
+      auto-index-creation: false
 
 # ── Configuration CORBA ──
 corba:
