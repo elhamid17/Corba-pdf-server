@@ -11,13 +11,17 @@ COPY pom.xml ./
 COPY corba-idl ./corba-idl
 COPY corba-server ./corba-server
 COPY api-gateway ./api-gateway
+# Settings.xml qui redirige Maven Central vers le miroir Google Cloud
+# Storage : evite les .pom corrompus (page HTML Cloudflare au lieu du
+# POM reel) servis par Maven Central a l'IP Render.
+COPY maven-settings.xml /root/.m2/settings.xml
 
-# Purge le cache local Maven avant build : Render peut conserver des
-# fichiers .pom corrompus (page HTML Maven Central servie au lieu du POM
-# reel a cause d'un rate-limit) qui font echouer les builds ulterieurs.
-# Le -U force la re-verification des dependances aupres du repo distant.
+# Purge le cache au cas ou un .pom HTML corrompu y traine d'un build precedent,
+# puis build via le miroir Google. -U force la verification distante.
 RUN rm -rf /root/.m2/repository && \
-    mvn -B -U -q -Dmaven.wagon.http.retryHandler.count=3 clean package -DskipTests
+    mvn -B -U -q -s /root/.m2/settings.xml \
+        -Dmaven.wagon.http.retryHandler.count=3 \
+        clean package -DskipTests
 
 # ── Stage 2 : runtime léger ─────────────────────────────────────
 FROM eclipse-temurin:17-jre-alpine

@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Maven settings utilises pour le build Render uniquement.
+
+  Render rate-limite (ou est rate-limite par) Maven Central, qui renvoie
+  parfois des pages HTML Cloudflare au lieu des POM XML. Maven les sauve
+  alors comme .pom corrompus et le build echoue avec :
+    Non-parseable POM ... </head> must be the same as start tag <link>
+
+  On force le download via le miroir Google Cloud Storage de Maven Central
+  (CDN robuste, pas de rate-limit). Le miroir est read-only et 100%
+  identique a Maven Central officiel.
+-->
+<settings xmlns="http://maven.apache.org/SETTINGS/1.0.0"
+          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+          xsi:schemaLocation="http://maven.apache.org/SETTINGS/1.0.0
+            https://maven.apache.org/xsd/settings-1.0.0.xsd">
+
+  <mirrors>
+    <mirror>
+      <id>google-maven-central</id>
+      <name>Google Cloud Storage Mirror of Maven Central</name>
+      <url>https://maven-central.storage-download.googleapis.com/maven2/</url>
+      <mirrorOf>central</mirrorOf>
+    </mirror>
+  </mirrors>
+
+</settings>
