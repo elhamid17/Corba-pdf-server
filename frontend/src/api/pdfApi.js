@@ -1,28 +1,12 @@
 // ═══════════════════════════════════════════════════════════
 // Couche API — appels REST vers l'API Gateway /api/pdf/*
-// En dev/local : utilise /api/pdf (proxy Vite ou nginx).
-// En prod (Render) : VITE_API_URL pointe sur l'URL publique du backend.
+// Utilise le client partage pour ajouter le JWT et le cookie invite.
 // ═══════════════════════════════════════════════════════════
 
-const BASE = (import.meta.env.VITE_API_URL || '/api/pdf').replace(/\/+$/, '')
-
-/** Construit un message d'erreur lisible à partir d'une réponse non-OK. */
-async function readError(res) {
-  const ct = res.headers.get('content-type') || ''
-  try {
-    if (ct.includes('application/json')) {
-      const j = await res.json()
-      return j.message || j.error || `HTTP ${res.status}`
-    }
-    const t = await res.text()
-    return t || `HTTP ${res.status}`
-  } catch {
-    return `HTTP ${res.status}`
-  }
-}
+import { apiFetch, readError } from './client'
 
 async function postForm(path, form, { responseType = 'blob' } = {}) {
-  const res = await fetch(`${BASE}${path}`, { method: 'POST', body: form })
+  const res = await apiFetch(`/api/pdf${path}`, { method: 'POST', body: form })
   if (!res.ok) throw new Error(await readError(res))
   if (responseType === 'json') return res.json()
   return res.blob()
@@ -41,7 +25,7 @@ function downloadBlob(blob, filename) {
 
 /* ───────── Ping ───────── */
 export async function ping() {
-  const res = await fetch(`${BASE}/ping`)
+  const res = await apiFetch('/api/pdf/ping')
   if (!res.ok) throw new Error(await readError(res))
   return res.json()
 }

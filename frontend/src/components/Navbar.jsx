@@ -1,13 +1,14 @@
-import { Link, NavLink } from 'react-router-dom'
-import { useEffect, useState } from 'react'
+import { Link, NavLink, useNavigate } from 'react-router-dom'
+import { useEffect, useRef, useState } from 'react'
 import {
   Layers, Scissors, FileMinus, FileSearch, Archive, RotateCw,
   Droplets, Lock, Image as ImageIcon, FileText, ScanText, PenTool,
   Info, Plus, Github, Wand2, Menu, X, FileType2, Sheet, Images,
-  Sun, Moon, Monitor,
+  Sun, Moon, Monitor, LogIn, LogOut, UserPlus, History, Shield, User as UserIcon,
 } from 'lucide-react'
 import { ping } from '../api/pdfApi'
 import { useTheme } from '../hooks/useTheme'
+import { useAuth } from '../hooks/useAuth'
 
 /**
  * Services organisés par catégorie — partagés entre Navbar et Home.
@@ -138,10 +139,12 @@ export default function Navbar() {
               ))}
             </nav>
 
-            {/* Statut serveur + theme + github */}
+            {/* Statut serveur + theme + auth + github */}
             <div className="flex items-center gap-2 sm:gap-3 shrink-0">
               <StatusPill status={status} />
+              <AdminShortcut />
               <ThemeToggle />
+              <UserMenu />
               <a
                 href="https://github.com"
                 target="_blank" rel="noreferrer"
@@ -261,6 +264,154 @@ function StatusPill({ status }) {
       </span>
       <span className="hidden sm:inline">{cfg.text}</span>
     </span>
+  )
+}
+
+/**
+ * Bouton raccourci vers /admin, visible uniquement pour les admins.
+ * Style rouge distinctif pour signaler une zone privilegiee.
+ */
+function AdminShortcut() {
+  const { isAdmin } = useAuth()
+  if (!isAdmin) return null
+  return (
+    <NavLink
+      to="/admin"
+      aria-label="Console administrateur"
+      title="Console administrateur"
+      className={({ isActive }) =>
+        `inline-flex items-center gap-1.5 h-9 px-2.5 sm:px-3 rounded-lg text-sm font-semibold transition-all ring-1 ${
+          isActive
+            ? 'bg-rose-600 text-white ring-rose-700 shadow-md'
+            : 'bg-rose-50 text-rose-700 ring-rose-200 hover:bg-rose-100 hover:ring-rose-300 dark:bg-rose-950/40 dark:text-rose-300 dark:ring-rose-900/60 dark:hover:bg-rose-950/60'
+        }`
+      }
+    >
+      <Shield size={16} strokeWidth={2.3} />
+      <span className="hidden sm:inline">Admin</span>
+    </NavLink>
+  )
+}
+
+/**
+ * Menu utilisateur : login/register pour invites, dropdown profil pour connectes.
+ */
+function UserMenu() {
+  const { user, isAuthenticated, isAdmin, logout, loading } = useAuth()
+  const [open, setOpen] = useState(false)
+  const ref = useRef(null)
+  const navigate = useNavigate()
+
+  useEffect(() => {
+    if (!open) return
+    const onClick = e => { if (!ref.current?.contains(e.target)) setOpen(false) }
+    const onKey = e => { if (e.key === 'Escape') setOpen(false) }
+    document.addEventListener('mousedown', onClick)
+    document.addEventListener('keydown', onKey)
+    return () => {
+      document.removeEventListener('mousedown', onClick)
+      document.removeEventListener('keydown', onKey)
+    }
+  }, [open])
+
+  if (loading) {
+    return <span className="hidden sm:inline-flex h-9 w-20 rounded-lg bg-ink-100 dark:bg-ink-800 animate-pulse" />
+  }
+
+  if (!isAuthenticated) {
+    return (
+      <div className="flex items-center gap-1.5">
+        <NavLink
+          to="/history"
+          title="Historique"
+          className="grid place-items-center h-9 w-9 rounded-lg text-ink-600 hover:bg-ink-100 dark:text-ink-300 dark:hover:bg-ink-800 transition-colors"
+        >
+          <History size={18} />
+        </NavLink>
+        <Link
+          to="/login"
+          className="hidden sm:inline-flex items-center gap-1.5 h-9 px-3 rounded-lg text-sm font-medium text-ink-700 hover:bg-ink-100 dark:text-ink-200 dark:hover:bg-ink-800 transition-colors"
+        >
+          <LogIn size={16} /> Connexion
+        </Link>
+      </div>
+    )
+  }
+
+  const initial = (user?.username || user?.email || '?').charAt(0).toUpperCase()
+
+  return (
+    <div ref={ref} className="relative">
+      <button
+        type="button"
+        onClick={() => setOpen(o => !o)}
+        className="flex items-center gap-2 h-9 px-2 rounded-lg hover:bg-ink-100 dark:hover:bg-ink-800 transition-colors"
+        aria-haspopup="menu"
+        aria-expanded={open}
+      >
+        <span className="grid place-items-center h-7 w-7 rounded-full bg-gradient-to-br from-brand-600 to-accent-500 text-white text-xs font-bold">
+          {initial}
+        </span>
+        <span className="hidden sm:inline text-sm font-medium text-ink-700 dark:text-ink-200 max-w-[120px] truncate">
+          {user.username}
+        </span>
+      </button>
+
+      {open && (
+        <div
+          role="menu"
+          className="absolute right-0 mt-2 w-60 rounded-xl border border-ink-200 dark:border-ink-700 bg-white dark:bg-ink-900 shadow-card overflow-hidden"
+        >
+          <div className="px-4 py-3 border-b border-ink-100 dark:border-ink-800">
+            <p className="text-sm font-semibold text-ink-900 dark:text-ink-100 truncate">{user.username}</p>
+            <p className="text-xs text-ink-500 dark:text-ink-400 truncate">{user.email}</p>
+            {isAdmin && (
+              <span className="mt-1.5 inline-flex items-center gap-1 rounded-full bg-accent-50 dark:bg-accent-950/40 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-accent-700 dark:text-accent-300">
+                <Shield size={10} /> Admin
+              </span>
+            )}
+          </div>
+          <MenuItem icon={History} onClick={() => { setOpen(false); navigate('/history') }}>
+            Historique
+          </MenuItem>
+          <MenuItem icon={UserIcon} onClick={() => { setOpen(false); navigate('/history') }}>
+            Mon stockage
+          </MenuItem>
+          {isAdmin && (
+            <MenuItem icon={Shield} onClick={() => { setOpen(false); navigate('/admin') }}>
+              Administration
+            </MenuItem>
+          )}
+          <div className="border-t border-ink-100 dark:border-ink-800">
+            <MenuItem
+              icon={LogOut}
+              danger
+              onClick={() => { setOpen(false); logout(); navigate('/') }}
+            >
+              Se deconnecter
+            </MenuItem>
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
+function MenuItem({ icon: Icon, children, onClick, danger }) {
+  return (
+    <button
+      type="button"
+      role="menuitem"
+      onClick={onClick}
+      className={`w-full flex items-center gap-2.5 px-4 py-2 text-sm transition-colors ${
+        danger
+          ? 'text-rose-600 hover:bg-rose-50 dark:text-rose-400 dark:hover:bg-rose-950/30'
+          : 'text-ink-700 hover:bg-ink-100 dark:text-ink-200 dark:hover:bg-ink-800'
+      }`}
+    >
+      <Icon size={16} />
+      {children}
+    </button>
   )
 }
 

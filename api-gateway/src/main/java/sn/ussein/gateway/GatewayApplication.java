@@ -4,12 +4,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.scheduling.annotation.EnableScheduling;
 
 /**
  * Point d'entrée de l'API Gateway Spring Boot.
  * Expose les services CORBA PDF en REST/JSON sur le port 8080.
  */
 @SpringBootApplication
+@EnableScheduling
 public class GatewayApplication {
 
     private static final Logger log = LoggerFactory.getLogger(GatewayApplication.class);
