@@ -27,6 +27,18 @@ services:
       - key: CORS_ALLOWED_ORIGINS
         # Render assigne <name>.onrender.com ; ajuste si custom domain
         value: https://corba-pdf.onrender.com
+      # ── MongoDB (a renseigner manuellement dans le dashboard Render) ──
+      # Utiliser une connection string Atlas : mongodb+srv://user:pass@cluster.mongodb.net/corba_pdf?retryWrites=true&w=majority
+      - key: MONGO_URI
+        sync: false
+      # ── Secret JWT (genere une chaine aleatoire >= 32 octets) ──
+      - key: JWT_SECRET
+        sync: false
+      # ── Credentials admin (optionnel, defaut admin / admin123) ──
+      - key: ADMIN_USERNAME
+        sync: false
+      - key: ADMIN_PASSWORD
+        sync: false
 
   # ── Frontend : React statique (free, CDN, jamais de cold start) ──
   - type: web
