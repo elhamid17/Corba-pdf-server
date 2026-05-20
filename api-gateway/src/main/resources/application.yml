@@ -16,9 +16,13 @@ spring:
   # ── MongoDB (comptes utilisateurs, jobs, GridFS) ──
   # MONGO_URI prend priorite : utile pour Atlas (mongodb+srv://...).
   # Sinon on construit l'URI a partir des variables individuelles (docker-compose).
+  # `database` est explicitement defini : sans ca, Spring ne peut pas creer
+  # mongoTemplate si l'URI Atlas n'a pas de nom de BD dans le chemin
+  # (le defaut Atlas donne "/" vide entre le host et le ?).
   data:
     mongodb:
       uri: ${MONGO_URI:mongodb://${MONGO_USER:corba}:${MONGO_PASSWORD:corba_dev_pwd}@${MONGO_HOST:localhost}:${MONGO_PORT:27017}/${MONGO_DB:corba_pdf}?authSource=admin}
+      database: ${MONGO_DB:corba_pdf}
       auto-index-creation: true
 
 # ── Configuration CORBA ──
