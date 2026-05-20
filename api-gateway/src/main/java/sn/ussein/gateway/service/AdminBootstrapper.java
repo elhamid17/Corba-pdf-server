@@ -37,9 +37,9 @@ public class AdminBootstrapper implements ApplicationRunner {
 
     @Override
     public void run(ApplicationArguments args) {
-        boolean hasAdmin = users.findAll().stream()
-            .anyMatch(u -> u.getRoles().contains(Role.ADMIN));
-        if (hasAdmin) {
+        // count() au lieu de findAll().stream() : evite de charger
+        // toute la collection en memoire au demarrage.
+        if (users.countByRolesContaining(Role.ADMIN) > 0) {
             return;
         }
 

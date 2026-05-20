@@ -4,8 +4,10 @@ import com.mongodb.client.gridfs.model.GridFSFile;
 import org.bson.types.ObjectId;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
+import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.data.mongodb.gridfs.GridFsResource;
 import org.springframework.data.mongodb.gridfs.GridFsTemplate;
 import org.springframework.stereotype.Service;
@@ -40,16 +42,34 @@ public class JobStorageService {
     private final GridFsTemplate gridFs;
     private final JobRepository jobs;
     private final UserRepository users;
+    private final MongoTemplate mongo;
     private final QuotaProperties quotas;
 
     public JobStorageService(GridFsTemplate gridFs,
                              JobRepository jobs,
                              UserRepository users,
+                             MongoTemplate mongo,
                              QuotaProperties quotas) {
         this.gridFs = gridFs;
         this.jobs = jobs;
         this.users = users;
+        this.mongo = mongo;
         this.quotas = quotas;
+    }
+
+    /**
+     * Incrementation atomique du compteur de stockage utilisateur via $inc.
+     * Evite la race entre lectures et ecritures concurrentes (deux jobs
+     * qui se terminent simultanement perdaient l'un des increments en
+     * read-modify-write).
+     */
+    private void incrementUserStorage(String userId, long delta) {
+        if (userId == null || delta == 0) return;
+        mongo.updateFirst(
+            new Query(Criteria.where("_id").is(userId)),
+            new Update().inc("storageBytesUsed", delta),
+            User.class
+        );
     }
 
     /**
@@ -124,10 +144,7 @@ public class JobStorageService {
         job = jobs.save(job);
 
         if (identity.isAuthenticated()) {
-            users.findById(identity.userId()).ifPresent(u -> {
-                u.setStorageBytesUsed(u.getStorageBytesUsed() + data.length);
-                users.save(u);
-            });
+            incrementUserStorage(identity.userId(), data.length);
         }
 
         log.info("Job {} ({}) : {} octets stockes pour {}",
@@ -170,12 +187,8 @@ public class JobStorageService {
         deleteGridFs(job.getResultGridFsId());
         jobs.delete(job);
 
-        if (job.getUserId() != null) {
-            users.findById(job.getUserId()).ifPresent(u -> {
-                long newUsage = Math.max(0L, u.getStorageBytesUsed() - job.getResultSizeBytes());
-                u.setStorageBytesUsed(newUsage);
-                users.save(u);
-            });
+        if (job.getUserId() != null && job.getResultSizeBytes() > 0) {
+            incrementUserStorage(job.getUserId(), -job.getResultSizeBytes());
         }
         return true;
     }
@@ -215,8 +228,8 @@ public class JobStorageService {
     }
 
     private static String humanBytes(long bytes) {
-        if (bytes < 1024) return bytes + " B";
-        if (bytes < 1024 * 1024) return (bytes / 1024) + " KB";
-        return (bytes / (1024 * 1024)) + " MB";
+        if (bytes < 1024) return bytes + " o";
+        if (bytes < 1024 * 1024) return (bytes / 1024) + " Ko";
+        return (bytes / (1024 * 1024)) + " Mo";
     }
 }

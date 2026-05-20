@@ -19,8 +19,6 @@ import sn.ussein.pdf.*;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.time.Instant;
-import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
@@ -499,18 +497,9 @@ public class PDFController {
         }
     }
 
-    @ExceptionHandler(ResponseStatusException.class)
-    public ResponseEntity<Map<String, Object>> handleResponseStatus(ResponseStatusException ex) {
-        HttpStatus status = HttpStatus.valueOf(ex.getStatusCode().value());
-        return ResponseEntity.status(status).contentType(MediaType.APPLICATION_JSON).body(errorBody(status, ex.getReason()));
-    }
-
-    @ExceptionHandler(Exception.class)
-    public ResponseEntity<Map<String, Object>> handleUnhandled(Exception ex) {
-        log.error("Erreur non geree", ex);
-        HttpStatus status = HttpStatus.INTERNAL_SERVER_ERROR;
-        return ResponseEntity.status(status).contentType(MediaType.APPLICATION_JSON).body(errorBody(status, "Erreur interne"));
-    }
+    // Les handlers d'exceptions sont centralises dans GlobalExceptionHandler
+    // (@RestControllerAdvice) pour s'appliquer a tous les controleurs et eviter
+    // d'eclipser AuthException / QuotaExceededException.
 
     private void validatePdfFile(MultipartFile file, String field) {
         if (file == null || file.isEmpty()) {
@@ -544,8 +533,10 @@ public class PDFController {
                                                String operation, String inputFilename,
                                                HttpServletRequest request, long startNanos) {
         if (result == null || !result.success || result.data == null) {
+            // Echec metier (PDF corrompu, parametres invalides cote CORBA, etc.) :
+            // 422 plutot que 500 — c'est une erreur cliente sur le contenu fourni.
             String message = (result != null && result.message != null) ? result.message : "Operation echouee";
-            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, message);
+            throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY, message);
         }
         return buildAndRecord(result.data, MediaType.APPLICATION_PDF_VALUE, filename,
             operation, inputFilename, request, startNanos);
@@ -556,7 +547,7 @@ public class PDFController {
                                                   HttpServletRequest request, long startNanos) {
         if (result == null || !result.success || result.data == null) {
             String message = (result != null && result.message != null) ? result.message : "Operation echouee";
-            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, message);
+            throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY, message);
         }
         return buildAndRecord(result.data, contentType, filename,
             operation, inputFilename, request, startNanos);
@@ -611,14 +602,5 @@ public class PDFController {
         }
 
         return builder.body(data);
-    }
-
-    private Map<String, Object> errorBody(HttpStatus status, String message) {
-        Map<String, Object> body = new LinkedHashMap<>();
-        body.put("error", status.getReasonPhrase());
-        body.put("message", message == null ? "Erreur" : message);
-        body.put("status", status.value());
-        body.put("timestamp", Instant.now().toString());
-        return body;
     }
 }

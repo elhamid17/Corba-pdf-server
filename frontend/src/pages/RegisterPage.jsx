@@ -43,7 +43,7 @@ export default function RegisterPage() {
     <ToolPage
       icon={UserPlus}
       title="Creer un compte"
-      subtitle="Stockage personnel 200 Mo + historique conserve 30 jours."
+      subtitle="200 Mo de stockage personnel + historique conserve 30 jours (contre 3 fichiers et 24h en mode invite)."
     >
       <form onSubmit={handleSubmit} className="space-y-5">
         <div>

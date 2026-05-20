@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import {
   History, Download, Trash2, RefreshCw, FileWarning, Database,
@@ -16,6 +16,8 @@ export default function HistoryPage() {
   const toast = useToast()
   const [jobs, setJobs] = useState([])
   const [page, setPage] = useState(0)
+  const [totalPages, setTotalPages] = useState(1)
+  const [totalElements, setTotalElements] = useState(0)
   const [loading, setLoading] = useState(true)
   const [busyId, setBusyId] = useState(null)
 
@@ -23,7 +25,22 @@ export default function HistoryPage() {
     setLoading(true)
     try {
       const data = await listJobs({ page, size: PAGE_SIZE })
-      setJobs(Array.isArray(data) ? data : [])
+      // Le backend renvoie maintenant { content, page, size, totalElements, totalPages }
+      // pour les users ET les guests (uniformite).
+      if (data && Array.isArray(data.content)) {
+        setJobs(data.content)
+        setTotalPages(data.totalPages ?? 1)
+        setTotalElements(data.totalElements ?? data.content.length)
+      } else if (Array.isArray(data)) {
+        // Compat retro si l'ancien format est encore servi par un cache
+        setJobs(data)
+        setTotalPages(1)
+        setTotalElements(data.length)
+      } else {
+        setJobs([])
+        setTotalPages(0)
+        setTotalElements(0)
+      }
     } catch (e) {
       toast.error(e.message || 'Impossible de charger l\'historique.')
     } finally {
@@ -72,7 +89,7 @@ export default function HistoryPage() {
 
       <div className="mt-4 flex items-center justify-between">
         <p className="text-sm text-ink-500 dark:text-ink-400">
-          {loading ? 'Chargement…' : `${jobs.length} entree(s)`}
+          {loading ? 'Chargement…' : `${totalElements || jobs.length} entree(s)`}
         </p>
         <button
           type="button"
@@ -101,7 +118,7 @@ export default function HistoryPage() {
          </ul>}
       </div>
 
-      {isAuthenticated && jobs.length >= PAGE_SIZE && (
+      {totalPages > 1 && (
         <div className="mt-5 flex items-center justify-between">
           <button
             type="button"
@@ -109,11 +126,13 @@ export default function HistoryPage() {
             disabled={page === 0}
             className="btn-ghost h-9 px-3 text-sm disabled:opacity-50"
           >Precedent</button>
-          <span className="text-xs text-ink-500 dark:text-ink-400">Page {page + 1}</span>
+          <span className="text-xs text-ink-500 dark:text-ink-400">
+            Page {page + 1} / {totalPages}
+          </span>
           <button
             type="button"
-            onClick={() => setPage(p => p + 1)}
-            disabled={jobs.length < PAGE_SIZE}
+            onClick={() => setPage(p => Math.min(totalPages - 1, p + 1))}
+            disabled={page >= totalPages - 1}
             className="btn-ghost h-9 px-3 text-sm disabled:opacity-50"
           >Suivant</button>
         </div>
@@ -129,11 +148,11 @@ function GuestBanner() {
       <div className="text-sm text-ink-700 dark:text-ink-200">
         <p className="font-medium">Mode invite</p>
         <p className="mt-1 text-ink-600 dark:text-ink-300">
-          Sans compte, vous beneficiez de 20 Mo de stockage et 24h de retention.{' '}
+          Sans compte : 3 fichiers max, 20 Mo par fichier, conserves 24h.{' '}
           <Link to="/register" className="text-brand-600 dark:text-brand-400 font-medium hover:underline">
             Creer un compte
           </Link>{' '}
-          pour 10x plus de stockage et 30 jours d'historique.
+          pour 200 Mo de stockage total et 30 jours d'historique.
         </p>
       </div>
     </div>

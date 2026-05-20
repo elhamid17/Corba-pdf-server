@@ -40,7 +40,9 @@ public class AuthService {
         if (users.existsByEmail(email)) {
             throw new AuthException("Un compte avec cet email existe deja.");
         }
-        if (users.existsByUsername(username)) {
+        // Comparaison insensible a la casse pour eviter qu'on cree
+        // "JeanDupont" et "jeandupont" comme deux comptes distincts.
+        if (users.existsByUsernameIgnoreCase(username)) {
             throw new AuthException("Ce nom d'utilisateur est deja pris.");
         }
 
@@ -52,9 +54,11 @@ public class AuthService {
 
     public AuthResponse login(LoginRequest req) {
         String id = req.identifier().trim();
+        // Resolution insensible a la casse aussi bien pour l'email que le username
+        // pour que l'utilisateur n'ait pas a respecter la casse exacte d'inscription.
         Optional<User> found = id.contains("@")
             ? users.findByEmail(id.toLowerCase())
-            : users.findByUsername(id);
+            : users.findByUsernameIgnoreCase(id);
 
         User user = found.orElseThrow(
             () -> new AuthException("Identifiants invalides."));

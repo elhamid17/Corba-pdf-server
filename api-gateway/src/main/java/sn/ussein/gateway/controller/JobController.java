@@ -37,22 +37,40 @@ public class JobController {
     }
 
     @GetMapping
-    public List<JobSummary> list(@RequestParam(defaultValue = "0") int page,
-                                 @RequestParam(defaultValue = "20") int size,
-                                 HttpServletRequest req) {
+    public Map<String, Object> list(@RequestParam(defaultValue = "0") int page,
+                                    @RequestParam(defaultValue = "20") int size,
+                                    HttpServletRequest req) {
         Identity me = identity.current(req);
         int safeSize = Math.min(Math.max(size, 1), MAX_PAGE_SIZE);
         int safePage = Math.max(page, 0);
 
         if (me.isAuthenticated()) {
-            return jobs.findByUserIdOrderByCreatedAtDesc(me.userId(), PageRequest.of(safePage, safeSize))
-                .map(JobSummary::from).getContent();
+            org.springframework.data.domain.Page<JobSummary> p = jobs
+                .findByUserIdOrderByCreatedAtDesc(me.userId(), PageRequest.of(safePage, safeSize))
+                .map(JobSummary::from);
+            return pageResponse(p.getContent(), p.getNumber(), p.getSize(),
+                p.getTotalElements(), p.getTotalPages());
         }
         if (me.isGuest()) {
-            return jobs.findByGuestIdOrderByCreatedAtDesc(me.guestId())
+            // Pour les guests on liste sans pagination (peu d'entrees, retention 24h),
+            // mais on conserve la meme forme de reponse pour simplifier le frontend.
+            List<JobSummary> all = jobs.findByGuestIdOrderByCreatedAtDesc(me.guestId())
                 .stream().map(JobSummary::from).toList();
+            return pageResponse(all, 0, all.size(), all.size(), 1);
         }
-        return List.of();
+        return pageResponse(List.of(), 0, 0, 0L, 0);
+    }
+
+    private static Map<String, Object> pageResponse(List<JobSummary> content,
+                                                    int page, int size,
+                                                    long totalElements, int totalPages) {
+        Map<String, Object> m = new java.util.LinkedHashMap<>();
+        m.put("content", content);
+        m.put("page", page);
+        m.put("size", size);
+        m.put("totalElements", totalElements);
+        m.put("totalPages", totalPages);
+        return m;
     }
 
     @GetMapping("/{id}/download")

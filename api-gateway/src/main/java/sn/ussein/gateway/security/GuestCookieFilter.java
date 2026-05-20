@@ -5,6 +5,7 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+// `Cookie` reste utilise dans readCookie() pour parser les cookies entrants.
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
@@ -40,17 +41,38 @@ public class GuestCookieFilter extends OncePerRequestFilter {
         String guestId = readCookie(request);
         if (guestId == null) {
             guestId = UUID.randomUUID().toString();
-            Cookie c = new Cookie(COOKIE_NAME, guestId);
-            c.setHttpOnly(true);
-            c.setPath("/");
-            c.setMaxAge(COOKIE_MAX_AGE);
-            c.setAttribute("SameSite", "Lax");
-            // c.setSecure(true);  // a activer derriere HTTPS
-            response.addCookie(c);
+            // En HTTPS (prod) : SameSite=None + Secure pour fonctionner cross-origin
+            // (frontend.onrender.com -> api.onrender.com). Sans ca le navigateur
+            // ne renvoie pas le cookie sur les fetch cross-site.
+            // En HTTP (dev local) : SameSite=Lax (None+Secure necessite HTTPS).
+            boolean secure = isSecureRequest(request);
+            String sameSite = secure ? "None" : "Lax";
+            // On pose le cookie en construisant le header manuellement plutot que
+            // via response.addCookie : ce dernier ne supporte pas proprement
+            // SameSite sur toutes les versions de Tomcat.
+            StringBuilder sb = new StringBuilder()
+                .append(COOKIE_NAME).append('=').append(guestId)
+                .append("; Max-Age=").append(COOKIE_MAX_AGE)
+                .append("; Path=/")
+                .append("; HttpOnly")
+                .append("; SameSite=").append(sameSite);
+            if (secure) sb.append("; Secure");
+            response.addHeader("Set-Cookie", sb.toString());
         }
         request.setAttribute(IdentityResolver.GUEST_ID_ATTR, guestId);
 
         chain.doFilter(request, response);
+    }
+
+    /**
+     * Detecte si la requete arrive en HTTPS, en tenant compte du header
+     * X-Forwarded-Proto pose par nginx/Render (active via
+     * server.forward-headers-strategy=framework).
+     */
+    private boolean isSecureRequest(HttpServletRequest request) {
+        if (request.isSecure()) return true;
+        String proto = request.getHeader("X-Forwarded-Proto");
+        return proto != null && proto.equalsIgnoreCase("https");
     }
 
     private String readCookie(HttpServletRequest request) {

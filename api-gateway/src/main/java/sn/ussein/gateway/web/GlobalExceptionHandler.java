@@ -1,26 +1,33 @@
 package sn.ussein.gateway.web;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.server.ResponseStatusException;
 
+import java.time.Instant;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
+    private static final Logger log = LoggerFactory.getLogger(GlobalExceptionHandler.class);
+
     @ExceptionHandler(AuthException.class)
-    public ResponseEntity<Map<String, String>> handleAuth(AuthException e) {
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("error", e.getMessage()));
+    public ResponseEntity<Map<String, Object>> handleAuth(AuthException e) {
+        return body(HttpStatus.BAD_REQUEST, e.getMessage());
     }
 
     @ExceptionHandler(QuotaExceededException.class)
-    public ResponseEntity<Map<String, String>> handleQuota(QuotaExceededException e) {
-        return ResponseEntity.status(HttpStatus.PAYLOAD_TOO_LARGE)
-            .body(Map.of("error", e.getMessage()));
+    public ResponseEntity<Map<String, Object>> handleQuota(QuotaExceededException e) {
+        return body(HttpStatus.PAYLOAD_TOO_LARGE, e.getMessage());
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
@@ -28,10 +35,41 @@ public class GlobalExceptionHandler {
         Map<String, String> fields = new HashMap<>();
         e.getBindingResult().getFieldErrors().forEach(err ->
             fields.put(err.getField(), err.getDefaultMessage()));
-        Map<String, Object> body = Map.of(
-            "error", "Donnees invalides",
-            "fields", fields
-        );
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(body);
+        Map<String, Object> b = base(HttpStatus.BAD_REQUEST, "Donnees invalides");
+        b.put("fields", fields);
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+            .contentType(MediaType.APPLICATION_JSON).body(b);
+    }
+
+    /**
+     * Mappe une ResponseStatusException (levee par les controleurs PDF, etc.)
+     * vers une reponse JSON uniforme.
+     */
+    @ExceptionHandler(ResponseStatusException.class)
+    public ResponseEntity<Map<String, Object>> handleResponseStatus(ResponseStatusException e) {
+        HttpStatus status = HttpStatus.valueOf(e.getStatusCode().value());
+        return body(status, e.getReason());
+    }
+
+    /** Filet de securite pour les exceptions non prevues. */
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<Map<String, Object>> handleUnhandled(Exception e) {
+        log.error("Erreur non geree", e);
+        return body(HttpStatus.INTERNAL_SERVER_ERROR, "Erreur interne");
+    }
+
+    private ResponseEntity<Map<String, Object>> body(HttpStatus status, String message) {
+        return ResponseEntity.status(status)
+            .contentType(MediaType.APPLICATION_JSON)
+            .body(base(status, message));
+    }
+
+    private Map<String, Object> base(HttpStatus status, String message) {
+        Map<String, Object> b = new LinkedHashMap<>();
+        b.put("error", status.getReasonPhrase());
+        b.put("message", message == null ? "Erreur" : message);
+        b.put("status", status.value());
+        b.put("timestamp", Instant.now().toString());
+        return b;
     }
 }
