@@ -1,10 +1,11 @@
 import { useCallback, useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import {
-  History, Download, Trash2, RefreshCw, FileWarning, Database,
+  History, Download, Trash2, RefreshCw, FileWarning, Database, Eye,
   CheckCircle2, XCircle, Clock, LogIn,
 } from 'lucide-react'
 import ToolPage from '../components/ToolPage'
+import PdfPreviewModal from '../components/PdfPreviewModal'
 import { useToast } from '../components/Toast'
 import { useAuth } from '../hooks/useAuth'
 import { deleteJob, downloadJob, listJobs } from '../api/jobsApi'
@@ -20,6 +21,7 @@ export default function HistoryPage() {
   const [totalElements, setTotalElements] = useState(0)
   const [loading, setLoading] = useState(true)
   const [busyId, setBusyId] = useState(null)
+  const [previewJob, setPreviewJob] = useState(null)
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -111,6 +113,7 @@ export default function HistoryPage() {
                key={j.id}
                job={j}
                busy={busyId === j.id}
+               onPreview={() => setPreviewJob(j)}
                onDownload={() => handleDownload(j)}
                onDelete={() => handleDelete(j)}
              />
@@ -137,6 +140,12 @@ export default function HistoryPage() {
           >Suivant</button>
         </div>
       )}
+
+      <PdfPreviewModal
+        job={previewJob}
+        onClose={() => setPreviewJob(null)}
+        onDownload={handleDownload}
+      />
     </ToolPage>
   )
 }
@@ -186,9 +195,12 @@ function QuotaBanner({ user }) {
   )
 }
 
-function JobRow({ job, busy, onDownload, onDelete }) {
+function JobRow({ job, busy, onPreview, onDownload, onDelete }) {
   const dt = job.createdAt ? new Date(job.createdAt) : null
   const exp = job.expiresAt ? new Date(job.expiresAt) : null
+  // Preview disponible pour PDF + images (les autres formats n'ont pas de viewer natif)
+  const ct = job.outputContentType || ''
+  const previewable = job.downloadable && (ct.includes('pdf') || ct.startsWith('image/'))
   return (
     <li className="py-3 flex items-center gap-3">
       <StatusIcon status={job.status} />
@@ -204,6 +216,17 @@ function JobRow({ job, busy, onDownload, onDelete }) {
         </p>
       </div>
       <div className="flex items-center gap-1.5">
+        {previewable && (
+          <button
+            type="button"
+            onClick={onPreview}
+            disabled={busy}
+            title="Apercu"
+            className="btn-ghost h-9 w-9 p-0 disabled:opacity-40"
+          >
+            <Eye size={16} />
+          </button>
+        )}
         <button
           type="button"
           onClick={onDownload}

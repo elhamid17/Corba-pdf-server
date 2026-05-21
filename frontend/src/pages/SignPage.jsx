@@ -3,6 +3,7 @@ import { PenTool } from 'lucide-react'
 import DropZone from '../components/DropZone'
 import ToolPage from '../components/ToolPage'
 import SubmitButton from '../components/SubmitButton'
+import OutputFilenameField from '../components/OutputFilenameField'
 import { useToast } from '../components/Toast'
 import { signPDF } from '../api/pdfApi'
 
@@ -12,6 +13,7 @@ export default function SignPage() {
   const [password, setPassword] = useState('')
   const [reason, setReason] = useState('Signature numérique')
   const [location, setLocation] = useState('Sénégal')
+  const [outputName, setOutputName] = useState('')
   const [loading, setLoading] = useState(false)
   const toast = useToast()
 
@@ -21,7 +23,7 @@ export default function SignPage() {
     if (!password)     return toast.error('Saisissez le mot de passe du certificat.')
     setLoading(true)
     try {
-      await signPDF(pdfFiles[0], certFiles[0], password, reason, location)
+      await signPDF(pdfFiles[0], certFiles[0], password, reason, location, outputName)
       toast.success('Signature appliquée.')
     } catch (e) {
       toast.error(e.message)
@@ -68,6 +70,8 @@ export default function SignPage() {
             <input value={location} onChange={e => setLocation(e.target.value)} className="field" />
           </div>
         </div>
+
+        <OutputFilenameField value={outputName} onChange={setOutputName} placeholder="document-signe" extension=".pdf" />
       </div>
 
       <div className="mt-6">

@@ -3,11 +3,13 @@ import { FileText } from 'lucide-react'
 import DropZone from '../components/DropZone'
 import ToolPage from '../components/ToolPage'
 import SubmitButton from '../components/SubmitButton'
+import OutputFilenameField from '../components/OutputFilenameField'
 import { useToast } from '../components/Toast'
 import { wordToPdf } from '../api/pdfApi'
 
 export default function WordToPdfPage() {
   const [files, setFiles] = useState([])
+  const [outputName, setOutputName] = useState('')
   const [loading, setLoading] = useState(false)
   const toast = useToast()
 
@@ -15,7 +17,7 @@ export default function WordToPdfPage() {
     if (files.length === 0) return toast.error('Sélectionnez un document Word.')
     setLoading(true)
     try {
-      await wordToPdf(files[0])
+      await wordToPdf(files[0], outputName)
       toast.success('Conversion réussie. Téléchargement lancé.')
     } catch (e) {
       toast.error(e.message)
@@ -38,6 +40,9 @@ export default function WordToPdfPage() {
           'application/vnd.openxmlformats-officedocument.wordprocessingml.document': ['.docx'],
         }}
       />
+      <div className="mt-6">
+        <OutputFilenameField value={outputName} onChange={setOutputName} placeholder="document-pdf" extension=".pdf" />
+      </div>
       <div className="mt-6">
         <SubmitButton loading={loading} onClick={handleSubmit} disabled={files.length === 0}>
           Convertir en PDF

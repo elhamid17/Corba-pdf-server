@@ -23,6 +23,22 @@ function downloadBlob(blob, filename) {
   setTimeout(() => URL.revokeObjectURL(url), 200)
 }
 
+/** Ajoute un nom de fichier custom au form si fourni (sinon ignore). */
+function maybeOutputName(form, outputName) {
+  if (outputName && outputName.trim()) {
+    form.append('outputName', outputName.trim())
+  }
+}
+
+/** Si un nom custom a ete fourni, ajuste juste l'extension par defaut. */
+function clientFilename(outputName, defaultName) {
+  if (!outputName || !outputName.trim()) return defaultName
+  const dotDefault = defaultName.lastIndexOf('.')
+  const ext = dotDefault > 0 ? defaultName.substring(dotDefault) : ''
+  const trimmed = outputName.trim()
+  return trimmed.endsWith(ext) ? trimmed : trimmed + ext
+}
+
 /* ───────── Ping ───────── */
 export async function ping() {
   const res = await apiFetch('/api/pdf/ping')
@@ -31,81 +47,89 @@ export async function ping() {
 }
 
 /* ───────── Fusion ───────── */
-export async function mergePDFs(files) {
+export async function mergePDFs(files, outputName) {
   const form = new FormData()
   files.forEach(f => form.append('files', f))
+  maybeOutputName(form, outputName)
   const blob = await postForm('/merge', form)
-  downloadBlob(blob, 'merged.pdf')
+  downloadBlob(blob, clientFilename(outputName, 'merged.pdf'))
 }
 
 /* ───────── Découpage ───────── */
-export async function splitPDF(file, ranges) {
+export async function splitPDF(file, ranges, outputName) {
   const form = new FormData()
   form.append('file', file)
   ranges.forEach(r => form.append('ranges', r))
+  maybeOutputName(form, outputName)
   const blob = await postForm('/split', form)
-  downloadBlob(blob, 'split.zip')
+  downloadBlob(blob, clientFilename(outputName, 'split.zip'))
 }
 
 /* ───────── Extraction de pages ───────── */
-export async function extractPages(file, pages) {
+export async function extractPages(file, pages, outputName) {
   const form = new FormData()
   form.append('file', file)
   pages.forEach(p => form.append('pages', p))
+  maybeOutputName(form, outputName)
   const blob = await postForm('/extract-pages', form)
-  downloadBlob(blob, 'extracted.pdf')
+  downloadBlob(blob, clientFilename(outputName, 'extracted.pdf'))
 }
 
 /* ───────── Suppression de pages ───────── */
-export async function deletePages(file, pages) {
+export async function deletePages(file, pages, outputName) {
   const form = new FormData()
   form.append('file', file)
   pages.forEach(p => form.append('pages', p))
+  maybeOutputName(form, outputName)
   const blob = await postForm('/delete-pages', form)
-  downloadBlob(blob, 'result.pdf')
+  downloadBlob(blob, clientFilename(outputName, 'result.pdf'))
 }
 
 /* ───────── Compression ───────── */
-export async function compressPDF(file, options = {}) {
+export async function compressPDF(file, options = {}, outputName) {
   const form = new FormData()
   form.append('file', file)
   form.append('compressImages', options.compressImages ?? true)
   form.append('imageQuality',   options.imageQuality   ?? 70)
   form.append('removeMetadata', options.removeMetadata ?? false)
+  maybeOutputName(form, outputName)
   const blob = await postForm('/compress', form)
-  downloadBlob(blob, 'compressed.pdf')
+  downloadBlob(blob, clientFilename(outputName, 'compressed.pdf'))
 }
 
 /* ───────── Rotation ───────── */
-export async function rotatePDF(file, angle, pages = []) {
+export async function rotatePDF(file, angle, pages = [], outputName) {
   const form = new FormData()
   form.append('file', file)
   form.append('angle', angle)
   pages.forEach(p => form.append('pages', p))
+  maybeOutputName(form, outputName)
   const blob = await postForm('/rotate', form)
-  downloadBlob(blob, 'rotated.pdf')
+  downloadBlob(blob, clientFilename(outputName, 'rotated.pdf'))
 }
 
 /* ───────── Filigrane ───────── */
-export async function addWatermark(file, options = {}) {
+export async function addWatermark(file, options = {}, outputName) {
   const form = new FormData()
   form.append('file',     file)
   form.append('text',     options.text     ?? 'CONFIDENTIEL')
   form.append('opacity',  options.opacity  ?? 0.3)
   form.append('fontSize', options.fontSize ?? 48)
   form.append('diagonal', options.diagonal ?? true)
+  maybeOutputName(form, outputName)
   const blob = await postForm('/watermark', form)
-  downloadBlob(blob, 'watermarked.pdf')
+  downloadBlob(blob, clientFilename(outputName, 'watermarked.pdf'))
 }
 
 /* ───────── Mot de passe ───────── */
-export async function protectPDF(file, userPassword, ownerPassword) {
+export async function protectPDF(file, userPassword, ownerPassword, outputName) {
   const form = new FormData()
   form.append('file',          file)
   form.append('userPassword',  userPassword)
   form.append('ownerPassword', ownerPassword || userPassword)
+  maybeOutputName(form, outputName)
   const blob = await postForm('/protect', form)
-  downloadBlob(blob, 'protected.pdf')
+  downloadBlob(blob, clientFilename(outputName, 'protected.pdf'))
 }
 
 /* ───────── Extraction de texte ───────── */
@@ -138,64 +162,71 @@ export async function getPageCount(file) {
 }
 
 /* ───────── Signature numérique ───────── */
-export async function signPDF(file, certificate, password, reason, location) {
+export async function signPDF(file, certificate, password, reason, location, outputName) {
   const form = new FormData()
   form.append('file',        file)
   form.append('certificate', certificate)
   form.append('password',    password)
   if (reason)   form.append('reason',   reason)
   if (location) form.append('location', location)
+  maybeOutputName(form, outputName)
   const blob = await postForm('/sign', form)
-  downloadBlob(blob, 'signed.pdf')
+  downloadBlob(blob, clientFilename(outputName, 'signed.pdf'))
 }
 
 /* ───────── Conversion PDF → Images ───────── */
-export async function convertToImages(file, format = 'PNG', dpi = 150) {
+export async function convertToImages(file, format = 'PNG', dpi = 150, outputName) {
   const form = new FormData()
   form.append('file',   file)
   form.append('format', format)
   form.append('dpi',    dpi)
+  maybeOutputName(form, outputName)
   const blob = await postForm('/convert-to-images', form)
-  downloadBlob(blob, 'images.zip')
+  downloadBlob(blob, clientFilename(outputName, 'images.zip'))
 }
 
 /* ───────── Création depuis texte ───────── */
-export async function createPDF(text, title) {
+export async function createPDF(text, title, outputName) {
   const form = new FormData()
   form.append('text',  text)
   form.append('title', title)
+  maybeOutputName(form, outputName)
   const blob = await postForm('/create', form)
-  downloadBlob(blob, 'created.pdf')
+  downloadBlob(blob, clientFilename(outputName, 'created.pdf'))
 }
 
 /* ───────── PDF → Word ───────── */
-export async function pdfToWord(file) {
+export async function pdfToWord(file, outputName) {
   const form = new FormData()
   form.append('file', file)
+  maybeOutputName(form, outputName)
   const blob = await postForm('/pdf-to-word', form)
-  downloadBlob(blob, 'converted.docx')
+  downloadBlob(blob, clientFilename(outputName, 'converted.docx'))
 }
 
 /* ───────── PDF → Excel ───────── */
-export async function pdfToExcel(file) {
+export async function pdfToExcel(file, outputName) {
   const form = new FormData()
   form.append('file', file)
+  maybeOutputName(form, outputName)
   const blob = await postForm('/pdf-to-excel', form)
-  downloadBlob(blob, 'converted.xlsx')
+  downloadBlob(blob, clientFilename(outputName, 'converted.xlsx'))
 }
 
 /* ───────── Word → PDF ───────── */
-export async function wordToPdf(file) {
+export async function wordToPdf(file, outputName) {
   const form = new FormData()
   form.append('file', file)
+  maybeOutputName(form, outputName)
   const blob = await postForm('/word-to-pdf', form)
-  downloadBlob(blob, 'converted.pdf')
+  downloadBlob(blob, clientFilename(outputName, 'converted.pdf'))
 }
 
 /* ───────── Images → PDF ───────── */
-export async function imagesToPdf(files) {
+export async function imagesToPdf(files, outputName) {
   const form = new FormData()
   files.forEach(f => form.append('files', f))
+  maybeOutputName(form, outputName)
   const blob = await postForm('/images-to-pdf', form)
-  downloadBlob(blob, 'images.pdf')
+  downloadBlob(blob, clientFilename(outputName, 'images.pdf'))
 }

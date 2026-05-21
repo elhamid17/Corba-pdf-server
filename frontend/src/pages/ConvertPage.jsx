@@ -3,6 +3,7 @@ import { Image as ImageIcon } from 'lucide-react'
 import DropZone from '../components/DropZone'
 import ToolPage from '../components/ToolPage'
 import SubmitButton from '../components/SubmitButton'
+import OutputFilenameField from '../components/OutputFilenameField'
 import { useToast } from '../components/Toast'
 import { convertToImages } from '../api/pdfApi'
 
@@ -13,6 +14,7 @@ export default function ConvertPage() {
   const [files, setFiles] = useState([])
   const [format, setFormat] = useState('PNG')
   const [dpi, setDpi] = useState(150)
+  const [outputName, setOutputName] = useState('')
   const [loading, setLoading] = useState(false)
   const toast = useToast()
 
@@ -20,7 +22,7 @@ export default function ConvertPage() {
     if (!files[0]) return toast.error('Sélectionnez un PDF.')
     setLoading(true)
     try {
-      await convertToImages(files[0], format, dpi)
+      await convertToImages(files[0], format, dpi, outputName)
       toast.success('Conversion terminée — archive ZIP téléchargée.')
     } catch (e) {
       toast.error(e.message)
@@ -72,6 +74,10 @@ export default function ConvertPage() {
             ))}
           </div>
         </div>
+      </div>
+
+      <div className="mt-6">
+        <OutputFilenameField value={outputName} onChange={setOutputName} placeholder="images-pdf" extension=".zip" />
       </div>
 
       <div className="mt-6">

@@ -3,11 +3,13 @@ import { Layers } from 'lucide-react'
 import DropZone from '../components/DropZone'
 import ToolPage from '../components/ToolPage'
 import SubmitButton from '../components/SubmitButton'
+import OutputFilenameField from '../components/OutputFilenameField'
 import { useToast } from '../components/Toast'
 import { mergePDFs } from '../api/pdfApi'
 
 export default function MergePage() {
   const [files, setFiles] = useState([])
+  const [outputName, setOutputName] = useState('')
   const [loading, setLoading] = useState(false)
   const toast = useToast()
 
@@ -15,7 +17,7 @@ export default function MergePage() {
     if (files.length < 2) return toast.error('Sélectionnez au moins 2 fichiers PDF.')
     setLoading(true)
     try {
-      await mergePDFs(files)
+      await mergePDFs(files, outputName)
       toast.success('Fusion réussie. Téléchargement lancé.')
     } catch (e) {
       toast.error(e.message)
@@ -36,6 +38,9 @@ export default function MergePage() {
         label="Déposez vos fichiers PDF à fusionner"
         hint="Glissez-déposez plusieurs PDF. L’ordre de la liste = l’ordre de fusion."
       />
+      <div className="mt-6">
+        <OutputFilenameField value={outputName} onChange={setOutputName} placeholder="rapport-complet" extension=".pdf" />
+      </div>
       <div className="mt-6">
         <SubmitButton loading={loading} onClick={handleMerge} disabled={files.length < 2}>
           Fusionner {files.length > 0 ? `(${files.length})` : ''}

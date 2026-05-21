@@ -3,6 +3,7 @@ import { Archive } from 'lucide-react'
 import DropZone from '../components/DropZone'
 import ToolPage from '../components/ToolPage'
 import SubmitButton from '../components/SubmitButton'
+import OutputFilenameField from '../components/OutputFilenameField'
 import { useToast } from '../components/Toast'
 import { compressPDF } from '../api/pdfApi'
 
@@ -11,6 +12,7 @@ export default function CompressPage() {
   const [imageQuality, setImageQuality] = useState(70)
   const [compressImages, setCompressImages] = useState(true)
   const [removeMetadata, setRemoveMetadata] = useState(false)
+  const [outputName, setOutputName] = useState('')
   const [loading, setLoading] = useState(false)
   const toast = useToast()
 
@@ -18,7 +20,7 @@ export default function CompressPage() {
     if (!files[0]) return toast.error('Sélectionnez un PDF.')
     setLoading(true)
     try {
-      await compressPDF(files[0], { compressImages, imageQuality, removeMetadata })
+      await compressPDF(files[0], { compressImages, imageQuality, removeMetadata }, outputName)
       toast.success('Compression terminée.')
     } catch (e) {
       toast.error(e.message)
@@ -66,6 +68,8 @@ export default function CompressPage() {
             <p className="text-xs text-ink-500 dark:text-ink-400">Auteur, titre, dates, logiciel d’origine.</p>
           </div>
         </label>
+
+        <OutputFilenameField value={outputName} onChange={setOutputName} placeholder="document-compresse" extension=".pdf" />
       </div>
 
       <div className="mt-6">

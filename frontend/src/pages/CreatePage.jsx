@@ -2,12 +2,14 @@ import { useState } from 'react'
 import { Plus } from 'lucide-react'
 import ToolPage from '../components/ToolPage'
 import SubmitButton from '../components/SubmitButton'
+import OutputFilenameField from '../components/OutputFilenameField'
 import { useToast } from '../components/Toast'
 import { createPDF } from '../api/pdfApi'
 
 export default function CreatePage() {
   const [title, setTitle] = useState('Mon document')
   const [text,  setText]  = useState('')
+  const [outputName, setOutputName] = useState('')
   const [loading, setLoading] = useState(false)
   const toast = useToast()
 
@@ -15,7 +17,7 @@ export default function CreatePage() {
     if (!text.trim()) return toast.error('Saisissez le contenu textuel du document.')
     setLoading(true)
     try {
-      await createPDF(text, title.trim() || 'Document')
+      await createPDF(text, title.trim() || 'Document', outputName)
       toast.success('PDF généré.')
     } catch (e) {
       toast.error(e.message)
@@ -44,6 +46,7 @@ export default function CreatePage() {
             placeholder="Saisissez le contenu du PDF…"
           />
         </div>
+        <OutputFilenameField value={outputName} onChange={setOutputName} placeholder="mon-document" extension=".pdf" />
       </div>
       <div className="mt-6">
         <SubmitButton loading={loading} onClick={handleSubmit} disabled={!text.trim()}>

@@ -3,6 +3,7 @@ import { Droplets } from 'lucide-react'
 import DropZone from '../components/DropZone'
 import ToolPage from '../components/ToolPage'
 import SubmitButton from '../components/SubmitButton'
+import OutputFilenameField from '../components/OutputFilenameField'
 import { useToast } from '../components/Toast'
 import { addWatermark } from '../api/pdfApi'
 
@@ -12,6 +13,7 @@ export default function WatermarkPage() {
   const [opacity, setOpacity] = useState(0.3)
   const [fontSize, setFontSize] = useState(48)
   const [diagonal, setDiagonal] = useState(true)
+  const [outputName, setOutputName] = useState('')
   const [loading, setLoading] = useState(false)
   const toast = useToast()
 
@@ -20,7 +22,7 @@ export default function WatermarkPage() {
     if (!text.trim()) return toast.error('Saisissez le texte du filigrane.')
     setLoading(true)
     try {
-      await addWatermark(files[0], { text, opacity, fontSize, diagonal })
+      await addWatermark(files[0], { text, opacity, fontSize, diagonal }, outputName)
       toast.success('Filigrane appliqué.')
     } catch (e) {
       toast.error(e.message)
@@ -71,6 +73,8 @@ export default function WatermarkPage() {
             <p className="text-xs text-ink-500 dark:text-ink-400">Décochez pour un filigrane horizontal classique.</p>
           </div>
         </label>
+
+        <OutputFilenameField value={outputName} onChange={setOutputName} placeholder="document-filigrane" extension=".pdf" />
       </div>
 
       <div className="mt-6">

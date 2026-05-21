@@ -5,6 +5,7 @@ import Footer from './components/Footer'
 import Home   from './pages/Home'
 import { ToastProvider } from './components/Toast'
 import { AuthProvider } from './hooks/useAuth'
+import CommandPalette from './components/CommandPalette'
 import { Loader2 } from 'lucide-react'
 
 const MergePage        = lazy(() => import('./pages/MergePage'))
@@ -45,6 +46,7 @@ export default function App() {
     <BrowserRouter>
       <AuthProvider>
         <ToastProvider>
+          <CommandPalette />
           <div className="min-h-screen flex flex-col">
             <Navbar />
             <main className="flex-1">

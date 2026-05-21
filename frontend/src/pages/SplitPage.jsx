@@ -3,12 +3,14 @@ import { Scissors } from 'lucide-react'
 import DropZone from '../components/DropZone'
 import ToolPage from '../components/ToolPage'
 import SubmitButton from '../components/SubmitButton'
+import OutputFilenameField from '../components/OutputFilenameField'
 import { useToast } from '../components/Toast'
 import { splitPDF } from '../api/pdfApi'
 
 export default function SplitPage() {
   const [files, setFiles] = useState([])
   const [ranges, setRanges] = useState('1,3,4,6')
+  const [outputName, setOutputName] = useState('')
   const [loading, setLoading] = useState(false)
   const toast = useToast()
 
@@ -20,7 +22,7 @@ export default function SplitPage() {
     }
     setLoading(true)
     try {
-      await splitPDF(files[0], parsed)
+      await splitPDF(files[0], parsed, outputName)
       toast.success('Découpage terminé. Archive ZIP téléchargée.')
     } catch (e) {
       toast.error(e.message)
@@ -45,6 +47,9 @@ export default function SplitPage() {
           placeholder="1,3,4,6 — produira 2 PDF : pages 1-3, pages 4-6"
         />
         <p className="mt-1.5 text-xs text-ink-400 dark:text-ink-500">Format : paires <code className="font-mono">début,fin,début,fin…</code></p>
+      </div>
+      <div className="mt-6">
+        <OutputFilenameField value={outputName} onChange={setOutputName} placeholder="parties" extension=".zip" />
       </div>
       <div className="mt-6">
         <SubmitButton loading={loading} onClick={handleSubmit} disabled={!files[0]}>

@@ -13,8 +13,10 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.HttpStatusEntryPoint;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.header.writers.ReferrerPolicyHeaderWriter;
 import sn.ussein.gateway.security.GuestCookieFilter;
 import sn.ussein.gateway.security.JwtAuthenticationFilter;
+import sn.ussein.gateway.security.RateLimitFilter;
 
 @Configuration
 @EnableMethodSecurity
@@ -22,10 +24,14 @@ public class SecurityConfig {
 
     private final JwtAuthenticationFilter jwtFilter;
     private final GuestCookieFilter guestFilter;
+    private final RateLimitFilter rateLimitFilter;
 
-    public SecurityConfig(JwtAuthenticationFilter jwtFilter, GuestCookieFilter guestFilter) {
+    public SecurityConfig(JwtAuthenticationFilter jwtFilter,
+                          GuestCookieFilter guestFilter,
+                          RateLimitFilter rateLimitFilter) {
         this.jwtFilter = jwtFilter;
         this.guestFilter = guestFilter;
+        this.rateLimitFilter = rateLimitFilter;
     }
 
     @Bean
@@ -39,6 +45,19 @@ public class SecurityConfig {
             .cors(Customizer.withDefaults())
             .csrf(AbstractHttpConfigurer::disable)
             .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+            // Headers de securite : durcissement contre clickjacking, MIME-sniff,
+            // referrer leak, et utilisation d'API navigateurs sensibles.
+            .headers(headers -> headers
+                .frameOptions(f -> f.deny())                            // X-Frame-Options: DENY
+                .contentTypeOptions(Customizer.withDefaults())          // X-Content-Type-Options: nosniff
+                .referrerPolicy(r -> r.policy(
+                    ReferrerPolicyHeaderWriter.ReferrerPolicy.STRICT_ORIGIN_WHEN_CROSS_ORIGIN))
+                .httpStrictTransportSecurity(h -> h
+                    .includeSubDomains(true)
+                    .maxAgeInSeconds(31536000))                         // HSTS 1 an
+                .permissionsPolicy(p -> p.policy(
+                    "geolocation=(), microphone=(), camera=(), payment=()"))
+            )
             .exceptionHandling(ex -> ex.authenticationEntryPoint(
                 new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED)))
             .authorizeHttpRequests(auth -> auth
@@ -56,8 +75,10 @@ public class SecurityConfig {
                 .anyRequest().authenticated())
             // Ordre important : jwtFilter doit etre enregistre AVANT
             // qu'on puisse positionner guestFilter par rapport a lui.
+            // rateLimitFilter doit etre tout en tete pour rejeter avant tout traitement.
             .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class)
-            .addFilterBefore(guestFilter, JwtAuthenticationFilter.class);
+            .addFilterBefore(guestFilter, JwtAuthenticationFilter.class)
+            .addFilterBefore(rateLimitFilter, GuestCookieFilter.class);
 
         return http.build();
     }

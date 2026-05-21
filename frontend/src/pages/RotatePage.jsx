@@ -3,6 +3,7 @@ import { RotateCw } from 'lucide-react'
 import DropZone from '../components/DropZone'
 import ToolPage from '../components/ToolPage'
 import SubmitButton from '../components/SubmitButton'
+import OutputFilenameField from '../components/OutputFilenameField'
 import { useToast } from '../components/Toast'
 import { rotatePDF } from '../api/pdfApi'
 
@@ -16,6 +17,7 @@ export default function RotatePage() {
   const [files, setFiles] = useState([])
   const [angle, setAngle] = useState(90)
   const [pages, setPages] = useState('')
+  const [outputName, setOutputName] = useState('')
   const [loading, setLoading] = useState(false)
   const toast = useToast()
 
@@ -27,7 +29,7 @@ export default function RotatePage() {
       .filter(v => Number.isFinite(v) && v > 0)
     setLoading(true)
     try {
-      await rotatePDF(files[0], angle, parsed)
+      await rotatePDF(files[0], angle, parsed, outputName)
       toast.success('Rotation appliquée.')
     } catch (e) {
       toast.error(e.message)
@@ -73,6 +75,10 @@ export default function RotatePage() {
           className="field font-mono"
           placeholder="Laisser vide pour toutes les pages — ou ex : 1,3,5"
         />
+      </div>
+
+      <div className="mt-6">
+        <OutputFilenameField value={outputName} onChange={setOutputName} placeholder="document-pivote" extension=".pdf" />
       </div>
 
       <div className="mt-6">

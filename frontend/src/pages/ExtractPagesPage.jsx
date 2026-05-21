@@ -3,12 +3,14 @@ import { FileSearch } from 'lucide-react'
 import DropZone from '../components/DropZone'
 import ToolPage from '../components/ToolPage'
 import SubmitButton from '../components/SubmitButton'
+import OutputFilenameField from '../components/OutputFilenameField'
 import { useToast } from '../components/Toast'
 import { extractPages } from '../api/pdfApi'
 
 export default function ExtractPagesPage() {
   const [files, setFiles] = useState([])
   const [pages, setPages] = useState('1,2,5')
+  const [outputName, setOutputName] = useState('')
   const [loading, setLoading] = useState(false)
   const toast = useToast()
 
@@ -18,7 +20,7 @@ export default function ExtractPagesPage() {
     if (!parsed.length) return toast.error('Indiquez au moins une page (ex : 1,2,5).')
     setLoading(true)
     try {
-      await extractPages(files[0], parsed)
+      await extractPages(files[0], parsed, outputName)
       toast.success('Extraction terminée.')
     } catch (e) {
       toast.error(e.message)
@@ -42,6 +44,9 @@ export default function ExtractPagesPage() {
           className="field font-mono"
           placeholder="1,2,5"
         />
+      </div>
+      <div className="mt-6">
+        <OutputFilenameField value={outputName} onChange={setOutputName} placeholder="pages-extraites" extension=".pdf" />
       </div>
       <div className="mt-6">
         <SubmitButton loading={loading} onClick={handleSubmit} disabled={!files[0]}>

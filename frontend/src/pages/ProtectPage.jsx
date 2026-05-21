@@ -3,6 +3,7 @@ import { Lock, Eye, EyeOff } from 'lucide-react'
 import DropZone from '../components/DropZone'
 import ToolPage from '../components/ToolPage'
 import SubmitButton from '../components/SubmitButton'
+import OutputFilenameField from '../components/OutputFilenameField'
 import { useToast } from '../components/Toast'
 import { protectPDF } from '../api/pdfApi'
 
@@ -10,6 +11,7 @@ export default function ProtectPage() {
   const [files, setFiles] = useState([])
   const [password, setPassword] = useState('')
   const [show, setShow] = useState(false)
+  const [outputName, setOutputName] = useState('')
   const [loading, setLoading] = useState(false)
   const toast = useToast()
 
@@ -19,7 +21,7 @@ export default function ProtectPage() {
     if (password.length < 4) return toast.error('Le mot de passe doit faire au moins 4 caractères.')
     setLoading(true)
     try {
-      await protectPDF(files[0], password)
+      await protectPDF(files[0], password, undefined, outputName)
       toast.success('PDF protégé. Téléchargement lancé.')
     } catch (e) {
       toast.error(e.message)
@@ -56,6 +58,10 @@ export default function ProtectPage() {
             {show ? <EyeOff size={16} /> : <Eye size={16} />}
           </button>
         </div>
+      </div>
+
+      <div className="mt-6">
+        <OutputFilenameField value={outputName} onChange={setOutputName} placeholder="document-protege" extension=".pdf" />
       </div>
 
       <div className="mt-6">
