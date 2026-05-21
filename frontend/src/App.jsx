@@ -32,6 +32,10 @@ const ResizePage       = lazy(() => import('./pages/ResizePage'))
 const CropPage         = lazy(() => import('./pages/CropPage'))
 const CoverPage        = lazy(() => import('./pages/CoverPage'))
 const ReorderPage      = lazy(() => import('./pages/ReorderPage'))
+const AnonymizePage    = lazy(() => import('./pages/AnonymizePage'))
+const SignatureImagePage = lazy(() => import('./pages/SignatureImagePage'))
+const RedactPage       = lazy(() => import('./pages/RedactPage'))
+const StampPage        = lazy(() => import('./pages/StampPage'))
 const LoginPage        = lazy(() => import('./pages/LoginPage'))
 const RegisterPage     = lazy(() => import('./pages/RegisterPage'))
 const HistoryPage      = lazy(() => import('./pages/HistoryPage'))
@@ -83,6 +87,10 @@ export default function App() {
                   <Route path="/crop"          element={<CropPage />} />
                   <Route path="/cover"         element={<CoverPage />} />
                   <Route path="/reorder"       element={<ReorderPage />} />
+                  <Route path="/anonymize"     element={<AnonymizePage />} />
+                  <Route path="/sign-image"    element={<SignatureImagePage />} />
+                  <Route path="/redact"        element={<RedactPage />} />
+                  <Route path="/stamp"         element={<StampPage />} />
                   <Route path="/login"         element={<LoginPage />} />
                   <Route path="/register"      element={<RegisterPage />} />
                   <Route path="/history"       element={<HistoryPage />} />

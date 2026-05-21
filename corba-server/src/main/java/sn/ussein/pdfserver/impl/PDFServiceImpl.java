@@ -41,6 +41,10 @@ public class PDFServiceImpl extends PDFServicePOA {
     private final CropHandler        cropHandler        = new CropHandler();
     private final CoverHandler       coverHandler       = new CoverHandler();
     private final ReorderHandler     reorderHandler     = new ReorderHandler();
+    private final AnonymizeHandler   anonymizeHandler   = new AnonymizeHandler();
+    private final SignatureImageHandler signatureImageHandler = new SignatureImageHandler();
+    private final RedactHandler      redactHandler      = new RedactHandler();
+    private final StampHandler       stampHandler       = new StampHandler();
 
     // ════════════════════════════════════════
     //  1. Fusion
@@ -284,6 +288,49 @@ public class PDFServiceImpl extends PDFServicePOA {
             throws PDFException, InvalidPageException {
         log.info("→ reorderPages() — ordre de {} pages", order != null ? order.length : 0);
         return reorderHandler.reorderPages(pdf, order);
+    }
+
+    // ════════════════════════════════════════
+    //  25. Anonymisation
+    // ════════════════════════════════════════
+    @Override
+    public PDFResult anonymize(byte[] pdf) throws PDFException {
+        log.info("→ anonymize()");
+        return anonymizeHandler.anonymize(pdf);
+    }
+
+    // ════════════════════════════════════════
+    //  26. Signature manuscrite (image)
+    // ════════════════════════════════════════
+    @Override
+    public PDFResult addSignatureImage(byte[] pdf, byte[] signatureImage,
+                                       int page, float xPercent, float yPercent,
+                                       float widthPercent)
+            throws PDFException, InvalidPageException {
+        log.info("→ addSignatureImage() — page {} a ({}%,{}%), largeur {}%",
+            page, xPercent, yPercent, widthPercent);
+        return signatureImageHandler.addSignatureImage(pdf, signatureImage,
+            page, xPercent, yPercent, widthPercent);
+    }
+
+    // ════════════════════════════════════════
+    //  27. Caviardage textuel
+    // ════════════════════════════════════════
+    @Override
+    public PDFResult redactText(byte[] pdf, String[] terms) throws PDFException {
+        log.info("→ redactText() — {} terme(s)", terms != null ? terms.length : 0);
+        return redactHandler.redactText(pdf, terms);
+    }
+
+    // ════════════════════════════════════════
+    //  28. Tampon
+    // ════════════════════════════════════════
+    @Override
+    public PDFResult addStamp(byte[] pdf, String text, int page, String position,
+                              String color, int fontSize)
+            throws PDFException, InvalidPageException {
+        log.info("→ addStamp() — '{}' page {} en {} ({})", text, page, position, color);
+        return stampHandler.addStamp(pdf, text, page, position, color, fontSize);
     }
 
     // ════════════════════════════════════════

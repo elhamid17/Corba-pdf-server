@@ -162,6 +162,44 @@ module sn {
         PDFResult reorderPages(in PDFData pdf, in PageList order)
           raises (PDFException, InvalidPageException);
 
+        // ═══ 25. Anonymisation ═══
+        // Retire toutes les metadonnees (auteur, titre, dates, producer, etc.)
+        PDFResult anonymize(in PDFData pdf)
+          raises (PDFException);
+
+        // ═══ 26. Signature manuscrite (image) ═══
+        // Appose une image de signature (PNG transparent ou JPG) sur une page
+        // position en pourcentage de la page (0-100, origine en bas-gauche)
+        // widthPercent : largeur de la signature en % de la largeur de page
+        PDFResult addSignatureImage(
+          in PDFData pdf,
+          in PDFData signatureImage,
+          in long page,
+          in float xPercent,
+          in float yPercent,
+          in float widthPercent
+        ) raises (PDFException, InvalidPageException);
+
+        // ═══ 27. Caviardage textuel ═══
+        // Cherche les termes specifies et les recouvre d'un rectangle noir
+        // (le texte sous-jacent reste mais devient illisible visuellement)
+        PDFResult redactText(in PDFData pdf, in StringList terms)
+          raises (PDFException);
+
+        // ═══ 28. Tampon (stamp) ═══
+        // Appose un texte de tampon sur une page (APPROUVE, CONFIDENTIEL, etc.)
+        // position : top-left, top-center, top-right, center,
+        //            bottom-left, bottom-center, bottom-right
+        // color : red, green, blue, black, orange
+        PDFResult addStamp(
+          in PDFData pdf,
+          in string text,
+          in long page,
+          in string position,
+          in string color,
+          in long fontSize
+        ) raises (PDFException, InvalidPageException);
+
         // ═══ Utilitaire ═══
         // Retourne le nombre de pages d'un PDF
         long getPageCount(in PDFData pdf)

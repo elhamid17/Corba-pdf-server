@@ -295,3 +295,50 @@ export async function reorderPdf(file, order, outputName) {
   const blob = await postForm('/reorder', form)
   downloadBlob(blob, clientFilename(outputName, 'reordered.pdf'))
 }
+
+/* ───────── Anonymisation ───────── */
+export async function anonymizePdf(file, outputName) {
+  const form = new FormData()
+  form.append('file', file)
+  maybeOutputName(form, outputName)
+  const blob = await postForm('/anonymize', form)
+  downloadBlob(blob, clientFilename(outputName, 'anonymized.pdf'))
+}
+
+/* ───────── Signature manuscrite (image) ───────── */
+export async function addSignatureImage(file, signature, opts = {}, outputName) {
+  const form = new FormData()
+  form.append('file', file)
+  form.append('signature', signature)
+  form.append('page',         opts.page         ?? 1)
+  form.append('xPercent',     opts.xPercent     ?? 50)
+  form.append('yPercent',     opts.yPercent     ?? 10)
+  form.append('widthPercent', opts.widthPercent ?? 30)
+  maybeOutputName(form, outputName)
+  const blob = await postForm('/sign-image', form)
+  downloadBlob(blob, clientFilename(outputName, 'signed-image.pdf'))
+}
+
+/* ───────── Caviardage textuel ───────── */
+export async function redactPdf(file, terms, outputName) {
+  const form = new FormData()
+  form.append('file', file)
+  terms.forEach(t => form.append('terms', t))
+  maybeOutputName(form, outputName)
+  const blob = await postForm('/redact', form)
+  downloadBlob(blob, clientFilename(outputName, 'redacted.pdf'))
+}
+
+/* ───────── Tampon ───────── */
+export async function addStamp(file, opts = {}, outputName) {
+  const form = new FormData()
+  form.append('file', file)
+  form.append('text',     opts.text     ?? 'APPROUVE')
+  form.append('page',     opts.page     ?? 1)
+  form.append('position', opts.position ?? 'center')
+  form.append('color',    opts.color    ?? 'red')
+  form.append('fontSize', opts.fontSize ?? 36)
+  maybeOutputName(form, outputName)
+  const blob = await postForm('/stamp', form)
+  downloadBlob(blob, clientFilename(outputName, 'stamped.pdf'))
+}

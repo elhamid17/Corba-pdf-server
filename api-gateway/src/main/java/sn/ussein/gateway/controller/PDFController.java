@@ -633,6 +633,113 @@ public class PDFController {
         }
     }
 
+    @PostMapping("/anonymize")
+    public ResponseEntity<byte[]> anonymize(@RequestParam("file") MultipartFile file,
+                                            @RequestParam(required = false) String outputName,
+                                            HttpServletRequest request) {
+        validatePdfFile(file, "file");
+        long start = System.nanoTime();
+        try {
+            return pdfResponse(corba.getPdfService().anonymize(file.getBytes()),
+                "anonymized.pdf", outputName, "anonymize", file.getOriginalFilename(), request, start);
+        } catch (IOException e) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Lecture du fichier impossible", e);
+        } catch (ResponseStatusException e) {
+            throw e;
+        } catch (Exception e) {
+            log.error("Erreur /anonymize", e);
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Erreur lors de l'anonymisation", e);
+        }
+    }
+
+    @PostMapping("/sign-image")
+    public ResponseEntity<byte[]> signImage(@RequestParam("file") MultipartFile file,
+                                            @RequestParam("signature") MultipartFile signature,
+                                            @RequestParam(defaultValue = "1") int page,
+                                            @RequestParam(defaultValue = "50") float xPercent,
+                                            @RequestParam(defaultValue = "10") float yPercent,
+                                            @RequestParam(defaultValue = "30") float widthPercent,
+                                            @RequestParam(required = false) String outputName,
+                                            HttpServletRequest request) {
+        validatePdfFile(file, "file");
+        if (signature == null || signature.isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "signature (image) est requise");
+        }
+        String ct = signature.getContentType();
+        if (ct == null || !ct.startsWith("image/")) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "signature doit etre une image (PNG/JPG)");
+        }
+        if (page < 1) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "page doit etre >= 1");
+        }
+        long start = System.nanoTime();
+        try {
+            return pdfResponse(corba.getPdfService().addSignatureImage(file.getBytes(),
+                    signature.getBytes(), page, xPercent, yPercent, widthPercent),
+                "signed-image.pdf", outputName, "sign-image", file.getOriginalFilename(), request, start);
+        } catch (IOException e) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Lecture des fichiers impossible", e);
+        } catch (ResponseStatusException e) {
+            throw e;
+        } catch (Exception e) {
+            log.error("Erreur /sign-image", e);
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Erreur lors de l'apposition de signature", e);
+        }
+    }
+
+    @PostMapping("/redact")
+    public ResponseEntity<byte[]> redact(@RequestParam("file") MultipartFile file,
+                                         @RequestParam("terms") String[] terms,
+                                         @RequestParam(required = false) String outputName,
+                                         HttpServletRequest request) {
+        validatePdfFile(file, "file");
+        if (terms == null || terms.length == 0) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Au moins un terme a caviarder est requis");
+        }
+        long start = System.nanoTime();
+        try {
+            return pdfResponse(corba.getPdfService().redactText(file.getBytes(), terms),
+                "redacted.pdf", outputName, "redact", file.getOriginalFilename(), request, start);
+        } catch (IOException e) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Lecture du fichier impossible", e);
+        } catch (ResponseStatusException e) {
+            throw e;
+        } catch (Exception e) {
+            log.error("Erreur /redact", e);
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Erreur lors du caviardage", e);
+        }
+    }
+
+    @PostMapping("/stamp")
+    public ResponseEntity<byte[]> stamp(@RequestParam("file") MultipartFile file,
+                                        @RequestParam String text,
+                                        @RequestParam(defaultValue = "1") int page,
+                                        @RequestParam(defaultValue = "center") String position,
+                                        @RequestParam(defaultValue = "red") String color,
+                                        @RequestParam(defaultValue = "36") int fontSize,
+                                        @RequestParam(required = false) String outputName,
+                                        HttpServletRequest request) {
+        validatePdfFile(file, "file");
+        if (text == null || text.isBlank()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "text est requis");
+        }
+        if (page < 1) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "page doit etre >= 1");
+        }
+        long start = System.nanoTime();
+        try {
+            return pdfResponse(corba.getPdfService().addStamp(file.getBytes(), text, page, position, color, fontSize),
+                "stamped.pdf", outputName, "stamp", file.getOriginalFilename(), request, start);
+        } catch (IOException e) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Lecture du fichier impossible", e);
+        } catch (ResponseStatusException e) {
+            throw e;
+        } catch (Exception e) {
+            log.error("Erreur /stamp", e);
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Erreur lors de l'apposition du tampon", e);
+        }
+    }
+
     @PostMapping("/page-count")
     public ResponseEntity<Map<String, Integer>> pageCount(@RequestParam("file") MultipartFile file) {
         validatePdfFile(file, "file");

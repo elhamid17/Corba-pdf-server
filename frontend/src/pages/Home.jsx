@@ -8,6 +8,7 @@ import {
   Info, Plus, Sparkles, ShieldCheck, Network, Cpu, ArrowRight,
   FileType2, Sheet, Images,
   FlipVertical2, Hash, Maximize2, Crop, BookOpen, Shuffle,
+  UserX, PenLine, Highlighter, Stamp,
 } from 'lucide-react'
 
 const SERVICES = [
@@ -35,6 +36,10 @@ const SERVICES = [
   { icon: Maximize2,  title: 'Redimensionner',  description: 'Convertit toutes les pages au format A4, A3, Letter…',     to: '/resize',        tone: 'cyan',   badge: 'Nouveau' },
   { icon: BookOpen,   title: 'Page de garde',   description: 'Ajoutez une image en couverture du document.',             to: '/cover',         tone: 'rose',   badge: 'Nouveau' },
   { icon: FlipVertical2, title: 'Inverser',     description: 'Renverse l’ordre des pages en un clic.',                   to: '/reverse',       tone: 'brand',  badge: 'Nouveau' },
+  { icon: Stamp,      title: 'Tampon',          description: 'Appose un tampon stylé (APPROUVÉ, CONFIDENTIEL…) sur une page.', to: '/stamp',     tone: 'rose',   badge: 'Nouveau' },
+  { icon: PenLine,    title: 'Signature manuscrite', description: 'Dessinez votre signature ou importez une image.',     to: '/sign-image',    tone: 'violet', badge: 'Nouveau' },
+  { icon: Highlighter, title: 'Caviardage',     description: 'Masque les noms, numéros et termes confidentiels.',         to: '/redact',        tone: 'amber',  badge: 'Nouveau' },
+  { icon: UserX,      title: 'Anonymisation',   description: 'Retire toutes les métadonnées du document en un clic.',     to: '/anonymize',     tone: 'emerald', badge: 'Nouveau' },
 ]
 
 const HIGHLIGHTS = [
@@ -70,7 +75,7 @@ export default function Home() {
             </span>
           </h1>
           <p className="mt-5 max-w-2xl mx-auto text-lg text-ink-500 dark:text-ink-400 leading-relaxed">
-            Suite complète de 24 services PDF — fusion, OCR, signature, réorganisation par drag-and-drop, numérotation, recadrage et plus — propulsée par CORBA, JacORB et Apache PDFBox.
+            Suite complète de 28 services PDF — fusion, OCR, signature manuscrite, tampons, caviardage, anonymisation et plus — propulsée par CORBA, JacORB et Apache PDFBox.
           </p>
 
           <div className="mt-7 flex flex-wrap items-center justify-center gap-3">
@@ -117,7 +122,7 @@ export default function Home() {
       <section id="services" className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-12">
         <div className="flex items-end justify-between mb-6">
           <div>
-            <span className="eyebrow">24 modules de traitement</span>
+            <span className="eyebrow">28 modules de traitement</span>
             <h2 className="mt-1 text-2xl sm:text-3xl font-bold font-display text-ink-900 dark:text-ink-100">
               Services PDF disponibles
             </h2>

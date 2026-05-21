@@ -6,6 +6,7 @@ import {
   Info, Plus, Github, Wand2, Menu, X, FileType2, Sheet, Images,
   Sun, Moon, Monitor, LogIn, LogOut, UserPlus, History, Shield, User as UserIcon,
   FlipVertical2, Hash, Maximize2, Crop, BookOpen, Shuffle,
+  UserX, PenLine, Highlighter, Stamp,
 } from 'lucide-react'
 import { ping } from '../api/pdfApi'
 import { useTheme } from '../hooks/useTheme'
@@ -42,6 +43,7 @@ export const SERVICE_GROUPS = [
     title: 'Édition',
     items: [
       { to: '/watermark',     label: 'Filigrane',      icon: Droplets   },
+      { to: '/stamp',         label: 'Tampon',         icon: Stamp      },
       { to: '/page-numbers',  label: 'Numérotation',   icon: Hash       },
       { to: '/crop',          label: 'Recadrage',      icon: Crop       },
       { to: '/resize',        label: 'Redimensionner', icon: Maximize2  },
@@ -53,7 +55,10 @@ export const SERVICE_GROUPS = [
     title: 'Sécurité',
     items: [
       { to: '/protect',       label: 'Protection',     icon: Lock       },
-      { to: '/sign',          label: 'Signature',      icon: PenTool    },
+      { to: '/sign',          label: 'Signature PKI',  icon: PenTool    },
+      { to: '/sign-image',    label: 'Signature manuscrite', icon: PenLine },
+      { to: '/redact',        label: 'Caviardage',     icon: Highlighter },
+      { to: '/anonymize',     label: 'Anonymisation',  icon: UserX      },
     ],
   },
   {

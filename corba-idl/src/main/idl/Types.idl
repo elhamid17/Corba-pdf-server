@@ -19,6 +19,9 @@ module sn {
       // Liste de numéros de pages
       typedef sequence<long> PageList;
 
+      // Liste de chaines (utilisée par le caviardage textuel)
+      typedef sequence<string> StringList;
+
       // ═══ Résultat standard ═══
       struct PDFResult {
         boolean success;
