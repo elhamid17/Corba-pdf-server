@@ -5,6 +5,7 @@ import {
   Droplets, Lock, Image as ImageIcon, FileText, ScanText, PenTool,
   Info, Plus, Github, Wand2, Menu, X, FileType2, Sheet, Images,
   Sun, Moon, Monitor, LogIn, LogOut, UserPlus, History, Shield, User as UserIcon,
+  FlipVertical2, Hash, Maximize2, Crop, BookOpen, Shuffle,
 } from 'lucide-react'
 import { ping } from '../api/pdfApi'
 import { useTheme } from '../hooks/useTheme'
@@ -22,6 +23,9 @@ export const SERVICE_GROUPS = [
       { to: '/extract-pages', label: 'Extraction',     icon: FileSearch },
       { to: '/delete-pages',  label: 'Suppression',    icon: FileMinus  },
       { to: '/rotate',        label: 'Rotation',       icon: RotateCw   },
+      { to: '/reorder',       label: 'Réorganiser',    icon: Shuffle    },
+      { to: '/reverse',       label: 'Inverser',       icon: FlipVertical2 },
+      { to: '/cover',         label: 'Page de garde',  icon: BookOpen   },
     ],
   },
   {
@@ -38,6 +42,9 @@ export const SERVICE_GROUPS = [
     title: 'Édition',
     items: [
       { to: '/watermark',     label: 'Filigrane',      icon: Droplets   },
+      { to: '/page-numbers',  label: 'Numérotation',   icon: Hash       },
+      { to: '/crop',          label: 'Recadrage',      icon: Crop       },
+      { to: '/resize',        label: 'Redimensionner', icon: Maximize2  },
       { to: '/compress',      label: 'Compression',    icon: Archive    },
       { to: '/metadata',      label: 'Métadonnées',    icon: Info       },
     ],

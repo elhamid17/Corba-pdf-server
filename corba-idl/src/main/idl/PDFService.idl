@@ -117,6 +117,51 @@ module sn {
         PDFResult imagesToPdf(in PDFList images)
           raises (PDFException);
 
+        // ═══ 19. Inversion de l'ordre des pages ═══
+        // Renverse l'ordre des pages (dernière devient première, etc.)
+        PDFResult reversePages(in PDFData pdf)
+          raises (PDFException);
+
+        // ═══ 20. Numérotation des pages ═══
+        // Ajoute des numéros de page (position : top-left, top-center,
+        // top-right, bottom-left, bottom-center, bottom-right)
+        // format : "%d", "%d/%d", "Page %d", "Page %d sur %d", ...
+        PDFResult addPageNumbers(
+          in PDFData pdf,
+          in string  position,
+          in string  format,
+          in long    startNumber,
+          in long    fontSize
+        ) raises (PDFException);
+
+        // ═══ 21. Redimensionnement des pages ═══
+        // Redimensionne toutes les pages vers un format standard
+        // targetSize : "A4", "A3", "A5", "LETTER", "LEGAL"
+        PDFResult resizePages(in PDFData pdf, in string targetSize)
+          raises (PDFException);
+
+        // ═══ 22. Recadrage des pages ═══
+        // Recadre toutes les pages en retirant des marges (en pourcentage 0-50)
+        PDFResult cropPages(
+          in PDFData pdf,
+          in float marginLeft,
+          in float marginTop,
+          in float marginRight,
+          in float marginBottom
+        ) raises (PDFException);
+
+        // ═══ 23. Page de garde ═══
+        // Ajoute une page de garde au début du PDF
+        // coverImage : image (PNG/JPEG) qui sera la 1ère page pleine échelle
+        PDFResult addCoverPage(in PDFData pdf, in PDFData coverImage)
+          raises (PDFException);
+
+        // ═══ 24. Réorganisation des pages ═══
+        // Réordonne les pages selon la liste fournie
+        // ex: order = [3,1,2] → page 3 devient 1, page 1 devient 2, etc.
+        PDFResult reorderPages(in PDFData pdf, in PageList order)
+          raises (PDFException, InvalidPageException);
+
         // ═══ Utilitaire ═══
         // Retourne le nombre de pages d'un PDF
         long getPageCount(in PDFData pdf)

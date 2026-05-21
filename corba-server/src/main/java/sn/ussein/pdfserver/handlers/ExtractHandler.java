@@ -53,7 +53,9 @@ public class ExtractHandler {
                     }
                     // PDFBox utilise un index 0-based
                     PDPage page = source.getPage(pageNum - 1);
-                    target.addPage(target.importPage(page));
+                    // importPage clone ET ajoute deja la page au document target —
+                    // pas besoin d'un addPage supplementaire (sinon page dupliquee).
+                    target.importPage(page);
                 }
 
                 ByteArrayOutputStream out = new ByteArrayOutputStream();

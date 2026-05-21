@@ -26,6 +26,12 @@ const PdfToWordPage    = lazy(() => import('./pages/PdfToWordPage'))
 const PdfToExcelPage   = lazy(() => import('./pages/PdfToExcelPage'))
 const WordToPdfPage    = lazy(() => import('./pages/WordToPdfPage'))
 const ImagesToPdfPage  = lazy(() => import('./pages/ImagesToPdfPage'))
+const ReversePage      = lazy(() => import('./pages/ReversePage'))
+const PageNumberPage   = lazy(() => import('./pages/PageNumberPage'))
+const ResizePage       = lazy(() => import('./pages/ResizePage'))
+const CropPage         = lazy(() => import('./pages/CropPage'))
+const CoverPage        = lazy(() => import('./pages/CoverPage'))
+const ReorderPage      = lazy(() => import('./pages/ReorderPage'))
 const LoginPage        = lazy(() => import('./pages/LoginPage'))
 const RegisterPage     = lazy(() => import('./pages/RegisterPage'))
 const HistoryPage      = lazy(() => import('./pages/HistoryPage'))
@@ -71,6 +77,12 @@ export default function App() {
                   <Route path="/pdf-to-excel"  element={<PdfToExcelPage />} />
                   <Route path="/word-to-pdf"   element={<WordToPdfPage />} />
                   <Route path="/images-to-pdf" element={<ImagesToPdfPage />} />
+                  <Route path="/reverse"       element={<ReversePage />} />
+                  <Route path="/page-numbers"  element={<PageNumberPage />} />
+                  <Route path="/resize"        element={<ResizePage />} />
+                  <Route path="/crop"          element={<CropPage />} />
+                  <Route path="/cover"         element={<CoverPage />} />
+                  <Route path="/reorder"       element={<ReorderPage />} />
                   <Route path="/login"         element={<LoginPage />} />
                   <Route path="/register"      element={<RegisterPage />} />
                   <Route path="/history"       element={<HistoryPage />} />

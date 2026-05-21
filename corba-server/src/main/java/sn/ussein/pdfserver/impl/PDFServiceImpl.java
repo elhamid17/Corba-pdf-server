@@ -35,6 +35,12 @@ public class PDFServiceImpl extends PDFServicePOA {
     private final PdfToExcelHandler  pdfToExcelHandler  = new PdfToExcelHandler();
     private final WordToPdfHandler   wordToPdfHandler   = new WordToPdfHandler();
     private final ImagesToPdfHandler imagesToPdfHandler = new ImagesToPdfHandler();
+    private final ReverseHandler     reverseHandler     = new ReverseHandler();
+    private final PageNumberHandler  pageNumberHandler  = new PageNumberHandler();
+    private final ResizeHandler      resizeHandler      = new ResizeHandler();
+    private final CropHandler        cropHandler        = new CropHandler();
+    private final CoverHandler       coverHandler       = new CoverHandler();
+    private final ReorderHandler     reorderHandler     = new ReorderHandler();
 
     // ════════════════════════════════════════
     //  1. Fusion
@@ -219,6 +225,65 @@ public class PDFServiceImpl extends PDFServicePOA {
     public PDFResult imagesToPdf(byte[][] images) throws PDFException {
         log.info("→ imagesToPdf() — {} images", images != null ? images.length : 0);
         return imagesToPdfHandler.imagesToPdf(images);
+    }
+
+    // ════════════════════════════════════════
+    //  19. Inversion des pages
+    // ════════════════════════════════════════
+    @Override
+    public PDFResult reversePages(byte[] pdf) throws PDFException {
+        log.info("→ reversePages()");
+        return reverseHandler.reversePages(pdf);
+    }
+
+    // ════════════════════════════════════════
+    //  20. Numerotation des pages
+    // ════════════════════════════════════════
+    @Override
+    public PDFResult addPageNumbers(byte[] pdf, String position, String format,
+                                    int startNumber, int fontSize) throws PDFException {
+        log.info("→ addPageNumbers() — position : {}, format : '{}'", position, format);
+        return pageNumberHandler.addPageNumbers(pdf, position, format, startNumber, fontSize);
+    }
+
+    // ════════════════════════════════════════
+    //  21. Redimensionnement
+    // ════════════════════════════════════════
+    @Override
+    public PDFResult resizePages(byte[] pdf, String targetSize) throws PDFException {
+        log.info("→ resizePages() — cible : {}", targetSize);
+        return resizeHandler.resizePages(pdf, targetSize);
+    }
+
+    // ════════════════════════════════════════
+    //  22. Recadrage
+    // ════════════════════════════════════════
+    @Override
+    public PDFResult cropPages(byte[] pdf, float marginLeft, float marginTop,
+                               float marginRight, float marginBottom) throws PDFException {
+        log.info("→ cropPages() — marges G:{}% H:{}% D:{}% B:{}%",
+            marginLeft, marginTop, marginRight, marginBottom);
+        return cropHandler.cropPages(pdf, marginLeft, marginTop, marginRight, marginBottom);
+    }
+
+    // ════════════════════════════════════════
+    //  23. Page de garde
+    // ════════════════════════════════════════
+    @Override
+    public PDFResult addCoverPage(byte[] pdf, byte[] coverImage) throws PDFException {
+        log.info("→ addCoverPage() — image {} octets",
+            coverImage != null ? coverImage.length : 0);
+        return coverHandler.addCoverPage(pdf, coverImage);
+    }
+
+    // ════════════════════════════════════════
+    //  24. Reorganisation des pages
+    // ════════════════════════════════════════
+    @Override
+    public PDFResult reorderPages(byte[] pdf, int[] order)
+            throws PDFException, InvalidPageException {
+        log.info("→ reorderPages() — ordre de {} pages", order != null ? order.length : 0);
+        return reorderHandler.reorderPages(pdf, order);
     }
 
     // ════════════════════════════════════════

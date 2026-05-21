@@ -230,3 +230,68 @@ export async function imagesToPdf(files, outputName) {
   const blob = await postForm('/images-to-pdf', form)
   downloadBlob(blob, clientFilename(outputName, 'images.pdf'))
 }
+
+/* ───────── Inversion des pages ───────── */
+export async function reversePdf(file, outputName) {
+  const form = new FormData()
+  form.append('file', file)
+  maybeOutputName(form, outputName)
+  const blob = await postForm('/reverse', form)
+  downloadBlob(blob, clientFilename(outputName, 'reversed.pdf'))
+}
+
+/* ───────── Numerotation des pages ───────── */
+export async function addPageNumbers(file, options = {}, outputName) {
+  const form = new FormData()
+  form.append('file', file)
+  form.append('position',    options.position    ?? 'bottom-center')
+  form.append('format',      options.format      ?? '%d')
+  form.append('startNumber', options.startNumber ?? 1)
+  form.append('fontSize',    options.fontSize    ?? 12)
+  maybeOutputName(form, outputName)
+  const blob = await postForm('/page-numbers', form)
+  downloadBlob(blob, clientFilename(outputName, 'numbered.pdf'))
+}
+
+/* ───────── Redimensionnement ───────── */
+export async function resizePdf(file, targetSize, outputName) {
+  const form = new FormData()
+  form.append('file', file)
+  form.append('targetSize', targetSize || 'A4')
+  maybeOutputName(form, outputName)
+  const blob = await postForm('/resize', form)
+  downloadBlob(blob, clientFilename(outputName, 'resized.pdf'))
+}
+
+/* ───────── Recadrage ───────── */
+export async function cropPdf(file, margins = {}, outputName) {
+  const form = new FormData()
+  form.append('file', file)
+  form.append('marginLeft',   margins.left   ?? 0)
+  form.append('marginTop',    margins.top    ?? 0)
+  form.append('marginRight',  margins.right  ?? 0)
+  form.append('marginBottom', margins.bottom ?? 0)
+  maybeOutputName(form, outputName)
+  const blob = await postForm('/crop', form)
+  downloadBlob(blob, clientFilename(outputName, 'cropped.pdf'))
+}
+
+/* ───────── Page de garde ───────── */
+export async function addCoverPage(file, coverImage, outputName) {
+  const form = new FormData()
+  form.append('file', file)
+  form.append('cover', coverImage)
+  maybeOutputName(form, outputName)
+  const blob = await postForm('/cover', form)
+  downloadBlob(blob, clientFilename(outputName, 'with-cover.pdf'))
+}
+
+/* ───────── Reorganisation ───────── */
+export async function reorderPdf(file, order, outputName) {
+  const form = new FormData()
+  form.append('file', file)
+  order.forEach(p => form.append('order', p))
+  maybeOutputName(form, outputName)
+  const blob = await postForm('/reorder', form)
+  downloadBlob(blob, clientFilename(outputName, 'reordered.pdf'))
+}

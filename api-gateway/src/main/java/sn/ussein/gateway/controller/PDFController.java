@@ -498,6 +498,141 @@ public class PDFController {
         }
     }
 
+    @PostMapping("/reverse")
+    public ResponseEntity<byte[]> reverse(@RequestParam("file") MultipartFile file,
+                                          @RequestParam(required = false) String outputName,
+                                          HttpServletRequest request) {
+        validatePdfFile(file, "file");
+        long start = System.nanoTime();
+        try {
+            return pdfResponse(corba.getPdfService().reversePages(file.getBytes()), "reversed.pdf", outputName,
+                "reverse", file.getOriginalFilename(), request, start);
+        } catch (IOException e) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Lecture du fichier impossible", e);
+        } catch (ResponseStatusException e) {
+            throw e;
+        } catch (Exception e) {
+            log.error("Erreur /reverse", e);
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Erreur lors de l'inversion", e);
+        }
+    }
+
+    @PostMapping("/page-numbers")
+    public ResponseEntity<byte[]> pageNumbers(@RequestParam("file") MultipartFile file,
+                                              @RequestParam(defaultValue = "bottom-center") String position,
+                                              @RequestParam(defaultValue = "%d") String format,
+                                              @RequestParam(defaultValue = "1") int startNumber,
+                                              @RequestParam(defaultValue = "12") int fontSize,
+                                              @RequestParam(required = false) String outputName,
+                                              HttpServletRequest request) {
+        validatePdfFile(file, "file");
+        long start = System.nanoTime();
+        try {
+            return pdfResponse(
+                corba.getPdfService().addPageNumbers(file.getBytes(), position, format, startNumber, fontSize),
+                "numbered.pdf", outputName, "page-numbers", file.getOriginalFilename(), request, start);
+        } catch (IOException e) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Lecture du fichier impossible", e);
+        } catch (ResponseStatusException e) {
+            throw e;
+        } catch (Exception e) {
+            log.error("Erreur /page-numbers", e);
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Erreur lors de la numerotation", e);
+        }
+    }
+
+    @PostMapping("/resize")
+    public ResponseEntity<byte[]> resize(@RequestParam("file") MultipartFile file,
+                                         @RequestParam(defaultValue = "A4") String targetSize,
+                                         @RequestParam(required = false) String outputName,
+                                         HttpServletRequest request) {
+        validatePdfFile(file, "file");
+        long start = System.nanoTime();
+        try {
+            return pdfResponse(corba.getPdfService().resizePages(file.getBytes(), targetSize),
+                "resized.pdf", outputName, "resize", file.getOriginalFilename(), request, start);
+        } catch (IOException e) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Lecture du fichier impossible", e);
+        } catch (ResponseStatusException e) {
+            throw e;
+        } catch (Exception e) {
+            log.error("Erreur /resize", e);
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Erreur lors du redimensionnement", e);
+        }
+    }
+
+    @PostMapping("/crop")
+    public ResponseEntity<byte[]> crop(@RequestParam("file") MultipartFile file,
+                                       @RequestParam(defaultValue = "0") float marginLeft,
+                                       @RequestParam(defaultValue = "0") float marginTop,
+                                       @RequestParam(defaultValue = "0") float marginRight,
+                                       @RequestParam(defaultValue = "0") float marginBottom,
+                                       @RequestParam(required = false) String outputName,
+                                       HttpServletRequest request) {
+        validatePdfFile(file, "file");
+        long start = System.nanoTime();
+        try {
+            return pdfResponse(corba.getPdfService().cropPages(file.getBytes(),
+                    marginLeft, marginTop, marginRight, marginBottom),
+                "cropped.pdf", outputName, "crop", file.getOriginalFilename(), request, start);
+        } catch (IOException e) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Lecture du fichier impossible", e);
+        } catch (ResponseStatusException e) {
+            throw e;
+        } catch (Exception e) {
+            log.error("Erreur /crop", e);
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Erreur lors du recadrage", e);
+        }
+    }
+
+    @PostMapping("/cover")
+    public ResponseEntity<byte[]> cover(@RequestParam("file") MultipartFile file,
+                                        @RequestParam("cover") MultipartFile cover,
+                                        @RequestParam(required = false) String outputName,
+                                        HttpServletRequest request) {
+        validatePdfFile(file, "file");
+        if (cover == null || cover.isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "cover (image) est requis");
+        }
+        String ct = cover.getContentType();
+        if (ct == null || !ct.startsWith("image/")) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "cover doit etre une image (JPG/PNG)");
+        }
+        long start = System.nanoTime();
+        try {
+            return pdfResponse(corba.getPdfService().addCoverPage(file.getBytes(), cover.getBytes()),
+                "with-cover.pdf", outputName, "cover", file.getOriginalFilename(), request, start);
+        } catch (IOException e) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Lecture des fichiers impossible", e);
+        } catch (ResponseStatusException e) {
+            throw e;
+        } catch (Exception e) {
+            log.error("Erreur /cover", e);
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Erreur lors de l'ajout de la couverture", e);
+        }
+    }
+
+    @PostMapping("/reorder")
+    public ResponseEntity<byte[]> reorder(@RequestParam("file") MultipartFile file,
+                                          @RequestParam("order") int[] order,
+                                          @RequestParam(required = false) String outputName,
+                                          HttpServletRequest request) {
+        validatePdfFile(file, "file");
+        validatePositiveList(order, "order");
+        long start = System.nanoTime();
+        try {
+            return pdfResponse(corba.getPdfService().reorderPages(file.getBytes(), order),
+                "reordered.pdf", outputName, "reorder", file.getOriginalFilename(), request, start);
+        } catch (IOException e) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Lecture du fichier impossible", e);
+        } catch (ResponseStatusException e) {
+            throw e;
+        } catch (Exception e) {
+            log.error("Erreur /reorder", e);
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Erreur lors de la reorganisation", e);
+        }
+    }
+
     @PostMapping("/page-count")
     public ResponseEntity<Map<String, Integer>> pageCount(@RequestParam("file") MultipartFile file) {
         validatePdfFile(file, "file");
