@@ -4,7 +4,7 @@ import {
   Layers, Scissors, FileMinus, FileSearch, Archive, RotateCw,
   Droplets, Lock, Image as ImageIcon, FileText, ScanText, PenTool,
   Info, Plus, Github, Wand2, Menu, X, FileType2, Sheet, Images,
-  Sun, Moon, Monitor, LogIn, LogOut, UserPlus, History, Shield, User as UserIcon, Search,
+  Sun, Moon, Monitor, LogIn, LogOut, UserPlus, History, Shield, User as UserIcon,
 } from 'lucide-react'
 import { ping } from '../api/pdfApi'
 import { useTheme } from '../hooks/useTheme'
@@ -142,7 +142,6 @@ export default function Navbar() {
             {/* Statut serveur + theme + auth + github */}
             <div className="flex items-center gap-2 sm:gap-3 shrink-0">
               <StatusPill status={status} />
-              <CommandHint />
               <AdminShortcut />
               <ThemeToggle />
               <UserMenu />
@@ -265,33 +264,6 @@ function StatusPill({ status }) {
       </span>
       <span className="hidden sm:inline">{cfg.text}</span>
     </span>
-  )
-}
-
-/**
- * Hint visuel discret pour signaler l'existence de la command palette.
- * Au clic : declenche l'event que CommandPalette ecoute via dispatch sur Ctrl+K.
- */
-function CommandHint() {
-  const isMac = typeof navigator !== 'undefined' && /Mac/.test(navigator.platform)
-  const onClick = () => {
-    // Simule le raccourci pour ouvrir la palette
-    document.dispatchEvent(new KeyboardEvent('keydown', {
-      key: 'k', code: 'KeyK', ctrlKey: !isMac, metaKey: isMac, bubbles: true,
-    }))
-  }
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      aria-label="Ouvrir la recherche rapide"
-      title="Recherche rapide"
-      className="hidden md:inline-flex items-center gap-1.5 h-9 px-2.5 rounded-lg border border-ink-200 dark:border-ink-700 bg-white/60 dark:bg-ink-900/60 hover:bg-ink-50 dark:hover:bg-ink-800 transition-colors text-xs text-ink-500 dark:text-ink-400"
-    >
-      <Search size={14} />
-      <span className="hidden lg:inline">Rechercher</span>
-      <kbd className="font-mono text-[10px] bg-ink-100 dark:bg-ink-800 rounded px-1 py-0.5">{isMac ? '⌘' : 'Ctrl'}+K</kbd>
-    </button>
   )
 }
 
