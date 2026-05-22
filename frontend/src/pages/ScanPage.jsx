@@ -17,6 +17,7 @@ import SubmitButton from '../components/SubmitButton'
 import OutputFilenameField from '../components/OutputFilenameField'
 import DocumentEditor from '../components/DocumentEditor'
 import { useToast } from '../components/Toast'
+import { useProgress } from '../hooks/useProgress'
 import { imagesToPdf } from '../api/pdfApi'
 import { useOpenCv } from '../hooks/useOpenCv'
 import {
@@ -42,6 +43,7 @@ export default function ScanPage() {
   const [outputName, setOutputName] = useState('')
   const [loading, setLoading] = useState(false)
   const toast = useToast()
+  const { progress, onProgress, reset: resetProgress } = useProgress()
 
   const cvHook = useOpenCv()
 
@@ -204,6 +206,7 @@ export default function ScanPage() {
       toast.error(e.message)
     } finally {
       setLoading(false)
+      resetProgress()
     }
   }
 
@@ -251,12 +254,39 @@ export default function ScanPage() {
           </div>
         </button>
         {smartMode && cvHook.loading && (
-          <p className="mt-2 text-xs text-ink-500 inline-flex items-center gap-1.5">
-            <Loader2 size={12} className="animate-spin" /> Chargement d'OpenCV.js (~7 Mo) — patientez…
-          </p>
+          <div className="mt-2 rounded-lg border border-amber-200 dark:border-amber-800 bg-amber-50 dark:bg-amber-950/30 p-3 flex items-start gap-2">
+            <Loader2 size={14} className="shrink-0 mt-0.5 animate-spin text-amber-600" />
+            <div className="flex-1 text-xs">
+              <p className="font-medium text-ink-800 dark:text-ink-100">Téléchargement d'OpenCV.js (~7 Mo)</p>
+              <p className="mt-0.5 text-ink-600 dark:text-ink-300">
+                Patientez — la première fois c'est plus long. En wifi c'est rapide ; en 3G/4G compter 20-60s.
+                Timeout après 90s.
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={() => { cvHook.abort?.(); setSmartMode(false) }}
+              className="shrink-0 text-xs font-medium text-rose-600 hover:text-rose-700 dark:text-rose-400 dark:hover:text-rose-300 px-2 py-1 rounded hover:bg-white/50 dark:hover:bg-ink-800"
+            >
+              Annuler
+            </button>
+          </div>
         )}
         {smartMode && cvHook.error && (
-          <p className="mt-2 text-xs text-rose-600">⚠ {cvHook.error}</p>
+          <div className="mt-2 rounded-lg border border-rose-200 dark:border-rose-800 bg-rose-50 dark:bg-rose-950/30 p-3 flex items-start gap-2">
+            <AlertTriangle size={14} className="shrink-0 mt-0.5 text-rose-600" />
+            <div className="flex-1 text-xs text-ink-700 dark:text-ink-200">
+              <p className="font-medium">{cvHook.error}</p>
+              <p className="mt-0.5">Le mode simple fonctionne sans téléchargement et reste très efficace.</p>
+            </div>
+            <button
+              type="button"
+              onClick={() => setSmartMode(false)}
+              className="shrink-0 text-xs font-medium text-rose-600 hover:text-rose-700 px-2 py-1"
+            >
+              Désactiver
+            </button>
+          </div>
         )}
       </div>
 
@@ -372,7 +402,7 @@ export default function ScanPage() {
       )}
 
       <div className="mt-6">
-        <SubmitButton loading={loading} onClick={handleAssemble} disabled={photos.length === 0} icon={FileDown}>
+        <SubmitButton loading={loading} progress={progress} onClick={handleAssemble} disabled={photos.length === 0} icon={FileDown}>
           Assembler en PDF {photos.length > 0 ? `(${photos.length} page${photos.length > 1 ? 's' : ''})` : ''}
         </SubmitButton>
       </div>
