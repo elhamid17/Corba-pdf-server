@@ -1,6 +1,6 @@
 import { useEffect, useLayoutEffect, useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
-import { X, ArrowRight, Check, Sparkles, Search, Camera, Command } from 'lucide-react'
+import { X, ArrowRight, Check, Sparkles, Search, Camera, Command, Smartphone } from 'lucide-react'
 
 /**
  * Tour onboarding interactif a la 1ere visite.
@@ -17,13 +17,34 @@ import { X, ArrowRight, Check, Sparkles, Search, Camera, Command } from 'lucide-
 
 const STORAGE_KEY = 'corba_pdf_onboarded'
 
+// Detection du type d'appareil : touch primary => mobile/tablette
+const IS_TOUCH = typeof window !== 'undefined' &&
+  window.matchMedia?.('(pointer: coarse)').matches
+
+// Derniere etape : different sur mobile (pas de Ctrl+K, pas de clavier)
+const LAST_STEP_DESKTOP = {
+  id: 'cmdk',
+  target: null,
+  icon: Command,
+  title: 'Astuce de pro',
+  body: 'Appuyez sur Ctrl + K (Cmd + K sur Mac) à tout moment pour ouvrir la palette de commandes et naviguer ultra-vite entre les outils.',
+}
+
+const LAST_STEP_MOBILE = {
+  id: 'mobile-tips',
+  target: null,
+  icon: Smartphone,
+  title: 'Astuces mobile',
+  body: 'Le menu hamburger en haut à gauche regroupe les 35 outils par catégorie. Pensez aussi à « Ajouter à l\'écran d\'accueil » depuis votre navigateur pour installer l\'app comme une vraie appli mobile.',
+}
+
 const STEPS = [
   {
     id: 'welcome',
     target: null,
     icon: Sparkles,
     title: 'Bienvenue sur CORBA PDF Suite',
-    body: '43 outils pour traiter vos documents PDF. On vous fait une visite éclair en 4 étapes.',
+    body: '35 outils pour traiter vos documents PDF. On vous fait une visite éclair en 4 étapes.',
   },
   {
     id: 'search',
@@ -41,13 +62,7 @@ const STEPS = [
     body: 'Capturez vos documents directement depuis votre appareil avec détection auto des bords. C\'est la feature flagship.',
     placement: 'bottom',
   },
-  {
-    id: 'cmdk',
-    target: null,
-    icon: Command,
-    title: 'Astuce de pro',
-    body: 'Appuyez sur Ctrl + K (Cmd + K sur Mac) à tout moment pour ouvrir la palette de commandes et naviguer ultra-vite.',
-  },
+  IS_TOUCH ? LAST_STEP_MOBILE : LAST_STEP_DESKTOP,
 ]
 
 function dismissTour() {
