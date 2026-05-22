@@ -39,6 +39,10 @@
         <poi.version>5.2.5</poi.version>
         <springboot.version>3.2.5</springboot.version>
         <junit.version>5.10.2</junit.version>
+        <commonmark.version>0.22.0</commonmark.version>
+        <jsoup.version>1.17.2</jsoup.version>
+        <odfdom.version>0.12.0</odfdom.version>
+        <zxing.version>3.5.3</zxing.version>
     </properties>
 
     <!-- ═══ Gestion centralisée des dépendances ═══ -->
@@ -83,7 +87,7 @@
                 <version>${bouncycastle.version}</version>
             </dependency>
 
-            <!-- Apache POI — Word (DOCX) & Excel (XLSX) -->
+            <!-- Apache POI — Word (DOCX), Excel (XLSX), PowerPoint (PPTX) -->
             <dependency>
                 <groupId>org.apache.poi</groupId>
                 <artifactId>poi</artifactId>
@@ -93,6 +97,39 @@
                 <groupId>org.apache.poi</groupId>
                 <artifactId>poi-ooxml</artifactId>
                 <version>${poi.version}</version>
+            </dependency>
+
+            <!-- CommonMark — parser Markdown -->
+            <dependency>
+                <groupId>org.commonmark</groupId>
+                <artifactId>commonmark</artifactId>
+                <version>${commonmark.version}</version>
+            </dependency>
+
+            <!-- jsoup — parser HTML -->
+            <dependency>
+                <groupId>org.jsoup</groupId>
+                <artifactId>jsoup</artifactId>
+                <version>${jsoup.version}</version>
+            </dependency>
+
+            <!-- ODF Toolkit — lecture ODT (OpenOffice/LibreOffice) -->
+            <dependency>
+                <groupId>org.odftoolkit</groupId>
+                <artifactId>odfdom-java</artifactId>
+                <version>${odfdom.version}</version>
+            </dependency>
+
+            <!-- ZXing — generation de QR codes et codes-barres -->
+            <dependency>
+                <groupId>com.google.zxing</groupId>
+                <artifactId>core</artifactId>
+                <version>${zxing.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.google.zxing</groupId>
+                <artifactId>javase</artifactId>
+                <version>${zxing.version}</version>
             </dependency>
 
             <!-- Spring Boot BOM -->

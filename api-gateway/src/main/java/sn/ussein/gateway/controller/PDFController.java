@@ -740,6 +740,293 @@ public class PDFController {
         }
     }
 
+    @PostMapping("/pdf-to-pptx")
+    public ResponseEntity<byte[]> pdfToPptx(@RequestParam("file") MultipartFile file,
+                                            @RequestParam(required = false) String outputName,
+                                            HttpServletRequest request) {
+        validatePdfFile(file, "file");
+        long start = System.nanoTime();
+        try {
+            PDFResult r = corba.getPdfService().pdfToPptx(file.getBytes());
+            return binaryResponse(r, "converted.pptx", outputName,
+                "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+                "pdf-to-pptx", file.getOriginalFilename(), request, start);
+        } catch (IOException e) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Lecture du fichier impossible", e);
+        } catch (ResponseStatusException e) {
+            throw e;
+        } catch (Exception e) {
+            log.error("Erreur /pdf-to-pptx", e);
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Erreur conversion PDF -> PowerPoint", e);
+        }
+    }
+
+    @PostMapping("/pdf-to-markdown")
+    public ResponseEntity<byte[]> pdfToMarkdown(@RequestParam("file") MultipartFile file,
+                                                @RequestParam(required = false) String outputName,
+                                                HttpServletRequest request) {
+        validatePdfFile(file, "file");
+        long start = System.nanoTime();
+        try {
+            PDFResult r = corba.getPdfService().pdfToMarkdown(file.getBytes());
+            return binaryResponse(r, "converted.md", outputName, "text/markdown",
+                "pdf-to-markdown", file.getOriginalFilename(), request, start);
+        } catch (IOException e) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Lecture du fichier impossible", e);
+        } catch (ResponseStatusException e) {
+            throw e;
+        } catch (Exception e) {
+            log.error("Erreur /pdf-to-markdown", e);
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Erreur conversion PDF -> Markdown", e);
+        }
+    }
+
+    @PostMapping("/markdown-to-pdf")
+    public ResponseEntity<byte[]> markdownToPdf(@RequestParam String markdown,
+                                                @RequestParam(defaultValue = "Document") String title,
+                                                @RequestParam(required = false) String outputName,
+                                                HttpServletRequest request) {
+        if (markdown == null || markdown.isBlank()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "markdown est requis");
+        }
+        long start = System.nanoTime();
+        try {
+            return pdfResponse(corba.getPdfService().markdownToPdf(markdown, title),
+                "from-markdown.pdf", outputName, "markdown-to-pdf", title, request, start);
+        } catch (ResponseStatusException e) {
+            throw e;
+        } catch (Exception e) {
+            log.error("Erreur /markdown-to-pdf", e);
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Erreur conversion Markdown -> PDF", e);
+        }
+    }
+
+    @PostMapping("/html-to-pdf")
+    public ResponseEntity<byte[]> htmlToPdf(@RequestParam String html,
+                                            @RequestParam(defaultValue = "Document") String title,
+                                            @RequestParam(required = false) String outputName,
+                                            HttpServletRequest request) {
+        if (html == null || html.isBlank()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "html est requis");
+        }
+        long start = System.nanoTime();
+        try {
+            return pdfResponse(corba.getPdfService().htmlToPdf(html, title),
+                "from-html.pdf", outputName, "html-to-pdf", title, request, start);
+        } catch (ResponseStatusException e) {
+            throw e;
+        } catch (Exception e) {
+            log.error("Erreur /html-to-pdf", e);
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Erreur conversion HTML -> PDF", e);
+        }
+    }
+
+    @PostMapping("/excel-to-pdf")
+    public ResponseEntity<byte[]> excelToPdf(@RequestParam("file") MultipartFile file,
+                                             @RequestParam(required = false) String outputName,
+                                             HttpServletRequest request) {
+        if (file == null || file.isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "file est requis");
+        }
+        String name = file.getOriginalFilename();
+        if (name == null || !name.toLowerCase().endsWith(".xlsx")) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Le fichier doit etre un .xlsx");
+        }
+        long start = System.nanoTime();
+        try {
+            return pdfResponse(corba.getPdfService().excelToPdf(file.getBytes()),
+                "from-excel.pdf", outputName, "excel-to-pdf", file.getOriginalFilename(), request, start);
+        } catch (IOException e) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Lecture du fichier impossible", e);
+        } catch (ResponseStatusException e) {
+            throw e;
+        } catch (Exception e) {
+            log.error("Erreur /excel-to-pdf", e);
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Erreur conversion Excel -> PDF", e);
+        }
+    }
+
+    @PostMapping("/odt-to-pdf")
+    public ResponseEntity<byte[]> odtToPdf(@RequestParam("file") MultipartFile file,
+                                           @RequestParam(required = false) String outputName,
+                                           HttpServletRequest request) {
+        if (file == null || file.isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "file est requis");
+        }
+        String name = file.getOriginalFilename();
+        if (name == null || !name.toLowerCase().endsWith(".odt")) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Le fichier doit etre un .odt");
+        }
+        long start = System.nanoTime();
+        try {
+            return pdfResponse(corba.getPdfService().odtToPdf(file.getBytes()),
+                "from-odt.pdf", outputName, "odt-to-pdf", file.getOriginalFilename(), request, start);
+        } catch (IOException e) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Lecture du fichier impossible", e);
+        } catch (ResponseStatusException e) {
+            throw e;
+        } catch (Exception e) {
+            log.error("Erreur /odt-to-pdf", e);
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Erreur conversion ODT -> PDF", e);
+        }
+    }
+
+    @PostMapping("/unlock")
+    public ResponseEntity<byte[]> unlock(@RequestParam("file") MultipartFile file,
+                                         @RequestParam String password,
+                                         @RequestParam(required = false) String outputName,
+                                         HttpServletRequest request) {
+        validatePdfFile(file, "file");
+        if (password == null) password = "";
+        long start = System.nanoTime();
+        try {
+            return pdfResponse(corba.getPdfService().unlockPdf(file.getBytes(), password),
+                "unlocked.pdf", outputName, "unlock", file.getOriginalFilename(), request, start);
+        } catch (IOException e) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Lecture du fichier impossible", e);
+        } catch (ResponseStatusException e) {
+            throw e;
+        } catch (Exception e) {
+            log.error("Erreur /unlock", e);
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Erreur lors du deverrouillage", e);
+        }
+    }
+
+    @PostMapping("/verify-signature")
+    public ResponseEntity<String> verifySignature(@RequestParam("file") MultipartFile file) {
+        validatePdfFile(file, "file");
+        try {
+            String json = corba.getPdfService().verifySignature(file.getBytes());
+            return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(json);
+        } catch (IOException e) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Lecture du fichier impossible", e);
+        } catch (Exception e) {
+            log.error("Erreur /verify-signature", e);
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Erreur lors de la verification", e);
+        }
+    }
+
+    @PostMapping("/to-pdfa")
+    public ResponseEntity<byte[]> toPdfA(@RequestParam("file") MultipartFile file,
+                                         @RequestParam(required = false) String outputName,
+                                         HttpServletRequest request) {
+        validatePdfFile(file, "file");
+        long start = System.nanoTime();
+        try {
+            return pdfResponse(corba.getPdfService().convertToPdfA(file.getBytes()),
+                "archive.pdf", outputName, "to-pdfa", file.getOriginalFilename(), request, start);
+        } catch (IOException e) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Lecture du fichier impossible", e);
+        } catch (ResponseStatusException e) {
+            throw e;
+        } catch (Exception e) {
+            log.error("Erreur /to-pdfa", e);
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Erreur conversion PDF/A", e);
+        }
+    }
+
+    @PostMapping("/compare")
+    public ResponseEntity<String> compare(@RequestParam("fileA") MultipartFile fileA,
+                                          @RequestParam("fileB") MultipartFile fileB) {
+        validatePdfFile(fileA, "fileA");
+        validatePdfFile(fileB, "fileB");
+        try {
+            String json = corba.getPdfService().comparePdfs(fileA.getBytes(), fileB.getBytes());
+            return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(json);
+        } catch (IOException e) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Lecture des fichiers impossible", e);
+        } catch (Exception e) {
+            log.error("Erreur /compare", e);
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Erreur lors de la comparaison", e);
+        }
+    }
+
+    @PostMapping("/stats")
+    public ResponseEntity<String> stats(@RequestParam("file") MultipartFile file) {
+        validatePdfFile(file, "file");
+        try {
+            String json = corba.getPdfService().getDocumentStats(file.getBytes());
+            return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(json);
+        } catch (IOException e) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Lecture du fichier impossible", e);
+        } catch (Exception e) {
+            log.error("Erreur /stats", e);
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Erreur lors du calcul des stats", e);
+        }
+    }
+
+    @PostMapping("/add-qr")
+    public ResponseEntity<byte[]> addQr(@RequestParam("file") MultipartFile file,
+                                        @RequestParam String text,
+                                        @RequestParam(defaultValue = "1") int page,
+                                        @RequestParam(defaultValue = "bottom-right") String position,
+                                        @RequestParam(defaultValue = "120") int sizePx,
+                                        @RequestParam(required = false) String outputName,
+                                        HttpServletRequest request) {
+        validatePdfFile(file, "file");
+        if (text == null || text.isBlank()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "text est requis");
+        }
+        long start = System.nanoTime();
+        try {
+            return pdfResponse(corba.getPdfService().addQrCode(file.getBytes(), text, page, position, sizePx),
+                "with-qr.pdf", outputName, "add-qr", file.getOriginalFilename(), request, start);
+        } catch (IOException e) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Lecture du fichier impossible", e);
+        } catch (ResponseStatusException e) {
+            throw e;
+        } catch (Exception e) {
+            log.error("Erreur /add-qr", e);
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Erreur lors de l'ajout du QR code", e);
+        }
+    }
+
+    @PostMapping("/add-barcode")
+    public ResponseEntity<byte[]> addBarcode(@RequestParam("file") MultipartFile file,
+                                             @RequestParam String code,
+                                             @RequestParam(defaultValue = "1") int page,
+                                             @RequestParam(defaultValue = "bottom-right") String position,
+                                             @RequestParam(defaultValue = "CODE_128") String type,
+                                             @RequestParam(defaultValue = "200") int sizePx,
+                                             @RequestParam(required = false) String outputName,
+                                             HttpServletRequest request) {
+        validatePdfFile(file, "file");
+        if (code == null || code.isBlank()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "code est requis");
+        }
+        long start = System.nanoTime();
+        try {
+            return pdfResponse(corba.getPdfService().addBarcode(file.getBytes(), code, page, position, type, sizePx),
+                "with-barcode.pdf", outputName, "add-barcode", file.getOriginalFilename(), request, start);
+        } catch (IOException e) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Lecture du fichier impossible", e);
+        } catch (ResponseStatusException e) {
+            throw e;
+        } catch (Exception e) {
+            log.error("Erreur /add-barcode", e);
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Erreur lors de l'ajout du code-barres", e);
+        }
+    }
+
+    @PostMapping("/generate-cv")
+    public ResponseEntity<byte[]> generateCv(@RequestBody String cvJson,
+                                             @RequestParam(required = false) String outputName,
+                                             HttpServletRequest request) {
+        if (cvJson == null || cvJson.isBlank()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Donnees CV vides");
+        }
+        long start = System.nanoTime();
+        try {
+            return pdfResponse(corba.getPdfService().generateCv(cvJson),
+                "cv.pdf", outputName, "generate-cv", "CV", request, start);
+        } catch (ResponseStatusException e) {
+            throw e;
+        } catch (Exception e) {
+            log.error("Erreur /generate-cv", e);
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Erreur lors de la generation du CV", e);
+        }
+    }
+
     @PostMapping("/page-count")
     public ResponseEntity<Map<String, Integer>> pageCount(@RequestParam("file") MultipartFile file) {
         validatePdfFile(file, "file");

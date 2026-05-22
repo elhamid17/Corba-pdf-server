@@ -200,6 +200,87 @@ module sn {
           in long fontSize
         ) raises (PDFException, InvalidPageException);
 
+        // ═══ 29. PDF → PowerPoint (PPTX) ═══
+        // Convertit un PDF en presentation PowerPoint (une slide par page)
+        PDFResult pdfToPptx(in PDFData pdf)
+          raises (PDFException);
+
+        // ═══ 30. PDF → Markdown ═══
+        // Extrait le texte du PDF en format Markdown
+        PDFResult pdfToMarkdown(in PDFData pdf)
+          raises (PDFException);
+
+        // ═══ 31. Markdown → PDF ═══
+        // Convertit du Markdown en PDF avec mise en forme basique
+        PDFResult markdownToPdf(in string markdown, in string title)
+          raises (PDFException);
+
+        // ═══ 32. HTML → PDF ═══
+        // Convertit du HTML en PDF (texte avec h1-h6 / p / li / blockquote)
+        PDFResult htmlToPdf(in string html, in string title)
+          raises (PDFException);
+
+        // ═══ 33. Excel → PDF ═══
+        // Convertit un classeur Excel (XLSX) en PDF (une feuille par page)
+        PDFResult excelToPdf(in PDFData xlsx)
+          raises (PDFException);
+
+        // ═══ 34. ODT → PDF ═══
+        // Convertit un document OpenDocument Text en PDF
+        PDFResult odtToPdf(in PDFData odt)
+          raises (PDFException);
+
+        // ═══ 35. Deverrouillage ═══
+        // Retire la protection par mot de passe d'un PDF
+        PDFResult unlockPdf(in PDFData pdf, in string password)
+          raises (PDFException, PasswordException);
+
+        // ═══ 36. Verification de signature ═══
+        // Retourne un JSON listant les signatures detectees
+        string verifySignature(in PDFData pdf)
+          raises (PDFException);
+
+        // ═══ 37. Conversion PDF/A ═══
+        // Convertit en PDF/A-like (ajout flag + metadata XMP)
+        PDFResult convertToPdfA(in PDFData pdf)
+          raises (PDFException);
+
+        // ═══ 38. Comparaison de 2 PDFs ═══
+        // Diff textuel ligne par ligne, retourne un JSON
+        string comparePdfs(in PDFData pdfA, in PDFData pdfB)
+          raises (PDFException);
+
+        // ═══ 39. Statistiques document ═══
+        // Pages, mots, caracteres, lignes, paragraphes, etc.
+        string getDocumentStats(in PDFData pdf)
+          raises (PDFException);
+
+        // ═══ 40. Ajout de QR code ═══
+        // position : top-left, top-center, top-right, bottom-left, bottom-center, bottom-right
+        PDFResult addQrCode(
+          in PDFData pdf,
+          in string  text,
+          in long    page,
+          in string  position,
+          in long    sizePx
+        ) raises (PDFException, InvalidPageException);
+
+        // ═══ 41. Ajout de code-barres ═══
+        // type : CODE_128, EAN_13, EAN_8, CODE_39, ITF, UPC_A, QR_CODE, PDF_417
+        PDFResult addBarcode(
+          in PDFData pdf,
+          in string  code,
+          in long    page,
+          in string  position,
+          in string  type,
+          in long    sizePx
+        ) raises (PDFException, InvalidPageException);
+
+        // ═══ 42. Generateur de CV ═══
+        // Genere un PDF a partir d'un JSON CV (cf. cvJson)
+        PDFResult generateCv(in string cvJson)
+          raises (PDFException);
+
         // ═══ Utilitaire ═══
         // Retourne le nombre de pages d'un PDF
         long getPageCount(in PDFData pdf)

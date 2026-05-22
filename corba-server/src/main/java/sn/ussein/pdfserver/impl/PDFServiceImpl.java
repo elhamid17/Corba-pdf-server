@@ -45,6 +45,19 @@ public class PDFServiceImpl extends PDFServicePOA {
     private final SignatureImageHandler signatureImageHandler = new SignatureImageHandler();
     private final RedactHandler      redactHandler      = new RedactHandler();
     private final StampHandler       stampHandler       = new StampHandler();
+    private final PdfToPptxHandler   pdfToPptxHandler   = new PdfToPptxHandler();
+    private final PdfToMarkdownHandler pdfToMarkdownHandler = new PdfToMarkdownHandler();
+    private final MarkdownToPdfHandler markdownToPdfHandler = new MarkdownToPdfHandler();
+    private final HtmlToPdfHandler   htmlToPdfHandler   = new HtmlToPdfHandler();
+    private final ExcelToPdfHandler  excelToPdfHandler  = new ExcelToPdfHandler();
+    private final OdtToPdfHandler    odtToPdfHandler    = new OdtToPdfHandler();
+    private final UnlockHandler      unlockHandler      = new UnlockHandler();
+    private final VerifySignatureHandler verifySignatureHandler = new VerifySignatureHandler();
+    private final PdfAHandler        pdfAHandler        = new PdfAHandler();
+    private final CompareHandler     compareHandler     = new CompareHandler();
+    private final StatsHandler       statsHandler       = new StatsHandler();
+    private final BarcodeHandler     barcodeHandler     = new BarcodeHandler();
+    private final CvHandler          cvHandler          = new CvHandler();
 
     // ════════════════════════════════════════
     //  1. Fusion
@@ -331,6 +344,136 @@ public class PDFServiceImpl extends PDFServicePOA {
             throws PDFException, InvalidPageException {
         log.info("→ addStamp() — '{}' page {} en {} ({})", text, page, position, color);
         return stampHandler.addStamp(pdf, text, page, position, color, fontSize);
+    }
+
+    // ════════════════════════════════════════
+    //  29. PDF -> PowerPoint
+    // ════════════════════════════════════════
+    @Override
+    public PDFResult pdfToPptx(byte[] pdf) throws PDFException {
+        log.info("-> pdfToPptx()");
+        return pdfToPptxHandler.pdfToPptx(pdf);
+    }
+
+    // ════════════════════════════════════════
+    //  30. PDF -> Markdown
+    // ════════════════════════════════════════
+    @Override
+    public PDFResult pdfToMarkdown(byte[] pdf) throws PDFException {
+        log.info("-> pdfToMarkdown()");
+        return pdfToMarkdownHandler.pdfToMarkdown(pdf);
+    }
+
+    // ════════════════════════════════════════
+    //  31. Markdown -> PDF
+    // ════════════════════════════════════════
+    @Override
+    public PDFResult markdownToPdf(String markdown, String title) throws PDFException {
+        log.info("-> markdownToPdf() — {} caracteres", markdown != null ? markdown.length() : 0);
+        return markdownToPdfHandler.markdownToPdf(markdown, title);
+    }
+
+    // ════════════════════════════════════════
+    //  32. HTML -> PDF
+    // ════════════════════════════════════════
+    @Override
+    public PDFResult htmlToPdf(String html, String title) throws PDFException {
+        log.info("-> htmlToPdf() — {} caracteres", html != null ? html.length() : 0);
+        return htmlToPdfHandler.htmlToPdf(html, title);
+    }
+
+    // ════════════════════════════════════════
+    //  33. Excel -> PDF
+    // ════════════════════════════════════════
+    @Override
+    public PDFResult excelToPdf(byte[] xlsx) throws PDFException {
+        log.info("-> excelToPdf()");
+        return excelToPdfHandler.excelToPdf(xlsx);
+    }
+
+    // ════════════════════════════════════════
+    //  34. ODT -> PDF
+    // ════════════════════════════════════════
+    @Override
+    public PDFResult odtToPdf(byte[] odt) throws PDFException {
+        log.info("-> odtToPdf()");
+        return odtToPdfHandler.odtToPdf(odt);
+    }
+
+    // ════════════════════════════════════════
+    //  35. Deverrouillage
+    // ════════════════════════════════════════
+    @Override
+    public PDFResult unlockPdf(byte[] pdf, String password)
+            throws PDFException, sn.ussein.pdf.PasswordException {
+        log.info("-> unlockPdf()");
+        return unlockHandler.unlockPdf(pdf, password);
+    }
+
+    // ════════════════════════════════════════
+    //  36. Verification de signature
+    // ════════════════════════════════════════
+    @Override
+    public String verifySignature(byte[] pdf) throws PDFException {
+        log.info("-> verifySignature()");
+        return verifySignatureHandler.verifySignature(pdf);
+    }
+
+    // ════════════════════════════════════════
+    //  37. PDF/A
+    // ════════════════════════════════════════
+    @Override
+    public PDFResult convertToPdfA(byte[] pdf) throws PDFException {
+        log.info("-> convertToPdfA()");
+        return pdfAHandler.convertToPdfA(pdf);
+    }
+
+    // ════════════════════════════════════════
+    //  38. Comparaison
+    // ════════════════════════════════════════
+    @Override
+    public String comparePdfs(byte[] pdfA, byte[] pdfB) throws PDFException {
+        log.info("-> comparePdfs()");
+        return compareHandler.comparePdfs(pdfA, pdfB);
+    }
+
+    // ════════════════════════════════════════
+    //  39. Statistiques
+    // ════════════════════════════════════════
+    @Override
+    public String getDocumentStats(byte[] pdf) throws PDFException {
+        log.info("-> getDocumentStats()");
+        return statsHandler.getDocumentStats(pdf);
+    }
+
+    // ════════════════════════════════════════
+    //  40. QR code
+    // ════════════════════════════════════════
+    @Override
+    public PDFResult addQrCode(byte[] pdf, String text, int page, String position, int sizePx)
+            throws PDFException, InvalidPageException {
+        log.info("-> addQrCode() page {} en {} ({}px)", page, position, sizePx);
+        return barcodeHandler.addQrCode(pdf, text, page, position, sizePx);
+    }
+
+    // ════════════════════════════════════════
+    //  41. Code-barres
+    // ════════════════════════════════════════
+    @Override
+    public PDFResult addBarcode(byte[] pdf, String code, int page, String position,
+                                String type, int sizePx)
+            throws PDFException, InvalidPageException {
+        log.info("-> addBarcode() {} page {} en {} ({}px)", type, page, position, sizePx);
+        return barcodeHandler.addBarcode(pdf, code, page, position, type, sizePx);
+    }
+
+    // ════════════════════════════════════════
+    //  42. Generateur de CV
+    // ════════════════════════════════════════
+    @Override
+    public PDFResult generateCv(String cvJson) throws PDFException {
+        log.info("-> generateCv() ({} octets JSON)", cvJson != null ? cvJson.length() : 0);
+        return cvHandler.generateCv(cvJson);
     }
 
     // ════════════════════════════════════════

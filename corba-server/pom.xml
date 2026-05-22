@@ -47,7 +47,7 @@
             <artifactId>pdfbox</artifactId>
         </dependency>
 
-        <!-- Apache POI — conversions Word & Excel -->
+        <!-- Apache POI — conversions Word, Excel, PowerPoint -->
         <dependency>
             <groupId>org.apache.poi</groupId>
             <artifactId>poi</artifactId>
@@ -55,6 +55,34 @@
         <dependency>
             <groupId>org.apache.poi</groupId>
             <artifactId>poi-ooxml</artifactId>
+        </dependency>
+
+        <!-- CommonMark — parser Markdown -->
+        <dependency>
+            <groupId>org.commonmark</groupId>
+            <artifactId>commonmark</artifactId>
+        </dependency>
+
+        <!-- jsoup — parser HTML -->
+        <dependency>
+            <groupId>org.jsoup</groupId>
+            <artifactId>jsoup</artifactId>
+        </dependency>
+
+        <!-- ODF Toolkit — lecture ODT (OpenOffice/LibreOffice) -->
+        <dependency>
+            <groupId>org.odftoolkit</groupId>
+            <artifactId>odfdom-java</artifactId>
+        </dependency>
+
+        <!-- ZXing — QR codes & codes-barres -->
+        <dependency>
+            <groupId>com.google.zxing</groupId>
+            <artifactId>core</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.google.zxing</groupId>
+            <artifactId>javase</artifactId>
         </dependency>
 
         <!-- Tess4J OCR -->
