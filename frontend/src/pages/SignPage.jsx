@@ -5,6 +5,7 @@ import ToolPage from '../components/ToolPage'
 import SubmitButton from '../components/SubmitButton'
 import OutputFilenameField from '../components/OutputFilenameField'
 import { useToast } from '../components/Toast'
+import { useProgress } from '../hooks/useProgress'
 import { signPDF } from '../api/pdfApi'
 
 export default function SignPage() {
@@ -16,6 +17,7 @@ export default function SignPage() {
   const [outputName, setOutputName] = useState('')
   const [loading, setLoading] = useState(false)
   const toast = useToast()
+  const { progress, onProgress, reset } = useProgress()
 
   async function handleSubmit() {
     if (!pdfFiles[0])  return toast.error('Sélectionnez un PDF à signer.')
@@ -23,12 +25,13 @@ export default function SignPage() {
     if (!password)     return toast.error('Saisissez le mot de passe du certificat.')
     setLoading(true)
     try {
-      await signPDF(pdfFiles[0], certFiles[0], password, reason, location, outputName)
+      await signPDF(pdfFiles[0], certFiles[0], password, reason, location, outputName, onProgress)
       toast.success('Signature appliquée.')
     } catch (e) {
       toast.error(e.message)
     } finally {
       setLoading(false)
+      reset()
     }
   }
 
@@ -75,7 +78,7 @@ export default function SignPage() {
       </div>
 
       <div className="mt-6">
-        <SubmitButton loading={loading} onClick={handleSubmit} disabled={!pdfFiles[0] || !certFiles[0] || !password}>
+        <SubmitButton loading={loading} progress={progress} onClick={handleSubmit} disabled={!pdfFiles[0] || !certFiles[0] || !password}>
           Signer le PDF
         </SubmitButton>
       </div>

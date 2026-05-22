@@ -7,6 +7,9 @@ import {
   Sun, Moon, Monitor, LogIn, LogOut, UserPlus, History, Shield, User as UserIcon,
   FlipVertical2, Hash, Maximize2, Crop, BookOpen, Shuffle,
   UserX, PenLine, Highlighter, Stamp,
+  Presentation, Code2, FileCode2, Globe,
+  Unlock, ShieldCheck, GitCompareArrows, BarChart3, QrCode, Barcode, UserCircle2,
+  Camera,
 } from 'lucide-react'
 import { ping } from '../api/pdfApi'
 import { useTheme } from '../hooks/useTheme'
@@ -19,46 +22,69 @@ export const SERVICE_GROUPS = [
   {
     title: 'Organisation',
     items: [
-      { to: '/merge',         label: 'Fusion',         icon: Layers     },
-      { to: '/split',         label: 'Découpage',      icon: Scissors   },
-      { to: '/extract-pages', label: 'Extraction',     icon: FileSearch },
-      { to: '/delete-pages',  label: 'Suppression',    icon: FileMinus  },
-      { to: '/rotate',        label: 'Rotation',       icon: RotateCw   },
-      { to: '/reorder',       label: 'Réorganiser',    icon: Shuffle    },
-      { to: '/reverse',       label: 'Inverser',       icon: FlipVertical2 },
-      { to: '/cover',         label: 'Page de garde',  icon: BookOpen   },
+      { to: '/merge',         label: 'Fusion',             icon: Layers     },
+      { to: '/split',         label: 'Découpage',          icon: Scissors   },
+      { to: '/select-pages',  label: 'Sélection de pages', icon: FileSearch },
+      { to: '/rotate',        label: 'Rotation',           icon: RotateCw   },
+      { to: '/reorder',       label: 'Réorganiser',        icon: Shuffle    },
+      { to: '/cover',         label: 'Page de garde',      icon: BookOpen   },
     ],
   },
   {
-    title: 'Conversions',
+    title: 'Conversion depuis PDF',
     items: [
-      { to: '/pdf-to-word',   label: 'PDF → Word',     icon: FileType2  },
-      { to: '/pdf-to-excel',  label: 'PDF → Excel',    icon: Sheet      },
-      { to: '/word-to-pdf',   label: 'Word → PDF',     icon: FileText   },
-      { to: '/images-to-pdf', label: 'Images → PDF',   icon: Images     },
-      { to: '/convert',       label: 'PDF → Images',   icon: ImageIcon  },
+      { to: '/pdf-to-word',     label: 'PDF → Word',       icon: FileType2    },
+      { to: '/pdf-to-excel',    label: 'PDF → Excel',      icon: Sheet        },
+      { to: '/pdf-to-pptx',     label: 'PDF → PowerPoint', icon: Presentation },
+      { to: '/pdf-to-markdown', label: 'PDF → Markdown',   icon: Code2        },
+      { to: '/convert',         label: 'PDF → Images',     icon: ImageIcon    },
+    ],
+  },
+  {
+    title: 'Convertir en PDF',
+    items: [
+      { to: '/scan',            label: 'Scanner caméra',   icon: Camera       },
+      { to: '/word-to-pdf',     label: 'Word → PDF',       icon: FileText     },
+      { to: '/excel-to-pdf',    label: 'Excel → PDF',      icon: Sheet        },
+      { to: '/odt-to-pdf',      label: 'ODT → PDF',        icon: FileText     },
+      { to: '/markdown-to-pdf', label: 'Markdown → PDF',   icon: FileCode2    },
+      { to: '/html-to-pdf',     label: 'HTML → PDF',       icon: Globe        },
+      { to: '/images-to-pdf',   label: 'Images → PDF',     icon: Images       },
     ],
   },
   {
     title: 'Édition',
     items: [
-      { to: '/watermark',     label: 'Filigrane',      icon: Droplets   },
-      { to: '/stamp',         label: 'Tampon',         icon: Stamp      },
-      { to: '/page-numbers',  label: 'Numérotation',   icon: Hash       },
-      { to: '/crop',          label: 'Recadrage',      icon: Crop       },
-      { to: '/resize',        label: 'Redimensionner', icon: Maximize2  },
-      { to: '/compress',      label: 'Compression',    icon: Archive    },
-      { to: '/metadata',      label: 'Métadonnées',    icon: Info       },
+      { to: '/marking',       label: 'Marquage du document', icon: Droplets },
+      { to: '/page-numbers',  label: 'Numérotation',         icon: Hash     },
+      { to: '/crop',          label: 'Recadrage',            icon: Crop     },
+      { to: '/compress',      label: 'Compression',          icon: Archive  },
+      { to: '/metadata',      label: 'Métadonnées',          icon: Info     },
     ],
   },
   {
     title: 'Sécurité',
     items: [
-      { to: '/protect',       label: 'Protection',     icon: Lock       },
-      { to: '/sign',          label: 'Signature PKI',  icon: PenTool    },
-      { to: '/sign-image',    label: 'Signature manuscrite', icon: PenLine },
-      { to: '/redact',        label: 'Caviardage',     icon: Highlighter },
-      { to: '/anonymize',     label: 'Anonymisation',  icon: UserX      },
+      { to: '/protect',          label: 'Protection',           icon: Lock         },
+      { to: '/unlock',           label: 'Déverrouillage',       icon: Unlock       },
+      { to: '/sign',             label: 'Signature PKI',        icon: PenTool      },
+      { to: '/sign-image',       label: 'Signature manuscrite', icon: PenLine      },
+      { to: '/verify-signature', label: 'Vérifier signature',   icon: ShieldCheck  },
+      { to: '/redact',           label: 'Caviardage',           icon: Highlighter  },
+      { to: '/anonymize',        label: 'Anonymisation',        icon: UserX        },
+    ],
+  },
+  {
+    title: 'Analyse',
+    items: [
+      { to: '/compare', label: 'Comparer 2 PDF', icon: GitCompareArrows },
+    ],
+  },
+  {
+    title: 'Génération',
+    items: [
+      { to: '/code',    label: 'Code-barres / QR',  icon: QrCode      },
+      { to: '/cv',      label: 'Générateur de CV',  icon: UserCircle2 },
     ],
   },
   {
@@ -66,7 +92,6 @@ export const SERVICE_GROUPS = [
     items: [
       { to: '/extract-text',  label: 'Extraction texte', icon: FileText },
       { to: '/ocr',           label: 'OCR',              icon: ScanText },
-      { to: '/create',        label: 'Création PDF',     icon: Plus     },
     ],
   },
 ]

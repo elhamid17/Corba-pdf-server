@@ -5,6 +5,7 @@ import ToolPage from '../components/ToolPage'
 import SubmitButton from '../components/SubmitButton'
 import OutputFilenameField from '../components/OutputFilenameField'
 import { useToast } from '../components/Toast'
+import { useProgress } from '../hooks/useProgress'
 import { cropPdf } from '../api/pdfApi'
 
 export default function CropPage() {
@@ -16,6 +17,7 @@ export default function CropPage() {
   const [outputName, setOutputName] = useState('')
   const [loading, setLoading] = useState(false)
   const toast = useToast()
+  const { progress, onProgress, reset } = useProgress()
 
   async function handleSubmit() {
     if (!files[0]) return toast.error('Sélectionnez un PDF.')
@@ -24,12 +26,13 @@ export default function CropPage() {
     }
     setLoading(true)
     try {
-      await cropPdf(files[0], { left, right, top, bottom }, outputName)
+      await cropPdf(files[0], { left, right, top, bottom }, outputName, onProgress)
       toast.success('PDF recadré.')
     } catch (e) {
       toast.error(e.message)
     } finally {
       setLoading(false)
+      reset()
     }
   }
 
@@ -67,7 +70,7 @@ export default function CropPage() {
       </div>
 
       <div className="mt-6">
-        <SubmitButton loading={loading} onClick={handleSubmit} disabled={!files[0]}>
+        <SubmitButton loading={loading} progress={progress} onClick={handleSubmit} disabled={!files[0]}>
           Recadrer
         </SubmitButton>
       </div>

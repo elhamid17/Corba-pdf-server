@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Command } from 'cmdk'
+import { motion, AnimatePresence } from 'framer-motion'
 import {
   Search, ArrowRight, Sun, Moon, Monitor, LogOut, History, Shield, UserPlus, LogIn,
 } from 'lucide-react'
@@ -40,16 +41,27 @@ export default function CommandPalette() {
   const run = (fn) => { setOpen(false); fn() }
 
   return (
-    <>
+    <AnimatePresence>
       {open && (
-        <div
+        <motion.div
           className="fixed inset-0 z-50 bg-ink-900/60 dark:bg-black/70 backdrop-blur-sm flex items-start justify-center pt-[8vh] px-3"
           onClick={() => setOpen(false)}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.15 }}
         >
+          <motion.div
+            initial={{ opacity: 0, y: -20, scale: 0.96 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -10, scale: 0.97 }}
+            transition={{ duration: 0.18, ease: 'easeOut' }}
+            className="w-full max-w-xl"
+            onClick={e => e.stopPropagation()}
+          >
           <Command
             label="Palette de commandes"
-            className="w-full max-w-xl rounded-2xl border border-ink-200 dark:border-ink-700 bg-white dark:bg-ink-900 shadow-2xl overflow-hidden"
-            onClick={e => e.stopPropagation()}
+            className="w-full rounded-2xl border border-ink-200 dark:border-ink-700 bg-white dark:bg-ink-900 shadow-2xl overflow-hidden"
           >
             <div className="flex items-center gap-2 px-4 border-b border-ink-100 dark:border-ink-800">
               <Search size={16} className="text-ink-400" />
@@ -179,8 +191,9 @@ export default function CommandPalette() {
               <span><kbd className="font-mono bg-ink-100 dark:bg-ink-800 rounded px-1">Ctrl</kbd> + <kbd className="font-mono bg-ink-100 dark:bg-ink-800 rounded px-1">K</kbd> pour ouvrir</span>
             </div>
           </Command>
-        </div>
+          </motion.div>
+        </motion.div>
       )}
-    </>
+    </AnimatePresence>
   )
 }

@@ -5,6 +5,7 @@ import ToolPage from '../components/ToolPage'
 import SubmitButton from '../components/SubmitButton'
 import OutputFilenameField from '../components/OutputFilenameField'
 import { useToast } from '../components/Toast'
+import { useProgress } from '../hooks/useProgress'
 import { rotatePDF } from '../api/pdfApi'
 
 const ANGLES = [
@@ -20,6 +21,7 @@ export default function RotatePage() {
   const [outputName, setOutputName] = useState('')
   const [loading, setLoading] = useState(false)
   const toast = useToast()
+  const { progress, onProgress, reset } = useProgress()
 
   async function handleSubmit() {
     if (!files[0]) return toast.error('Sélectionnez un PDF.')
@@ -29,12 +31,13 @@ export default function RotatePage() {
       .filter(v => Number.isFinite(v) && v > 0)
     setLoading(true)
     try {
-      await rotatePDF(files[0], angle, parsed, outputName)
+      await rotatePDF(files[0], angle, parsed, outputName, onProgress)
       toast.success('Rotation appliquée.')
     } catch (e) {
       toast.error(e.message)
     } finally {
       setLoading(false)
+      reset()
     }
   }
 
@@ -82,7 +85,7 @@ export default function RotatePage() {
       </div>
 
       <div className="mt-6">
-        <SubmitButton loading={loading} onClick={handleSubmit} disabled={!files[0]}>
+        <SubmitButton loading={loading} progress={progress} onClick={handleSubmit} disabled={!files[0]}>
           Pivoter
         </SubmitButton>
       </div>

@@ -5,6 +5,7 @@ import ToolPage from '../components/ToolPage'
 import SubmitButton from '../components/SubmitButton'
 import OutputFilenameField from '../components/OutputFilenameField'
 import { useToast } from '../components/Toast'
+import { useProgress } from '../hooks/useProgress'
 import { addPageNumbers } from '../api/pdfApi'
 
 const POSITIONS = [
@@ -33,17 +34,19 @@ export default function PageNumberPage() {
   const [outputName, setOutputName] = useState('')
   const [loading, setLoading] = useState(false)
   const toast = useToast()
+  const { progress, onProgress, reset } = useProgress()
 
   async function handleSubmit() {
     if (!files[0]) return toast.error('Sélectionnez un PDF.')
     setLoading(true)
     try {
-      await addPageNumbers(files[0], { position, format, startNumber, fontSize }, outputName)
+      await addPageNumbers(files[0], { position, format, startNumber, fontSize }, outputName, onProgress)
       toast.success('Pages numérotées.')
     } catch (e) {
       toast.error(e.message)
     } finally {
       setLoading(false)
+      reset()
     }
   }
 
@@ -113,7 +116,7 @@ export default function PageNumberPage() {
       </div>
 
       <div className="mt-6">
-        <SubmitButton loading={loading} onClick={handleSubmit} disabled={!files[0]}>
+        <SubmitButton loading={loading} progress={progress} onClick={handleSubmit} disabled={!files[0]}>
           Numéroter
         </SubmitButton>
       </div>

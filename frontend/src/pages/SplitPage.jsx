@@ -5,6 +5,7 @@ import ToolPage from '../components/ToolPage'
 import SubmitButton from '../components/SubmitButton'
 import OutputFilenameField from '../components/OutputFilenameField'
 import { useToast } from '../components/Toast'
+import { useProgress } from '../hooks/useProgress'
 import { splitPDF } from '../api/pdfApi'
 
 export default function SplitPage() {
@@ -13,6 +14,7 @@ export default function SplitPage() {
   const [outputName, setOutputName] = useState('')
   const [loading, setLoading] = useState(false)
   const toast = useToast()
+  const { progress, onProgress, reset } = useProgress()
 
   async function handleSubmit() {
     if (!files[0]) return toast.error('Sélectionnez un PDF.')
@@ -22,12 +24,13 @@ export default function SplitPage() {
     }
     setLoading(true)
     try {
-      await splitPDF(files[0], parsed, outputName)
+      await splitPDF(files[0], parsed, outputName, onProgress)
       toast.success('Découpage terminé. Archive ZIP téléchargée.')
     } catch (e) {
       toast.error(e.message)
     } finally {
       setLoading(false)
+      reset()
     }
   }
 
@@ -52,7 +55,7 @@ export default function SplitPage() {
         <OutputFilenameField value={outputName} onChange={setOutputName} placeholder="parties" extension=".zip" />
       </div>
       <div className="mt-6">
-        <SubmitButton loading={loading} onClick={handleSubmit} disabled={!files[0]}>
+        <SubmitButton loading={loading} progress={progress} onClick={handleSubmit} disabled={!files[0]}>
           Découper
         </SubmitButton>
       </div>

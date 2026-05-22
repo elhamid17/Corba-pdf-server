@@ -14,6 +14,7 @@ import ToolPage from '../components/ToolPage'
 import SubmitButton from '../components/SubmitButton'
 import OutputFilenameField from '../components/OutputFilenameField'
 import { useToast } from '../components/Toast'
+import { useProgress } from '../hooks/useProgress'
 import { reorderPdf } from '../api/pdfApi'
 import { apiFetch, readError } from '../api/client'
 
@@ -25,6 +26,7 @@ export default function ReorderPage() {
   const [loading, setLoading] = useState(false)
   const [counting, setCounting] = useState(false)
   const toast = useToast()
+  const { progress, onProgress, reset: resetProgress } = useProgress()
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
@@ -73,12 +75,13 @@ export default function ReorderPage() {
     if (order.length === 0) return toast.error('Conservez au moins une page.')
     setLoading(true)
     try {
-      await reorderPdf(files[0], order, outputName)
+      await reorderPdf(files[0], order, outputName, onProgress)
       toast.success(`PDF réorganisé : ${order.length} page(s).`)
     } catch (e) {
       toast.error(e.message)
     } finally {
       setLoading(false)
+      resetProgress()
     }
   }
 
@@ -129,7 +132,7 @@ export default function ReorderPage() {
       )}
 
       <div className="mt-6">
-        <SubmitButton loading={loading} onClick={handleSubmit} disabled={!files[0] || order.length === 0}>
+        <SubmitButton loading={loading} progress={progress} onClick={handleSubmit} disabled={!files[0] || order.length === 0}>
           Réorganiser
         </SubmitButton>
       </div>

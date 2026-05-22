@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { X, Download, AlertTriangle, Loader2 } from 'lucide-react'
+import { motion, AnimatePresence } from 'framer-motion'
 import { apiFetch, readError } from '../api/client'
 
 /**
@@ -61,22 +62,30 @@ export default function PdfPreviewModal({ job, onClose, onDownload }) {
     }
   }, [job, onClose])
 
-  if (!job) return null
-
-  const isPdf = !job.outputContentType || job.outputContentType.includes('pdf')
-  const isImage = job.outputContentType?.startsWith('image/')
+  const isPdf = !job?.outputContentType || job?.outputContentType.includes('pdf')
+  const isImage = job?.outputContentType?.startsWith('image/')
 
   return (
-    <div
-      className="fixed inset-0 z-50 bg-ink-900/70 dark:bg-black/80 backdrop-blur-sm flex items-center justify-center p-3 sm:p-6"
-      onClick={onClose}
-      role="dialog"
-      aria-modal="true"
-    >
-      <div
-        className="bg-white dark:bg-ink-900 rounded-2xl shadow-2xl w-full max-w-5xl h-[90vh] flex flex-col overflow-hidden"
-        onClick={e => e.stopPropagation()}
-      >
+    <AnimatePresence>
+      {job && (
+        <motion.div
+          className="fixed inset-0 z-50 bg-ink-900/70 dark:bg-black/80 backdrop-blur-sm flex items-center justify-center p-3 sm:p-6"
+          onClick={onClose}
+          role="dialog"
+          aria-modal="true"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.15 }}
+        >
+          <motion.div
+            initial={{ opacity: 0, scale: 0.96, y: 10 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.97, y: 5 }}
+            transition={{ duration: 0.2, ease: 'easeOut' }}
+            className="bg-white dark:bg-ink-900 rounded-2xl shadow-2xl w-full max-w-5xl h-[90vh] flex flex-col overflow-hidden"
+            onClick={e => e.stopPropagation()}
+          >
         {/* Header */}
         <div className="flex items-center gap-3 px-4 py-3 border-b border-ink-100 dark:border-ink-800 shrink-0">
           <div className="flex-1 min-w-0">
@@ -137,8 +146,10 @@ export default function PdfPreviewModal({ job, onClose, onDownload }) {
             </div>
           )}
         </div>
-      </div>
-    </div>
+          </motion.div>
+        </motion.div>
+      )}
+    </AnimatePresence>
   )
 }
 

@@ -6,6 +6,7 @@ import {
 } from 'lucide-react'
 import ToolPage from '../components/ToolPage'
 import PdfPreviewModal from '../components/PdfPreviewModal'
+import { EmptyHistoryIllustration } from '../components/Illustrations'
 import { useToast } from '../components/Toast'
 import { useAuth } from '../hooks/useAuth'
 import { deleteJob, downloadJob, listJobs } from '../api/jobsApi'
@@ -258,15 +259,18 @@ function StatusIcon({ status }) {
 
 function EmptyState({ authenticated }) {
   return (
-    <div className="text-center py-10">
-      <FileWarning size={36} className="mx-auto text-ink-300 dark:text-ink-600" />
-      <p className="mt-3 text-sm text-ink-500 dark:text-ink-400">
+    <div className="text-center py-6">
+      <EmptyHistoryIllustration className="mx-auto w-48 sm:w-56 text-ink-400 dark:text-ink-500" />
+      <p className="mt-2 text-sm font-medium text-ink-700 dark:text-ink-200">
         {authenticated
-          ? 'Aucune conversion enregistree pour l\'instant.'
-          : 'Aucun fichier dans cette session invitee.'}
+          ? 'Aucune conversion enregistrée pour l\'instant.'
+          : 'Aucun fichier dans cette session invitée.'}
+      </p>
+      <p className="mt-1 text-xs text-ink-500 dark:text-ink-400">
+        Vos conversions apparaîtront ici dès que vous utiliserez un outil.
       </p>
       <Link to="/" className="mt-4 inline-flex btn-primary h-9 px-4 text-sm">
-        Decouvrir les outils
+        Découvrir les outils
       </Link>
     </div>
   )

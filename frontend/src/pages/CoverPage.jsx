@@ -5,6 +5,7 @@ import ToolPage from '../components/ToolPage'
 import SubmitButton from '../components/SubmitButton'
 import OutputFilenameField from '../components/OutputFilenameField'
 import { useToast } from '../components/Toast'
+import { useProgress } from '../hooks/useProgress'
 import { addCoverPage } from '../api/pdfApi'
 
 export default function CoverPage() {
@@ -13,18 +14,20 @@ export default function CoverPage() {
   const [outputName, setOutputName] = useState('')
   const [loading, setLoading] = useState(false)
   const toast = useToast()
+  const { progress, onProgress, reset } = useProgress()
 
   async function handleSubmit() {
     if (!pdfFiles[0])   return toast.error('Sélectionnez le PDF.')
     if (!coverFiles[0]) return toast.error('Sélectionnez une image de couverture.')
     setLoading(true)
     try {
-      await addCoverPage(pdfFiles[0], coverFiles[0], outputName)
+      await addCoverPage(pdfFiles[0], coverFiles[0], outputName, onProgress)
       toast.success('Page de garde ajoutée.')
     } catch (e) {
       toast.error(e.message)
     } finally {
       setLoading(false)
+      reset()
     }
   }
 
@@ -55,7 +58,7 @@ export default function CoverPage() {
       </div>
 
       <div className="mt-6">
-        <SubmitButton loading={loading} onClick={handleSubmit} disabled={!pdfFiles[0] || !coverFiles[0]}>
+        <SubmitButton loading={loading} progress={progress} onClick={handleSubmit} disabled={!pdfFiles[0] || !coverFiles[0]}>
           Ajouter la page de garde
         </SubmitButton>
       </div>

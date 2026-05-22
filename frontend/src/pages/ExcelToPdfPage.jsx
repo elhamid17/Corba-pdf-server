@@ -1,14 +1,14 @@
 import { useState } from 'react'
-import { FileType2 } from 'lucide-react'
+import { Sheet } from 'lucide-react'
 import DropZone from '../components/DropZone'
 import ToolPage from '../components/ToolPage'
 import SubmitButton from '../components/SubmitButton'
 import OutputFilenameField from '../components/OutputFilenameField'
 import { useToast } from '../components/Toast'
 import { useProgress } from '../hooks/useProgress'
-import { pdfToWord } from '../api/pdfApi'
+import { excelToPdf } from '../api/pdfApi'
 
-export default function PdfToWordPage() {
+export default function ExcelToPdfPage() {
   const [files, setFiles] = useState([])
   const [outputName, setOutputName] = useState('')
   const [loading, setLoading] = useState(false)
@@ -16,10 +16,10 @@ export default function PdfToWordPage() {
   const { progress, onProgress, reset } = useProgress()
 
   async function handleSubmit() {
-    if (files.length === 0) return toast.error('Sélectionnez un PDF.')
+    if (!files[0]) return toast.error('Sélectionnez un classeur Excel.')
     setLoading(true)
     try {
-      await pdfToWord(files[0], outputName, onProgress)
+      await excelToPdf(files[0], outputName, onProgress)
       toast.success('Conversion réussie. Téléchargement lancé.')
     } catch (e) {
       toast.error(e.message)
@@ -31,21 +31,24 @@ export default function PdfToWordPage() {
 
   return (
     <ToolPage
-      icon={FileType2}
-      title="PDF → Word"
-      subtitle="Convertissez votre PDF en document Word (DOCX). Le texte est extrait page par page, la mise en page n'est pas conservée."
+      icon={Sheet}
+      title="Excel → PDF"
+      subtitle="Convertit un classeur Excel (XLSX) en PDF paysage : une grille par feuille avec les valeurs des cellules."
     >
       <DropZone
         onFiles={setFiles}
-        label="Déposez le PDF à convertir"
-        hint="Fichier PDF, 50 Mo max"
+        label="Déposez le classeur Excel"
+        hint="Fichier XLSX, 50 Mo max"
+        accept={{
+          'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': ['.xlsx'],
+        }}
       />
       <div className="mt-6">
-        <OutputFilenameField value={outputName} onChange={setOutputName} placeholder="document-word" extension=".docx" />
+        <OutputFilenameField value={outputName} onChange={setOutputName} placeholder="tableur-pdf" extension=".pdf" />
       </div>
       <div className="mt-6">
-        <SubmitButton loading={loading} progress={progress} onClick={handleSubmit} disabled={files.length === 0}>
-          Convertir en Word
+        <SubmitButton loading={loading} progress={progress} onClick={handleSubmit} disabled={!files[0]}>
+          Convertir en PDF
         </SubmitButton>
       </div>
     </ToolPage>

@@ -64,6 +64,88 @@ export async function apiFetch(path, init = {}) {
   })
 }
 
+/**
+ * POST avec FormData + callbacks de progres temps reel (upload + download).
+ * Utilise XMLHttpRequest sous le capot car fetch ne supporte pas xhr.upload.onprogress.
+ *
+ * onProgress recoit { phase, percent } a chaque etape :
+ *   phase = 'upload'     | percent = 0-100 (octets uploades)
+ *   phase = 'processing' | percent = null  (le serveur traite, indetermine)
+ *   phase = 'download'   | percent = 0-100 (octets downloades)
+ *
+ * Retourne un Blob ou un objet JSON parse selon responseType.
+ */
+export function postFormWithProgress(path, formData, { responseType = 'blob', onProgress } = {}) {
+  return new Promise((resolve, reject) => {
+    const xhr = new XMLHttpRequest()
+    xhr.open('POST', `${API_BASE}${path}`)
+    xhr.withCredentials = true  // pour le cookie guest_id
+
+    const token = getToken()
+    if (token) xhr.setRequestHeader('Authorization', `Bearer ${token}`)
+
+    xhr.responseType = responseType === 'json' ? 'text' : 'blob'
+
+    // Phase 1 : upload
+    if (xhr.upload) {
+      xhr.upload.onprogress = (e) => {
+        if (!e.lengthComputable) return
+        onProgress?.({ phase: 'upload', percent: Math.round((e.loaded / e.total) * 100) })
+      }
+      xhr.upload.onload = () => {
+        // Upload fini -> serveur traite
+        onProgress?.({ phase: 'processing', percent: null })
+      }
+    }
+
+    // Phase 3 : download de la reponse
+    xhr.onprogress = (e) => {
+      if (!e.lengthComputable) return
+      onProgress?.({ phase: 'download', percent: Math.round((e.loaded / e.total) * 100) })
+    }
+
+    xhr.onload = () => {
+      if (xhr.status >= 200 && xhr.status < 300) {
+        onProgress?.({ phase: 'done', percent: 100 })
+        if (responseType === 'json') {
+          try { resolve(JSON.parse(xhr.responseText)) }
+          catch { resolve(xhr.responseText) }
+        } else {
+          resolve(xhr.response)
+        }
+      } else {
+        // Tente d'extraire un message d'erreur du body
+        const ct = xhr.getResponseHeader('content-type') || ''
+        if (ct.includes('application/json') && xhr.response) {
+          // response peut etre blob (responseType=blob), on tente
+          const fail = msg => reject(Object.assign(new Error(msg), { status: xhr.status }))
+          if (xhr.response instanceof Blob) {
+            xhr.response.text().then(t => {
+              try {
+                const j = JSON.parse(t)
+                fail(j.message || j.error || `HTTP ${xhr.status}`)
+              } catch { fail(`HTTP ${xhr.status}`) }
+            })
+          } else {
+            try {
+              const j = JSON.parse(xhr.responseText)
+              fail(j.message || j.error || `HTTP ${xhr.status}`)
+            } catch { fail(`HTTP ${xhr.status}`) }
+          }
+        } else {
+          reject(Object.assign(new Error(`HTTP ${xhr.status}`), { status: xhr.status }))
+        }
+      }
+    }
+
+    xhr.onerror = () => reject(new Error("Erreur reseau"))
+    xhr.onabort = () => reject(new Error("Requete annulee"))
+
+    onProgress?.({ phase: 'upload', percent: 0 })
+    xhr.send(formData)
+  })
+}
+
 /** POST/PUT JSON et lit la reponse en JSON. Renvoie le body parse. */
 export async function apiJson(path, { method = 'GET', body, headers } = {}) {
   const h = new Headers(headers || {})

@@ -5,6 +5,7 @@ import ToolPage from '../components/ToolPage'
 import SubmitButton from '../components/SubmitButton'
 import OutputFilenameField from '../components/OutputFilenameField'
 import { useToast } from '../components/Toast'
+import { useProgress } from '../hooks/useProgress'
 import { anonymizePdf } from '../api/pdfApi'
 
 export default function AnonymizePage() {
@@ -12,17 +13,19 @@ export default function AnonymizePage() {
   const [outputName, setOutputName] = useState('')
   const [loading, setLoading] = useState(false)
   const toast = useToast()
+  const { progress, onProgress, reset } = useProgress()
 
   async function handleSubmit() {
     if (!files[0]) return toast.error('Sélectionnez un PDF.')
     setLoading(true)
     try {
-      await anonymizePdf(files[0], outputName)
+      await anonymizePdf(files[0], outputName, onProgress)
       toast.success('PDF anonymisé. Métadonnées retirées.')
     } catch (e) {
       toast.error(e.message)
     } finally {
       setLoading(false)
+      reset()
     }
   }
 
@@ -47,7 +50,7 @@ export default function AnonymizePage() {
       </div>
 
       <div className="mt-6">
-        <SubmitButton loading={loading} onClick={handleSubmit} disabled={!files[0]}>
+        <SubmitButton loading={loading} progress={progress} onClick={handleSubmit} disabled={!files[0]}>
           Anonymiser
         </SubmitButton>
       </div>

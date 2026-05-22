@@ -4,6 +4,7 @@ import DropZone from '../components/DropZone'
 import ToolPage from '../components/ToolPage'
 import SubmitButton from '../components/SubmitButton'
 import { useToast } from '../components/Toast'
+import { useProgress } from '../hooks/useProgress'
 import { getMetadata } from '../api/pdfApi'
 
 const LABELS = {
@@ -22,19 +23,21 @@ export default function MetadataPage() {
   const [meta,  setMeta]  = useState(null)
   const [loading, setLoading] = useState(false)
   const toast = useToast()
+  const { progress, onProgress, reset } = useProgress()
 
   async function handleSubmit() {
     if (!files[0]) return toast.error('Sélectionnez un PDF.')
     setLoading(true)
     setMeta(null)
     try {
-      const m = await getMetadata(files[0])
+      const m = await getMetadata(files[0], onProgress)
       setMeta(m)
       toast.success('Métadonnées chargées.')
     } catch (e) {
       toast.error(e.message)
     } finally {
       setLoading(false)
+      reset()
     }
   }
 
@@ -46,7 +49,7 @@ export default function MetadataPage() {
     >
       <DropZone onFiles={setFiles} label="Déposez votre PDF" />
       <div className="mt-6">
-        <SubmitButton loading={loading} onClick={handleSubmit} disabled={!files[0]}>
+        <SubmitButton loading={loading} progress={progress} onClick={handleSubmit} disabled={!files[0]}>
           Inspecter
         </SubmitButton>
       </div>

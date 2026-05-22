@@ -66,12 +66,22 @@ export default {
           '0%':   { backgroundPosition: '-200% 0' },
           '100%': { backgroundPosition: '200% 0' },
         },
+        'progress-shimmer': {
+          '0%':   { transform: 'translateX(-100%)' },
+          '100%': { transform: 'translateX(100%)' },
+        },
+        'spin-slow': {
+          '0%':   { transform: 'rotate(0deg)' },
+          '100%': { transform: 'rotate(360deg)' },
+        },
       },
       animation: {
         'fade-in':  'fade-in .25s ease-out both',
         'slide-up': 'slide-up .35s ease-out both',
         'pulse-dot':'pulse-dot 1.6s ease-in-out infinite',
         shimmer:    'shimmer 1.8s linear infinite',
+        'progress-shimmer': 'progress-shimmer 1.5s ease-in-out infinite',
+        'spin-slow': 'spin-slow 3s linear infinite',
       },
     },
   },

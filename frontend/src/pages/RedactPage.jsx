@@ -5,6 +5,7 @@ import ToolPage from '../components/ToolPage'
 import SubmitButton from '../components/SubmitButton'
 import OutputFilenameField from '../components/OutputFilenameField'
 import { useToast } from '../components/Toast'
+import { useProgress } from '../hooks/useProgress'
 import { redactPdf } from '../api/pdfApi'
 
 export default function RedactPage() {
@@ -13,6 +14,7 @@ export default function RedactPage() {
   const [outputName, setOutputName] = useState('')
   const [loading, setLoading] = useState(false)
   const toast = useToast()
+  const { progress, onProgress, reset } = useProgress()
 
   async function handleSubmit() {
     if (!files[0]) return toast.error('Sélectionnez un PDF.')
@@ -22,12 +24,13 @@ export default function RedactPage() {
     if (terms.length === 0) return toast.error('Saisissez au moins un terme à caviarder.')
     setLoading(true)
     try {
-      await redactPdf(files[0], terms, outputName)
+      await redactPdf(files[0], terms, outputName, onProgress)
       toast.success(`Caviardage appliqué (${terms.length} terme(s)).`)
     } catch (e) {
       toast.error(e.message)
     } finally {
       setLoading(false)
+      reset()
     }
   }
 
@@ -66,7 +69,7 @@ export default function RedactPage() {
       </div>
 
       <div className="mt-6">
-        <SubmitButton loading={loading} onClick={handleSubmit} disabled={!files[0] || !termsText.trim()}>
+        <SubmitButton loading={loading} progress={progress} onClick={handleSubmit} disabled={!files[0] || !termsText.trim()}>
           Caviarder
         </SubmitButton>
       </div>

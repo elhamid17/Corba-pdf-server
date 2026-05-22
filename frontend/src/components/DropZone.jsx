@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useState } from 'react'
 import { useDropzone } from 'react-dropzone'
 import { UploadCloud, FileText, X, FilePlus2 } from 'lucide-react'
+import PdfPreview from './PdfPreview'
+import { useWorkflow } from '../hooks/useWorkflow'
 
 function formatSize(bytes) {
   if (!Number.isFinite(bytes)) return ''
@@ -16,8 +18,10 @@ export default function DropZone({
   maxSize = 50 * 1024 * 1024,
   label,
   hint = 'Fichier PDF, 50 Mo max',
+  preview = true,  // Affiche un apercu PDF du premier fichier si c'est un PDF
 }) {
   const [files, setFiles] = useState([])
+  const { lastResult, consume } = useWorkflow()
 
   const onDrop = useCallback(accepted => {
     const next = multiple ? [...files, ...accepted] : accepted.slice(0, 1)
@@ -36,10 +40,20 @@ export default function DropZone({
   }
   const clearAll = () => { setFiles([]); onFiles?.([]) }
 
-  // Reset le state interne quand le parent réinitialise
+  // Workflow chaining : a l'arrivee sur cette page, si on a un resultat
+  // d'operation precedente (blob dans le buffer), le charger automatiquement
+  // dans la zone d'upload si le type est compatible avec ce DropZone.
   useEffect(() => {
-    // pas de hook ici — laissé volontairement pour permettre un usage simple
-  }, [])
+    if (!lastResult || files.length > 0) return
+    if (!matchesAccept(lastResult.filename, accept)) return
+    const transferredFile = new File([lastResult.blob], lastResult.filename, {
+      type: lastResult.blob.type || 'application/octet-stream',
+    })
+    setFiles([transferredFile])
+    onFiles?.([transferredFile])
+    consume()  // retire du buffer pour ne pas re-charger
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [lastResult])
 
   const stateCls = isDragReject
     ? 'border-rose-300 bg-rose-50/60 dark:border-rose-700 dark:bg-rose-950/30'
@@ -99,6 +113,32 @@ export default function DropZone({
           </ul>
         </div>
       )}
+
+      {/* Apercu PDF du premier fichier si c'est un PDF */}
+      {preview && files[0] && isPdfFile(files[0]) && (
+        <PdfPreview file={files[0]} maxPages={5} />
+      )}
     </div>
   )
+}
+
+function isPdfFile(file) {
+  if (!file) return false
+  if (file.type === 'application/pdf') return true
+  return (file.name || '').toLowerCase().endsWith('.pdf')
+}
+
+/**
+ * Verifie qu'un nom de fichier matche l'objet `accept` de react-dropzone.
+ * `accept` est { mimeType: [extensions...] }, on regarde si une des extensions matche.
+ */
+function matchesAccept(filename, accept) {
+  if (!filename || !accept) return false
+  const lower = filename.toLowerCase()
+  for (const exts of Object.values(accept)) {
+    for (const ext of exts) {
+      if (lower.endsWith(ext.toLowerCase())) return true
+    }
+  }
+  return false
 }

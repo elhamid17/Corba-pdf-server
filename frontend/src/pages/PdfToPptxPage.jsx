@@ -1,14 +1,14 @@
 import { useState } from 'react'
-import { FileType2 } from 'lucide-react'
+import { Presentation } from 'lucide-react'
 import DropZone from '../components/DropZone'
 import ToolPage from '../components/ToolPage'
 import SubmitButton from '../components/SubmitButton'
 import OutputFilenameField from '../components/OutputFilenameField'
 import { useToast } from '../components/Toast'
 import { useProgress } from '../hooks/useProgress'
-import { pdfToWord } from '../api/pdfApi'
+import { pdfToPptx } from '../api/pdfApi'
 
-export default function PdfToWordPage() {
+export default function PdfToPptxPage() {
   const [files, setFiles] = useState([])
   const [outputName, setOutputName] = useState('')
   const [loading, setLoading] = useState(false)
@@ -16,10 +16,10 @@ export default function PdfToWordPage() {
   const { progress, onProgress, reset } = useProgress()
 
   async function handleSubmit() {
-    if (files.length === 0) return toast.error('Sélectionnez un PDF.')
+    if (!files[0]) return toast.error('Sélectionnez un PDF.')
     setLoading(true)
     try {
-      await pdfToWord(files[0], outputName, onProgress)
+      await pdfToPptx(files[0], outputName, onProgress)
       toast.success('Conversion réussie. Téléchargement lancé.')
     } catch (e) {
       toast.error(e.message)
@@ -31,21 +31,17 @@ export default function PdfToWordPage() {
 
   return (
     <ToolPage
-      icon={FileType2}
-      title="PDF → Word"
-      subtitle="Convertissez votre PDF en document Word (DOCX). Le texte est extrait page par page, la mise en page n'est pas conservée."
+      icon={Presentation}
+      title="PDF → PowerPoint"
+      subtitle="Une slide PowerPoint par page PDF. Le texte est extrait page par page ; les images et mises en page complexes ne sont pas conservées."
     >
-      <DropZone
-        onFiles={setFiles}
-        label="Déposez le PDF à convertir"
-        hint="Fichier PDF, 50 Mo max"
-      />
+      <DropZone onFiles={setFiles} label="Déposez le PDF à convertir" />
       <div className="mt-6">
-        <OutputFilenameField value={outputName} onChange={setOutputName} placeholder="document-word" extension=".docx" />
+        <OutputFilenameField value={outputName} onChange={setOutputName} placeholder="presentation" extension=".pptx" />
       </div>
       <div className="mt-6">
-        <SubmitButton loading={loading} progress={progress} onClick={handleSubmit} disabled={files.length === 0}>
-          Convertir en Word
+        <SubmitButton loading={loading} progress={progress} onClick={handleSubmit} disabled={!files[0]}>
+          Convertir en PowerPoint
         </SubmitButton>
       </div>
     </ToolPage>

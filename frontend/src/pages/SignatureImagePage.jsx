@@ -5,6 +5,7 @@ import ToolPage from '../components/ToolPage'
 import SubmitButton from '../components/SubmitButton'
 import OutputFilenameField from '../components/OutputFilenameField'
 import { useToast } from '../components/Toast'
+import { useProgress } from '../hooks/useProgress'
 import { addSignatureImage } from '../api/pdfApi'
 
 const POSITIONS = [
@@ -27,6 +28,7 @@ export default function SignatureImagePage() {
   const [loading, setLoading] = useState(false)
   const [hasDrawn, setHasDrawn] = useState(false)
   const toast = useToast()
+  const { progress, onProgress, reset } = useProgress()
 
   const canvasRef = useRef(null)
   const drawingRef = useRef(false)
@@ -111,12 +113,13 @@ export default function SignatureImagePage() {
     try {
       await addSignatureImage(pdfFiles[0], sigFile, {
         page, xPercent: preset.x, yPercent: preset.y, widthPercent,
-      }, outputName)
+      }, outputName, onProgress)
       toast.success('Signature apposée.')
     } catch (e) {
       toast.error(e.message)
     } finally {
       setLoading(false)
+      reset()
     }
   }
 
@@ -219,7 +222,7 @@ export default function SignatureImagePage() {
       </div>
 
       <div className="mt-6">
-        <SubmitButton loading={loading} onClick={handleSubmit}
+        <SubmitButton loading={loading} progress={progress} onClick={handleSubmit}
                       disabled={!pdfFiles[0] || (mode === 'draw' ? !hasDrawn : !uploadedImg[0])}
                       icon={ImageIcon}>
           Apposer la signature

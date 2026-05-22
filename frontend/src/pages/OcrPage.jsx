@@ -4,6 +4,7 @@ import DropZone from '../components/DropZone'
 import ToolPage from '../components/ToolPage'
 import SubmitButton from '../components/SubmitButton'
 import { useToast } from '../components/Toast'
+import { useProgress } from '../hooks/useProgress'
 import { performOCR } from '../api/pdfApi'
 
 const LANGUAGES = [
@@ -18,19 +19,21 @@ export default function OcrPage() {
   const [loading, setLoading] = useState(false)
   const [copied, setCopied] = useState(false)
   const toast = useToast()
+  const { progress, onProgress, reset } = useProgress()
 
   async function handleSubmit() {
     if (!files[0]) return toast.error('Sélectionnez un PDF.')
     setLoading(true)
     setText('')
     try {
-      const res = await performOCR(files[0], language)
+      const res = await performOCR(files[0], language, onProgress)
       setText(res.text || '')
       toast.success(`OCR ${res.language || language} terminée.`)
     } catch (e) {
       toast.error(e.message)
     } finally {
       setLoading(false)
+      reset()
     }
   }
 
@@ -77,7 +80,7 @@ export default function OcrPage() {
       </div>
 
       <div className="mt-6">
-        <SubmitButton loading={loading} onClick={handleSubmit} loadingText="OCR en cours…" disabled={!files[0]}>
+        <SubmitButton loading={loading} progress={progress} onClick={handleSubmit} loadingText="OCR en cours…" disabled={!files[0]}>
           Lancer l’OCR
         </SubmitButton>
       </div>
