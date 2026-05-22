@@ -141,6 +141,7 @@ export default function Navbar() {
                 type="button"
                 onClick={() => setOpen(true)}
                 aria-label="Ouvrir le menu des services"
+                data-tour="hamburger"
                 className="grid place-items-center h-10 w-10 rounded-lg text-ink-700 hover:bg-ink-100 dark:text-ink-200 dark:hover:bg-ink-800 transition-colors"
               >
                 <Menu size={22} strokeWidth={2.2} />
@@ -367,6 +368,7 @@ function UserMenu() {
         </NavLink>
         <Link
           to="/login"
+          data-tour="auth-cta"
           className="hidden sm:inline-flex items-center gap-1.5 h-9 px-3 rounded-lg text-sm font-medium text-ink-700 hover:bg-ink-100 dark:text-ink-200 dark:hover:bg-ink-800 transition-colors"
         >
           <LogIn size={16} /> Connexion

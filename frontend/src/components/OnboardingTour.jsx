@@ -34,19 +34,23 @@ const LAST_STEP_DESKTOP = {
 
 const LAST_STEP_MOBILE = {
   id: 'mobile-tips',
-  target: null,
+  target: '[data-tour="hamburger"]',
   icon: Smartphone,
-  title: 'Astuces mobile',
-  body: 'Le menu hamburger en haut à gauche regroupe les 35 outils par catégorie. Pensez aussi à « Ajouter à l\'écran d\'accueil » depuis votre navigateur pour installer l\'app comme une vraie appli mobile.',
+  title: 'Le menu hamburger',
+  body: 'Tapez ici pour ouvrir le menu : tous les outils sont regroupés par catégorie. Pensez aussi à « Ajouter à l\'écran d\'accueil » depuis votre navigateur pour installer l\'app.',
+  placement: 'bottom',
 }
 
 // Etape compte — uniquement pour les invites (skip auto si connecte)
+// target = bouton Connexion de la navbar (visible sur sm+). En dessous de sm,
+// l'element est cache (display:none) donc le tour bascule auto en modal centre.
 const ACCOUNT_STEP = {
   id: 'account',
-  target: null,
+  target: '[data-tour="auth-cta"]',
   icon: UserPlus,
   title: 'Sauvegardez vos résultats',
   body: 'Créez un compte gratuit pour conserver votre historique, retrouver vos PDFs traités plus tard et synchroniser vos favoris entre vos appareils.',
+  placement: 'bottom',
   cta: { label: 'Créer mon compte', to: '/register' },
 }
 
@@ -121,6 +125,8 @@ export default function OnboardingTour() {
       const el = document.querySelector(current.target)
       if (!el) { setRect(null); return }
       const r = el.getBoundingClientRect()
+      // Element cache via display:none (responsive) -> fallback en modal centre
+      if (r.width === 0 || r.height === 0) { setRect(null); return }
       // Scroll dans le viewport si necessaire
       if (r.top < 80 || r.bottom > window.innerHeight - 200) {
         el.scrollIntoView({ behavior: 'smooth', block: 'center' })
@@ -128,6 +134,7 @@ export default function OnboardingTour() {
       // Recalcule apres le scroll
       requestAnimationFrame(() => {
         const r2 = el.getBoundingClientRect()
+        if (r2.width === 0 || r2.height === 0) { setRect(null); return }
         setRect(r2)
       })
     }
