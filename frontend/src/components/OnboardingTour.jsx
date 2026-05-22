@@ -1,6 +1,8 @@
-import { useEffect, useLayoutEffect, useState } from 'react'
+import { useEffect, useLayoutEffect, useMemo, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { AnimatePresence, motion } from 'framer-motion'
-import { X, ArrowRight, Check, Sparkles, Search, Camera, Command, Smartphone } from 'lucide-react'
+import { X, ArrowRight, Check, Sparkles, Search, Camera, Command, Smartphone, UserPlus } from 'lucide-react'
+import { useAuth } from '../hooks/useAuth'
 
 /**
  * Tour onboarding interactif a la 1ere visite.
@@ -38,13 +40,23 @@ const LAST_STEP_MOBILE = {
   body: 'Le menu hamburger en haut à gauche regroupe les 35 outils par catégorie. Pensez aussi à « Ajouter à l\'écran d\'accueil » depuis votre navigateur pour installer l\'app comme une vraie appli mobile.',
 }
 
-const STEPS = [
+// Etape compte — uniquement pour les invites (skip auto si connecte)
+const ACCOUNT_STEP = {
+  id: 'account',
+  target: null,
+  icon: UserPlus,
+  title: 'Sauvegardez vos résultats',
+  body: 'Créez un compte gratuit pour conserver votre historique, retrouver vos PDFs traités plus tard et synchroniser vos favoris entre vos appareils.',
+  cta: { label: 'Créer mon compte', to: '/register' },
+}
+
+const BASE_STEPS = [
   {
     id: 'welcome',
     target: null,
     icon: Sparkles,
     title: 'Bienvenue sur CORBA PDF Suite',
-    body: '35 outils pour traiter vos documents PDF. On vous fait une visite éclair en 4 étapes.',
+    body: '35 outils pour traiter vos documents PDF. On vous fait une visite éclair en quelques étapes.',
   },
   {
     id: 'search',
@@ -83,6 +95,14 @@ export default function OnboardingTour() {
   const [active, setActive] = useState(false)
   const [step, setStep] = useState(0)
   const [rect, setRect] = useState(null)  // bounding rect du target courant
+  const navigate = useNavigate()
+  const { isAuthenticated } = useAuth()
+
+  // Etapes effectives : on ajoute l'etape "Creer un compte" pour les invites
+  const STEPS = useMemo(
+    () => isAuthenticated ? BASE_STEPS : [...BASE_STEPS, ACCOUNT_STEP],
+    [isAuthenticated]
+  )
 
   // Au mount : verifie le flag, demarre apres petit delay (laisse la page se rendre)
   useEffect(() => {
@@ -135,6 +155,11 @@ export default function OnboardingTour() {
   function finish() {
     dismissTour()
     setActive(false)
+  }
+  function handleCta(to) {
+    dismissTour()
+    setActive(false)
+    navigate(to)
   }
 
   if (!active) return null
@@ -284,19 +309,29 @@ export default function OnboardingTour() {
                 onClick={finish}
                 className="text-xs font-medium text-ink-500 hover:text-ink-700 dark:text-ink-400 dark:hover:text-ink-200 transition-colors px-2"
               >
-                Passer
+                {current.cta ? 'Plus tard' : 'Passer'}
               </button>
-              <button
-                type="button"
-                onClick={next}
-                className="inline-flex items-center gap-1.5 h-9 px-3 sm:px-4 rounded-lg bg-brand-600 hover:bg-brand-700 text-white text-sm font-semibold transition-colors whitespace-nowrap"
-              >
-                {step === STEPS.length - 1 ? (
-                  <><Check size={14} /> Terminé</>
-                ) : (
-                  <>Suivant <ArrowRight size={14} /></>
-                )}
-              </button>
+              {current.cta ? (
+                <button
+                  type="button"
+                  onClick={() => handleCta(current.cta.to)}
+                  className="inline-flex items-center gap-1.5 h-9 px-3 sm:px-4 rounded-lg bg-gradient-to-r from-brand-600 to-accent-500 hover:from-brand-700 hover:to-accent-600 text-white text-sm font-semibold transition-colors whitespace-nowrap shadow-sm"
+                >
+                  <UserPlus size={14} /> {current.cta.label}
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  onClick={next}
+                  className="inline-flex items-center gap-1.5 h-9 px-3 sm:px-4 rounded-lg bg-brand-600 hover:bg-brand-700 text-white text-sm font-semibold transition-colors whitespace-nowrap"
+                >
+                  {step === STEPS.length - 1 ? (
+                    <><Check size={14} /> Terminé</>
+                  ) : (
+                    <>Suivant <ArrowRight size={14} /></>
+                  )}
+                </button>
+              )}
             </div>
           </div>
         </motion.div>
