@@ -138,14 +138,17 @@ export default function CvBuilderPage() {
   async function handlePhotoUpload(e) {
     const file = e.target.files?.[0]
     if (!file) return
-    if (file.size > 2 * 1024 * 1024) {
-      toast.error('Photo trop volumineuse (max 2 Mo).')
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error('Photo trop volumineuse (max 5 Mo).')
       return
     }
-    const reader = new FileReader()
-    reader.onload = () => setPhoto(reader.result)
-    reader.onerror = () => toast.error('Lecture de la photo échouée.')
-    reader.readAsDataURL(file)
+    try {
+      // Downscale + recompression pour limiter le poids transmis (base64 +33%)
+      const dataUrl = await downscaleImage(file, 600, 0.85)
+      setPhoto(dataUrl)
+    } catch (err) {
+      toast.error('Lecture de la photo échouée : ' + err.message)
+    }
   }
 
   async function handleSubmit() {
@@ -236,7 +239,7 @@ export default function CvBuilderPage() {
                     <Trash2 size={14} /> Retirer
                   </button>
                 )}
-                <p className="mt-1 text-xs text-ink-400">Visible uniquement sur le template <strong>Moderne</strong>. Max 2 Mo.</p>
+                <p className="mt-1 text-xs text-ink-400">Visible uniquement sur le template <strong>Moderne</strong>. La photo est redimensionnée automatiquement.</p>
               </div>
             </div>
           </Section>
@@ -373,4 +376,33 @@ function ListRow({ children, onRemove }) {
       <div className="grid sm:grid-cols-2 gap-3">{children}</div>
     </div>
   )
+}
+
+/**
+ * Redimensionne une image (file) cote client via canvas pour respecter
+ * une largeur max + re-encode en JPEG qualite donnee. Retourne un data URL.
+ * Evite d'envoyer des fichiers 5 Mo qui exploseraient le payload JSON
+ * (~6.7 Mo en base64) et la limite Tomcat.
+ */
+async function downscaleImage(file, maxWidth = 600, quality = 0.85) {
+  const url = URL.createObjectURL(file)
+  try {
+    const img = await new Promise((resolve, reject) => {
+      const i = new Image()
+      i.onload = () => resolve(i)
+      i.onerror = reject
+      i.src = url
+    })
+    const ratio = Math.min(1, maxWidth / img.naturalWidth)
+    const w = Math.round(img.naturalWidth * ratio)
+    const h = Math.round(img.naturalHeight * ratio)
+    const canvas = document.createElement('canvas')
+    canvas.width = w
+    canvas.height = h
+    const ctx = canvas.getContext('2d')
+    ctx.drawImage(img, 0, 0, w, h)
+    return canvas.toDataURL('image/jpeg', quality)
+  } finally {
+    URL.revokeObjectURL(url)
+  }
 }
