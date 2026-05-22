@@ -50,3 +50,6 @@ RAPPORT.aux
 RAPPORT.log
 RAPPORT.out
 RAPPORT.toc
+
+.Rhistory
+*.synctex.gz
