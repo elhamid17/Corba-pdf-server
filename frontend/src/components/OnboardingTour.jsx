@@ -133,6 +133,7 @@ export default function OnboardingTour() {
   // - Sinon : choisit le cote (haut/bas) qui a le plus d'espace
   // - Si aucun cote n'a la place (petit ecran), fallback centre
   let tooltipStyle = {}
+  let tooltipInnerStyle = undefined
   let useCentered = !rect
   if (rect) {
     const PAD = 12
@@ -153,9 +154,11 @@ export default function OnboardingTour() {
         : spaceBelow >= ESTIMATED_H || spaceBelow >= spaceAbove ? 'bottom' : 'top')
       const x = Math.max(SAFE, Math.min(vw - TOOLTIP_W - SAFE, rect.left + rect.width / 2 - TOOLTIP_W / 2))
       if (placement === 'bottom') {
-        tooltipStyle = { left: x, top: rect.bottom + PAD, width: TOOLTIP_W, maxHeight: spaceBelow }
+        tooltipStyle = { left: x, top: rect.bottom + PAD, width: TOOLTIP_W }
+        tooltipInnerStyle = { maxHeight: spaceBelow }
       } else {
-        tooltipStyle = { left: x, top: rect.top - PAD, width: TOOLTIP_W, maxHeight: spaceAbove, transform: 'translateY(-100%)' }
+        tooltipStyle = { left: x, top: rect.top - PAD, width: TOOLTIP_W, transform: 'translateY(-100%)' }
+        tooltipInnerStyle = { maxHeight: spaceAbove }
       }
     }
   }
@@ -194,7 +197,16 @@ export default function OnboardingTour() {
           <div className="absolute inset-0 bg-ink-900/70 backdrop-blur-sm" />
         )}
 
-        {/* Tooltip */}
+        {/* Tooltip — wrapper de positionnement + motion.div pour l'animation.
+            Important : Framer Motion compile scale/y en CSS transform, ce qui
+            ecrase les classes Tailwind -translate-x-1/2 / -translate-y-1/2.
+            On separe donc le positionnement (div statique) de l'animation. */}
+        <div
+          className={useCentered
+            ? 'absolute inset-0 grid place-items-center pointer-events-none p-4'
+            : 'absolute pointer-events-none'}
+          style={useCentered ? undefined : tooltipStyle}
+        >
         <motion.div
           key={`tooltip-${step}`}
           initial={{ opacity: 0, scale: 0.96, y: 6 }}
@@ -203,10 +215,10 @@ export default function OnboardingTour() {
           transition={{ duration: 0.2, ease: 'easeOut' }}
           className={
             useCentered
-              ? 'absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[min(420px,calc(100vw-32px))] max-h-[calc(100vh-32px)] overflow-y-auto rounded-2xl bg-white dark:bg-ink-900 shadow-2xl ring-1 ring-ink-200 dark:ring-ink-700 p-5 sm:p-6'
-              : 'absolute overflow-y-auto rounded-2xl bg-white dark:bg-ink-900 shadow-2xl ring-1 ring-ink-200 dark:ring-ink-700 p-4 sm:p-5'
+              ? 'pointer-events-auto w-[min(420px,calc(100vw-32px))] max-h-[calc(100vh-32px)] overflow-y-auto rounded-2xl bg-white dark:bg-ink-900 shadow-2xl ring-1 ring-ink-200 dark:ring-ink-700 p-5 sm:p-6'
+              : 'pointer-events-auto overflow-y-auto rounded-2xl bg-white dark:bg-ink-900 shadow-2xl ring-1 ring-ink-200 dark:ring-ink-700 p-4 sm:p-5 w-full'
           }
-          style={useCentered ? undefined : tooltipStyle}
+          style={tooltipInnerStyle}
         >
           <button
             type="button"
@@ -273,6 +285,7 @@ export default function OnboardingTour() {
             </div>
           </div>
         </motion.div>
+        </div>
       </motion.div>
     </AnimatePresence>
   )
