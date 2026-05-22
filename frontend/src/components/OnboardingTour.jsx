@@ -128,21 +128,35 @@ export default function OnboardingTour() {
   const Icon = current.icon
   const total = STEPS.length
 
-  // Position de la tooltip
-  // - si pas de target : centree (welcome / fin)
-  // - si target en haut : tooltip en dessous, sinon au dessus
+  // Position de la tooltip — responsive avec fallback centre
+  // - Si pas de target : centree (welcome / fin)
+  // - Sinon : choisit le cote (haut/bas) qui a le plus d'espace
+  // - Si aucun cote n'a la place (petit ecran), fallback centre
   let tooltipStyle = {}
-  let tooltipPlacement = 'center'
+  let useCentered = !rect
   if (rect) {
     const PAD = 12
-    const TOOLTIP_W = 360
-    const placement = current.placement || (rect.top < window.innerHeight / 2 ? 'bottom' : 'top')
-    tooltipPlacement = placement
-    const x = Math.max(16, Math.min(window.innerWidth - TOOLTIP_W - 16, rect.left + rect.width / 2 - TOOLTIP_W / 2))
-    if (placement === 'bottom') {
-      tooltipStyle = { left: x, top: rect.bottom + PAD, width: TOOLTIP_W }
+    const SAFE = 16  // marge securite par rapport aux bords du viewport
+    const vw = window.innerWidth
+    const vh = window.innerHeight
+    const TOOLTIP_W = Math.min(360, vw - 2 * SAFE)
+    const ESTIMATED_H = 240  // approx hauteur du tooltip avec contenu standard
+    const spaceBelow = vh - rect.bottom - PAD - SAFE
+    const spaceAbove = rect.top - PAD - SAFE
+
+    if (spaceBelow < 120 && spaceAbove < 120) {
+      // Vraiment pas la place de cote a cote, on bascule en centre
+      useCentered = true
     } else {
-      tooltipStyle = { left: x, top: rect.top - PAD, width: TOOLTIP_W, transform: 'translateY(-100%)' }
+      const placement = (current.placement === 'top'
+        ? spaceAbove >= ESTIMATED_H ? 'top' : 'bottom'
+        : spaceBelow >= ESTIMATED_H || spaceBelow >= spaceAbove ? 'bottom' : 'top')
+      const x = Math.max(SAFE, Math.min(vw - TOOLTIP_W - SAFE, rect.left + rect.width / 2 - TOOLTIP_W / 2))
+      if (placement === 'bottom') {
+        tooltipStyle = { left: x, top: rect.bottom + PAD, width: TOOLTIP_W, maxHeight: spaceBelow }
+      } else {
+        tooltipStyle = { left: x, top: rect.top - PAD, width: TOOLTIP_W, maxHeight: spaceAbove, transform: 'translateY(-100%)' }
+      }
     }
   }
 
@@ -188,11 +202,11 @@ export default function OnboardingTour() {
           exit={{ opacity: 0, scale: 0.97 }}
           transition={{ duration: 0.2, ease: 'easeOut' }}
           className={
-            rect
-              ? 'absolute rounded-2xl bg-white dark:bg-ink-900 shadow-2xl ring-1 ring-ink-200 dark:ring-ink-700 p-5'
-              : 'absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[min(420px,calc(100vw-32px))] rounded-2xl bg-white dark:bg-ink-900 shadow-2xl ring-1 ring-ink-200 dark:ring-ink-700 p-6'
+            useCentered
+              ? 'absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[min(420px,calc(100vw-32px))] max-h-[calc(100vh-32px)] overflow-y-auto rounded-2xl bg-white dark:bg-ink-900 shadow-2xl ring-1 ring-ink-200 dark:ring-ink-700 p-5 sm:p-6'
+              : 'absolute overflow-y-auto rounded-2xl bg-white dark:bg-ink-900 shadow-2xl ring-1 ring-ink-200 dark:ring-ink-700 p-4 sm:p-5'
           }
-          style={rect ? tooltipStyle : undefined}
+          style={useCentered ? undefined : tooltipStyle}
         >
           <button
             type="button"
@@ -221,9 +235,9 @@ export default function OnboardingTour() {
             {current.body}
           </p>
 
-          {/* Indicateurs + actions */}
-          <div className="mt-5 flex items-center justify-between gap-3">
-            <div className="flex gap-1">
+          {/* Indicateurs + actions — flex-wrap pour les tres petits ecrans */}
+          <div className="mt-5 flex flex-wrap items-center justify-between gap-3">
+            <div className="flex gap-1 order-1">
               {STEPS.map((_, i) => (
                 <span
                   key={i}
@@ -237,18 +251,18 @@ export default function OnboardingTour() {
                 />
               ))}
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 order-2 ml-auto">
               <button
                 type="button"
                 onClick={finish}
-                className="text-xs font-medium text-ink-500 hover:text-ink-700 dark:text-ink-400 dark:hover:text-ink-200 transition-colors"
+                className="text-xs font-medium text-ink-500 hover:text-ink-700 dark:text-ink-400 dark:hover:text-ink-200 transition-colors px-2"
               >
                 Passer
               </button>
               <button
                 type="button"
                 onClick={next}
-                className="inline-flex items-center gap-1.5 h-9 px-4 rounded-lg bg-brand-600 hover:bg-brand-700 text-white text-sm font-semibold transition-colors"
+                className="inline-flex items-center gap-1.5 h-9 px-3 sm:px-4 rounded-lg bg-brand-600 hover:bg-brand-700 text-white text-sm font-semibold transition-colors whitespace-nowrap"
               >
                 {step === STEPS.length - 1 ? (
                   <><Check size={14} /> Terminé</>
