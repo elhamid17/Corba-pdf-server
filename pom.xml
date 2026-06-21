@@ -21,6 +21,7 @@
     <modules>
         <module>corba-idl</module>
         <module>corba-server</module>
+        <module>pdf-engine</module>
         <module>api-gateway</module>
     </modules>
 
