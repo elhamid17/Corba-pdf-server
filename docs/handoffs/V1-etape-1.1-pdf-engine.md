@@ -69,6 +69,29 @@ Rapporter au Tech Lead :
 5. Tout écart par rapport au scope, justifié.
 
 ---
+## ⚠️ REPRISE — première tentative incomplète (coupée par limite de session)
+
+Un premier sous-agent a démarré dans le worktree `worktree-agent-a510e30017820fe82`
+(commit WIP `wip(pdf-engine): étape 1.1 INCOMPLÈTE`). **Ne pas merger en l'état.**
+
+**Déjà fait :** copie des 41 handlers + `util/` + package `sn.ussein.pdfengine.model`
+(WatermarkOptions, ConvertOptions, CompressOptions, PDFMetadata, PDFResult, et les
+exceptions PDFException/InvalidPageException/PasswordException) dans `pdf-engine/src`.
+
+**RESTE À FAIRE (par ordre) :**
+1. [ ] Créer `pdf-engine/pom.xml` (s'inspirer de `corba-server/pom.xml` pour les deps
+       PDFBox/Tess4J/BouncyCastle/POI/ZXing/commonmark/jsoup/odfdom ; retirer toute dep JacORB/corba-idl).
+2. [ ] Retirer les types CORBA des **37 handlers** qui importent encore `org.omg.*` ou
+       `sn.ussein.pdf.*` : remplacer PDFData/PDFResult→`byte[]`, PDFList→`byte[][]`/`List<byte[]>`,
+       PageList→`int[]`, options CORBA→POJO de `sn.ussein.pdfengine.model`.
+3. [ ] Écrire l'interface `sn.ussein.pdfengine.PdfEngine` (42 ops) + `PdfEngineImpl` qui délègue aux handlers.
+4. [ ] Enregistrer `<module>pdf-engine</module>` dans le `pom.xml` racine.
+5. [ ] `mvn -pl pdf-engine test` vert ; `grep -rE "org\.omg|jacorb" pdf-engine/src` → vide.
+6. [ ] Ne pas pousser ; rapporter au Tech Lead (cf. §8).
+
+Repartir du worktree existant OU recréer un module propre depuis `main` en réutilisant la copie déjà faite.
+
+---
 *Rétrospective (à remplir en fin d'étape) :*
 - Livré : …
 - Écarts : …
