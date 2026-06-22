@@ -6,7 +6,7 @@
 set -e
 
 echo "═══════════════════════════════════════"
-echo "  CORBA PDF Server — Déploiement VPS"
+echo "  PDF Suite — Déploiement VPS"
 echo "═══════════════════════════════════════"
 
 # Pull dernière version

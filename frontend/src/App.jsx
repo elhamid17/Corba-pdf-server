@@ -9,6 +9,7 @@ import { AuthProvider } from './hooks/useAuth'
 import { WorkflowProvider } from './hooks/useWorkflow'
 import CommandPalette from './components/CommandPalette'
 import OnboardingTour from './components/OnboardingTour'
+import ErrorBoundary from './components/ErrorBoundary'
 import { Loader2 } from 'lucide-react'
 
 const MergePage        = lazy(() => import('./pages/MergePage'))
@@ -93,6 +94,7 @@ export default function App() {
           <div className="min-h-screen flex flex-col">
             <Navbar />
             <main className="flex-1">
+              <ErrorBoundary>
               <Suspense fallback={<Loading />}>
                 <AnimatedOutlet>
                 <Routes>
@@ -152,6 +154,7 @@ export default function App() {
                 </Routes>
                 </AnimatedOutlet>
               </Suspense>
+              </ErrorBoundary>
             </main>
             <Footer />
           </div>

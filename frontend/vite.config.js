@@ -8,7 +8,7 @@ export default defineConfig({
     react(),
     VitePWA({
       registerType: 'autoUpdate',
-      includeAssets: ['favicon.svg', 'logo.svg'],
+      includeAssets: ['favicon.svg', 'logo.svg', 'pwa-192.png', 'pwa-512.png'],
       manifest: {
         name: 'CORBA PDF Suite',
         short_name: 'CORBA PDF',

@@ -9,30 +9,29 @@ import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
+import sn.ussein.gateway.config.RateLimitProperties;
 
 import java.io.IOException;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
- * Rate limiting basique sur /api/auth/* pour resister au brute-force.
+ * Rate limiting par IP sur les endpoints sensibles (auth + PDF).
  *
- * Algorithme : sliding window simple par IP avec ConcurrentHashMap.
- * Limite par defaut : 10 requetes / minute par IP sur les endpoints d'auth.
- *
- * Note : implementation en-memoire, donc reset au redemarrage et non
- * partagee entre instances. Suffisant pour un deploiement mono-instance
- * (Render free tier). Pour scaler horizontalement il faudrait Redis.
+ * Algorithme : sliding window simple avec ConcurrentHashMap.
+ * Note : implementation en-memoire, reset au redemarrage, non partagee entre instances.
  */
 @Component
-@Order(Ordered.HIGHEST_PRECEDENCE + 5)  // avant GuestCookieFilter
+@Order(Ordered.HIGHEST_PRECEDENCE + 5)
 public class RateLimitFilter extends OncePerRequestFilter {
 
-    private static final int MAX_REQUESTS = 10;
-    private static final long WINDOW_MS = 60_000L;
+    private final RateLimitProperties props;
+    private final ConcurrentHashMap<String, Window> authBuckets = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<String, Window> pdfBuckets = new ConcurrentHashMap<>();
 
-    // Map IP -> window
-    private final ConcurrentHashMap<String, Window> buckets = new ConcurrentHashMap<>();
+    public RateLimitFilter(RateLimitProperties props) {
+        this.props = props;
+    }
 
     @Override
     protected void doFilterInternal(HttpServletRequest request,
@@ -40,46 +39,63 @@ public class RateLimitFilter extends OncePerRequestFilter {
                                     FilterChain chain) throws ServletException, IOException {
 
         String path = request.getRequestURI();
-        // Seul /api/auth/login et /api/auth/register sont rate-limites.
-        // /api/auth/me n'a pas besoin (verifie un JWT existant, peu coûteux).
-        if (!path.equals("/api/auth/login") && !path.equals("/api/auth/register")) {
+        String ip = clientIp(request);
+        long now = System.currentTimeMillis();
+
+        Integer limit = resolveLimit(path);
+        if (limit == null) {
             chain.doFilter(request, response);
             return;
         }
 
-        String ip = clientIp(request);
-        long now = System.currentTimeMillis();
+        ConcurrentHashMap<String, Window> buckets =
+            path.startsWith("/api/pdf") ? pdfBuckets : authBuckets;
+
         Window w = buckets.compute(ip, (k, existing) -> {
-            if (existing == null || now - existing.windowStart > WINDOW_MS) {
+            if (existing == null || now - existing.windowStart > props.getWindowMs()) {
                 return new Window(now, new AtomicInteger(1));
             }
             existing.count.incrementAndGet();
             return existing;
         });
 
-        if (w.count.get() > MAX_REQUESTS) {
-            long retryAfter = (WINDOW_MS - (now - w.windowStart)) / 1000;
+        if (w.count.get() > limit) {
+            long retryAfter = (props.getWindowMs() - (now - w.windowStart)) / 1000;
             response.setStatus(HttpStatus.TOO_MANY_REQUESTS.value());
             response.setHeader("Retry-After", String.valueOf(Math.max(1, retryAfter)));
             response.setContentType("application/json");
             response.getWriter().write(
-                "{\"error\":\"Too Many Requests\",\"message\":\"Trop de tentatives. Reessayez dans "
+                "{\"error\":\"Too Many Requests\",\"message\":\"Trop de requetes. Reessayez dans "
                 + Math.max(1, retryAfter) + "s.\",\"status\":429}");
             return;
         }
 
-        // Nettoyage opportuniste : 1% de chance par requete de purger les anciens buckets
         if (Math.random() < 0.01) {
-            buckets.entrySet().removeIf(e -> now - e.getValue().windowStart > WINDOW_MS);
+            purgeExpired(buckets, now);
         }
 
         chain.doFilter(request, response);
     }
 
+    /** Retourne la limite applicable, ou null si le path n'est pas rate-limite. */
+    private Integer resolveLimit(String path) {
+        if (path.equals("/api/auth/login") || path.equals("/api/auth/register")) {
+            return props.getAuthMaxRequests();
+        }
+        // Ping : le healthcheck Docker appelle cet endpoint en boucle.
+        if (path.startsWith("/api/pdf/") && !path.equals("/api/pdf/ping")) {
+            return props.getPdfMaxRequests();
+        }
+        return null;
+    }
+
+    private void purgeExpired(ConcurrentHashMap<String, Window> buckets, long now) {
+        buckets.entrySet().removeIf(e -> now - e.getValue().windowStart > props.getWindowMs());
+    }
+
     private String clientIp(HttpServletRequest request) {
         String xff = request.getHeader("X-Forwarded-For");
         if (xff != null && !xff.isBlank()) {
-            // X-Forwarded-For peut etre "ip1, ip2, ip3" : on prend la 1ere
             int comma = xff.indexOf(',');
             return (comma > 0 ? xff.substring(0, comma) : xff).trim();
         }

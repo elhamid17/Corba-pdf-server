@@ -35,13 +35,6 @@ spring:
       # de bloquer le boot si la connexion Atlas est lente (Render free tier).
       auto-index-creation: false
 
-# ── Configuration CORBA ──
-corba:
-  host: ${CORBA_HOST:localhost}  # variable d'env Docker, localhost en dev
-  port: ${CORBA_PORT:2809}
-  service-name: PDFService
-  timeout: 30000                 # timeout connexion en ms
-
 # ── Actuator (health check pour Docker) ──
 management:
   endpoints:
@@ -50,7 +43,7 @@ management:
         include: health, info
   endpoint:
     health:
-      show-details: always
+      show-details: ${HEALTH_SHOW_DETAILS:when_authorized}
 
 # ── Logging ──
 logging:
@@ -63,6 +56,12 @@ logging:
 app:
   cors:
     allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:5173,http://localhost}
+
+  # ── Rate limiting (par IP, fenetre glissante) ──
+  rate-limit:
+    auth-max-requests: 10
+    pdf-max-requests: 30
+    window-ms: 60000
 
   # ── Quotas par role (cf. plan etape 1) ──
   quota:

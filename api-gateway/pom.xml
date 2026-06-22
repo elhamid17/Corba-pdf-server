@@ -18,26 +18,20 @@
 
     <dependencies>
 
-        <!-- Contrats IDL compilés -->
+        <!-- Moteur PDF in-process (remplace l'ancien client CORBA) -->
         <dependency>
             <groupId>sn.ussein</groupId>
-            <artifactId>corba-idl</artifactId>
+            <artifactId>pdf-engine</artifactId>
             <version>${project.version}</version>
-        </dependency>
-
-        <!-- JacORB (client CORBA) -->
-        <dependency>
-            <groupId>org.jacorb</groupId>
-            <artifactId>jacorb</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.jacorb</groupId>
-            <artifactId>jacorb-omgapi</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.jboss.spec.javax.rmi</groupId>
-            <artifactId>jboss-rmi-api_1.0_spec</artifactId>
-            <version>1.0.6.Final</version>
+            <exclusions>
+                <!-- pdf-engine ramène slf4j-simple (transitif via Tess4J) ; la gateway
+                     utilise Logback de Spring Boot. Deux bindings SLF4J cassent
+                     l'initialisation Logback de Spring Boot (echec de chargement du contexte). -->
+                <exclusion>
+                    <groupId>org.slf4j</groupId>
+                    <artifactId>slf4j-simple</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
 
         <!-- Spring Boot Web -->
@@ -98,6 +92,26 @@
         <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter</artifactId>
+            <scope>test</scope>
+        </dependency>
+
+        <!-- Testcontainers — MongoDB d'intégration (1.20.6+ requis pour Docker API >= 1.44) -->
+        <dependency>
+            <groupId>org.testcontainers</groupId>
+            <artifactId>testcontainers</artifactId>
+            <version>1.20.6</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.testcontainers</groupId>
+            <artifactId>junit-jupiter</artifactId>
+            <version>1.20.6</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.testcontainers</groupId>
+            <artifactId>mongodb</artifactId>
+            <version>1.20.6</version>
             <scope>test</scope>
         </dependency>
 

@@ -1,34 +1,11 @@
 # ═══════════════════════════════════════════════════════
-# Docker Compose — CORBA PDF Server
+# Docker Compose — PDF Suite (monolithe modulaire, JVM unique)
 # USSEIN L2 AgroTIC
 # ═══════════════════════════════════════════════════════
 
 services:
 
-  # ── 1. Serveur CORBA + PDFBox ──────────────────────
-  corba-server:
-    build:
-      context: .
-      dockerfile: corba-server/Dockerfile
-    container_name: corba-server
-    restart: unless-stopped
-    expose:
-      - "2809"          # IIOP interne — NON exposé publiquement
-    volumes:
-      - pdf-storage:/volumes/pdf-storage
-      - tessdata:/volumes/tessdata
-    networks:
-      - backend
-    healthcheck:
-      test: ["CMD", "sh", "-c", "nc -z localhost 2809"]
-      interval: 30s
-      timeout: 10s
-      retries: 5
-      start_period: 20s
-    environment:
-      - TZ=Africa/Dakar
-
-  # ── 2. MongoDB — comptes utilisateurs, jobs, GridFS ─
+  # ── 1. MongoDB — comptes utilisateurs, jobs, GridFS ─
   mongo:
     image: mongo:7
     container_name: mongo
@@ -51,7 +28,7 @@ services:
       retries: 5
       start_period: 15s
 
-  # ── 3. API Gateway Spring Boot ─────────────────────
+  # ── 2. API Gateway Spring Boot (embarque pdf-engine in-process) ─
   api-gateway:
     build:
       context: .
@@ -61,18 +38,17 @@ services:
     expose:
       - "8080"          # Interne — accessible via Nginx uniquement
     depends_on:
-      corba-server:
-        condition: service_healthy
       mongo:
         condition: service_healthy
     networks:
       - backend
       - frontend
     volumes:
-      - pdf-storage:/volumes/pdf-storage:ro
+      # Données Tesseract embarquées dans l'image (/usr/share/tessdata).
+      # Ce montage permet de surcharger/ajouter des modèles de langue sans
+      # rebuild. Le code lit TESSDATA_PATH (défaut /usr/share/tessdata).
+      - tessdata:/volumes/tessdata
     environment:
-      - CORBA_HOST=corba-server
-      - CORBA_PORT=2809
       - MONGO_HOST=mongo
       - MONGO_PORT=27017
       - MONGO_USER=${MONGO_USER:-corba}
@@ -88,7 +64,7 @@ services:
       retries: 3
       start_period: 30s
 
-  # ── 4. Frontend React ──────────────────────────────
+  # ── 3. Frontend React ──────────────────────────────
   frontend:
     build:
       context: ./frontend
@@ -102,7 +78,7 @@ services:
     environment:
       - TZ=Africa/Dakar
 
-  # ── 5. Nginx — point d'entrée public ───────────────
+  # ── 4. Nginx — point d'entrée public ───────────────
   nginx:
     image: nginx:1.25-alpine
     container_name: nginx
@@ -122,12 +98,6 @@ services:
 
 # ── Volumes persistants ────────────────────────────────
 volumes:
-  pdf-storage:
-    driver: local
-    driver_opts:
-      type: none
-      o: bind
-      device: ./volumes/pdf-storage
   tessdata:
     driver: local
     driver_opts:
@@ -141,6 +111,6 @@ volumes:
 networks:
   backend:
     driver: bridge
-    internal: true    # CORBA jamais exposé directement internet
+    internal: true    # Mongo jamais exposé directement à internet
   frontend:
     driver: bridge

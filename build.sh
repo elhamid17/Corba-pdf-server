@@ -6,7 +6,7 @@
 set -e  # Arrêt immédiat si une commande échoue
 
 echo "═══════════════════════════════════════"
-echo "  CORBA PDF Server — Build"
+echo "  PDF Suite — Build"
 echo "═══════════════════════════════════════"
 
 # Compiler les modules Java

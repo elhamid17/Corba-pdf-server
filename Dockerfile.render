@@ -1,15 +1,14 @@
 # ════════════════════════════════════════════════════════════════
-#  Image Render — combine CORBA server + API Gateway via supervisord
-#  Tout en un seul conteneur (contrainte 512 MB du free tier).
+#  Image Render — mono-service Spring Boot (JVM unique, Java 21)
+#  Un seul process java -jar dans un seul conteneur (free tier 512 MB).
 # ════════════════════════════════════════════════════════════════
 
-# ── Stage 1 : compile Maven ─────────────────────────────────────
-FROM maven:3.9-eclipse-temurin-17 AS build
+# ── Stage 1 : build du reactor → fat jar api-gateway ────────────
+FROM maven:3.9-eclipse-temurin-21 AS build
 WORKDIR /build
 
 COPY pom.xml ./
-COPY corba-idl ./corba-idl
-COPY corba-server ./corba-server
+COPY pdf-engine ./pdf-engine
 COPY api-gateway ./api-gateway
 # Settings.xml qui redirige Maven Central vers le miroir Google Cloud
 # Storage : evite les .pom corrompus (page HTML Cloudflare au lieu du
@@ -24,34 +23,27 @@ RUN rm -rf /root/.m2/repository && \
         clean package -DskipTests
 
 # ── Stage 2 : runtime léger ─────────────────────────────────────
-FROM eclipse-temurin:17-jre-alpine
+FROM eclipse-temurin:21-jre-alpine
 
+# Tesseract (OCR) + données fra/eng + polices (rendu PDF).
+# Les paquets tesseract-ocr-data-* installent dans /usr/share/tessdata/.
 RUN apk add --no-cache \
       tesseract-ocr \
       tesseract-ocr-data-fra \
       tesseract-ocr-data-eng \
       fontconfig \
-      ttf-dejavu \
-      supervisor
+      ttf-dejavu
 
 WORKDIR /app
 
-COPY --from=build /build/corba-server/target/corba-server-jar-with-dependencies.jar /app/corba-server.jar
-COPY --from=build /build/api-gateway/target/api-gateway-1.0.0-SNAPSHOT.jar          /app/api-gateway.jar
+COPY --from=build /build/api-gateway/target/api-gateway-*.jar /app/api-gateway.jar
 
-# Volume partagé pour l'IOR entre les deux process locaux
-RUN mkdir -p /volumes/pdf-storage /volumes/tessdata
-
-COPY supervisord.conf /etc/supervisord.conf
-
-# Valeurs par défaut surchargées via render.yaml
+# Valeurs par défaut surchargées via render.yaml.
+# JVM unique (remplace les deux anciennes) — free tier Render = 512 Mo.
 ENV PORT=8080 \
-    CORBA_HOST=localhost \
-    CORBA_PORT=2809 \
-    JAVA_OPTS_CORBA="-Xmx180m -Xss256k -XX:+UseSerialGC" \
-    JAVA_OPTS_GATEWAY="-Xmx240m -Xss256k -XX:+UseSerialGC" \
+    JAVA_OPTS="-Xmx420m -Xss256k -XX:+UseSerialGC -Djava.security.egd=file:/dev/./urandom" \
     TESSDATA_PATH=/usr/share/tessdata
 
 EXPOSE 8080
 
-CMD ["/usr/bin/supervisord", "-c", "/etc/supervisord.conf"]
+ENTRYPOINT ["sh", "-c", "java $JAVA_OPTS -Djava.awt.headless=true -jar /app/api-gateway.jar --server.port=$PORT"]

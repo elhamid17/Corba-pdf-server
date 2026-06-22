@@ -49,7 +49,7 @@ const ACCOUNT_STEP = {
   target: '[data-tour="auth-cta"]',
   icon: UserPlus,
   title: 'Sauvegardez vos résultats',
-  body: 'Créez un compte gratuit pour conserver votre historique, retrouver vos PDFs traités plus tard et synchroniser vos favoris entre vos appareils.',
+  body: 'Créez un compte gratuit pour conserver votre historique, retrouver vos PDFs traités plus tard et bénéficier d\'un quota de stockage plus élevé.',
   placement: 'bottom',
   cta: { label: 'Créer mon compte', to: '/register' },
 }

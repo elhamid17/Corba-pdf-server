@@ -31,7 +31,12 @@ export function ToastProvider({ children }) {
   return (
     <ToastContext.Provider value={api}>
       {children}
-      <div className="fixed top-4 right-4 z-50 flex flex-col gap-2 max-w-sm w-full pointer-events-none">
+      <div
+        className="fixed top-4 right-4 z-50 flex flex-col gap-2 max-w-sm w-full pointer-events-none"
+        aria-live="polite"
+        aria-relevant="additions"
+        role="status"
+      >
         {toasts.map(t => <ToastItem key={t.id} toast={t} onClose={() => remove(t.id)} />)}
       </div>
     </ToastContext.Provider>
@@ -56,7 +61,7 @@ function ToastItem({ toast, onClose }) {
     <div className={`pointer-events-auto flex items-start gap-3 rounded-xl border px-4 py-3 shadow-card animate-slide-up ${cfg.cls}`}>
       <Icon className={`shrink-0 mt-0.5 ${cfg.iconCls}`} size={18} />
       <p className="flex-1 text-sm leading-snug">{toast.text}</p>
-      <button onClick={onClose} className="text-ink-400 hover:text-ink-700 dark:text-ink-500 dark:hover:text-ink-200 transition-colors">
+      <button onClick={onClose} aria-label="Fermer la notification" className="text-ink-400 hover:text-ink-700 dark:text-ink-500 dark:hover:text-ink-200 transition-colors">
         <X size={16} />
       </button>
     </div>

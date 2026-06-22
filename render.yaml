@@ -4,7 +4,7 @@
 # ═══════════════════════════════════════════════════════════════
 
 services:
-  # ── Backend : CORBA + Gateway (Docker, free 512 MB) ──────────
+  # ── Backend : API Gateway mono-service (Docker, free 512 MB) ──
   - type: web
     name: corba-pdf-api
     runtime: docker
@@ -16,14 +16,8 @@ services:
     envVars:
       - key: PORT
         value: 8080
-      - key: CORBA_HOST
-        value: localhost
-      - key: CORBA_PORT
-        value: 2809
-      - key: JAVA_OPTS_CORBA
-        value: -Xmx180m -Xss256k -XX:+UseSerialGC -Djava.security.egd=file:/dev/./urandom
-      - key: JAVA_OPTS_GATEWAY
-        value: -Xmx240m -Xss256k -XX:+UseSerialGC -Djava.security.egd=file:/dev/./urandom
+      - key: JAVA_OPTS
+        value: -Xmx420m -Xss256k -XX:+UseSerialGC -Djava.security.egd=file:/dev/./urandom
       - key: CORS_ALLOWED_ORIGINS
         # Render assigne <name>.onrender.com ; ajuste si custom domain
         value: https://corba-pdf.onrender.com
