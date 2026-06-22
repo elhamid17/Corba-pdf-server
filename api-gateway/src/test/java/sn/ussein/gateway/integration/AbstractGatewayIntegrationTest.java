@@ -14,8 +14,8 @@ import sn.ussein.gateway.repository.UserRepository;
 import sn.ussein.gateway.security.GuestCookieFilter;
 import sn.ussein.gateway.security.Identity;
 import sn.ussein.gateway.security.JwtService;
-import sn.ussein.gateway.service.CorbaClientService;
 import sn.ussein.gateway.service.JobStorageService;
+import sn.ussein.pdfengine.PdfEngine;
 
 /**
  * Base pour les tests HTTP d'intégration (MockMvc + Mongo Testcontainers).
@@ -46,7 +46,7 @@ public abstract class AbstractGatewayIntegrationTest {
     }
 
     @MockBean
-    protected CorbaClientService corbaClient;
+    protected PdfEngine pdfEngine;
 
     @Autowired protected MockMvc mockMvc;
     @Autowired protected JobStorageService storage;

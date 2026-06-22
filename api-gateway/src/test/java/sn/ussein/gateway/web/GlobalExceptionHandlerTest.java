@@ -4,9 +4,9 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import sn.ussein.pdf.InvalidPageException;
-import sn.ussein.pdf.PDFException;
-import sn.ussein.pdf.PasswordException;
+import sn.ussein.pdfengine.model.InvalidPageException;
+import sn.ussein.pdfengine.model.PDFException;
+import sn.ussein.pdfengine.model.PasswordException;
 
 import java.util.Map;
 

@@ -3,7 +3,7 @@ package sn.ussein.gateway.controller;
 import org.junit.jupiter.api.Test;
 import org.springframework.mock.web.MockMultipartFile;
 import sn.ussein.gateway.controller.support.AbstractPDFControllerTest;
-import sn.ussein.pdf.WatermarkOptions;
+import sn.ussein.pdfengine.model.WatermarkOptions;
 
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.when;

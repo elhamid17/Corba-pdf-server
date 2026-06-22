@@ -13,9 +13,9 @@ import org.springframework.web.server.ResponseStatusException;
 import sn.ussein.gateway.model.Job;
 import sn.ussein.gateway.security.Identity;
 import sn.ussein.gateway.security.IdentityResolver;
-import sn.ussein.gateway.service.CorbaClientService;
 import sn.ussein.gateway.service.JobStorageService;
-import sn.ussein.pdf.*;
+import sn.ussein.pdfengine.PdfEngine;
+import sn.ussein.pdfengine.model.*;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -29,14 +29,14 @@ public class PDFController {
 
     private static final Logger log = LoggerFactory.getLogger(PDFController.class);
 
-    private final CorbaClientService corba;
+    private final PdfEngine pdfEngine;
     private final JobStorageService storage;
     private final IdentityResolver identityResolver;
 
-    public PDFController(CorbaClientService corba,
+    public PDFController(PdfEngine pdfEngine,
                          JobStorageService storage,
                          IdentityResolver identityResolver) {
-        this.corba = corba;
+        this.pdfEngine = pdfEngine;
         this.storage = storage;
         this.identityResolver = identityResolver;
     }
@@ -44,10 +44,10 @@ public class PDFController {
     @GetMapping("/ping")
     public ResponseEntity<Map<String, String>> ping() {
         try {
-            String response = corba.getPdfService().ping();
+            String response = pdfEngine.ping();
             return ResponseEntity.ok(Map.of("status", "OK", "server", response));
         } catch (Exception e) {
-            throw new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE, "Serveur CORBA indisponible", e);
+            throw new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE, "Moteur PDF indisponible", e);
         }
     }
 
@@ -65,7 +65,7 @@ public class PDFController {
                 validatePdfFile(files[i], "files[" + i + "]");
                 pdfs[i] = files[i].getBytes();
             }
-            return pdfResponse(corba.getPdfService().merge(pdfs), "merged.pdf", outputName,
+            return pdfResponse(pdfEngine.merge(pdfs), "merged.pdf", outputName,
                 "merge", files[0].getOriginalFilename(), request, start);
         } catch (IOException e) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Lecture des fichiers impossible", e);
@@ -86,7 +86,7 @@ public class PDFController {
         validateEvenRanges(ranges, "ranges");
         long start = System.nanoTime();
         try {
-            byte[][] parts = corba.getPdfService().split(file.getBytes(), ranges);
+            byte[][] parts = pdfEngine.split(file.getBytes(), ranges);
             return zipResponse(parts, "split.zip", outputName, "part", ".pdf",
                 "split", file.getOriginalFilename(), request, start);
         } catch (IOException e) {
@@ -108,7 +108,7 @@ public class PDFController {
         validatePositiveList(pages, "pages");
         long start = System.nanoTime();
         try {
-            return pdfResponse(corba.getPdfService().extractPages(file.getBytes(), pages), "extracted.pdf", outputName,
+            return pdfResponse(pdfEngine.extractPages(file.getBytes(), pages), "extracted.pdf", outputName,
                 "extract-pages", file.getOriginalFilename(), request, start);
         } catch (IOException e) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Lecture du fichier impossible", e);
@@ -129,7 +129,7 @@ public class PDFController {
         validatePositiveList(pages, "pages");
         long start = System.nanoTime();
         try {
-            return pdfResponse(corba.getPdfService().deletePages(file.getBytes(), pages), "result.pdf", outputName,
+            return pdfResponse(pdfEngine.deletePages(file.getBytes(), pages), "result.pdf", outputName,
                 "delete-pages", file.getOriginalFilename(), request, start);
         } catch (IOException e) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Lecture du fichier impossible", e);
@@ -159,7 +159,7 @@ public class PDFController {
             opts.compressImages = compressImages;
             opts.imageQuality = imageQuality;
             opts.removeMetadata = removeMetadata;
-            return pdfResponse(corba.getPdfService().compress(file.getBytes(), opts), "compressed.pdf", outputName,
+            return pdfResponse(pdfEngine.compress(file.getBytes(), opts), "compressed.pdf", outputName,
                 "compress", file.getOriginalFilename(), request, start);
         } catch (IOException e) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Lecture du fichier impossible", e);
@@ -187,7 +187,7 @@ public class PDFController {
         }
         long start = System.nanoTime();
         try {
-            return pdfResponse(corba.getPdfService().rotate(file.getBytes(),
+            return pdfResponse(pdfEngine.rotate(file.getBytes(),
                 pages != null ? pages : new int[]{}, angle), "rotated.pdf", outputName,
                 "rotate", file.getOriginalFilename(), request, start);
         } catch (IOException e) {
@@ -226,7 +226,7 @@ public class PDFController {
             opts.opacity = opacity;
             opts.fontSize = fontSize;
             opts.diagonal = diagonal;
-            return pdfResponse(corba.getPdfService().addWatermark(file.getBytes(), opts), "watermarked.pdf", outputName,
+            return pdfResponse(pdfEngine.addWatermark(file.getBytes(), opts), "watermarked.pdf", outputName,
                 "watermark", file.getOriginalFilename(), request, start);
         } catch (IOException e) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Lecture du fichier impossible", e);
@@ -252,7 +252,7 @@ public class PDFController {
         long start = System.nanoTime();
         try {
             String owner = (ownerPassword == null || ownerPassword.isBlank()) ? userPassword : ownerPassword;
-            return pdfResponse(corba.getPdfService().addPassword(file.getBytes(), userPassword, owner), "protected.pdf", outputName,
+            return pdfResponse(pdfEngine.addPassword(file.getBytes(), userPassword, owner), "protected.pdf", outputName,
                 "protect", file.getOriginalFilename(), request, start);
         } catch (IOException e) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Lecture du fichier impossible", e);
@@ -280,7 +280,7 @@ public class PDFController {
             ConvertOptions opts = new ConvertOptions();
             opts.format = format;
             opts.dpi = dpi;
-            byte[][] images = corba.getPdfService().convertToImages(file.getBytes(), opts);
+            byte[][] images = pdfEngine.convertToImages(file.getBytes(), opts);
             String ext = "." + format.toLowerCase();
             return zipResponse(images, "images.zip", outputName, "page", ext,
                 "convert-to-images", file.getOriginalFilename(), request, start);
@@ -298,7 +298,7 @@ public class PDFController {
     public ResponseEntity<Map<String, String>> extractText(@RequestParam("file") MultipartFile file) {
         validatePdfFile(file, "file");
         try {
-            String text = corba.getPdfService().extractText(file.getBytes());
+            String text = pdfEngine.extractText(file.getBytes());
             return ResponseEntity.ok(Map.of("text", text));
         } catch (IOException e) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Lecture du fichier impossible", e);
@@ -314,7 +314,7 @@ public class PDFController {
             @RequestParam(defaultValue = "fra") String language) {
         validatePdfFile(file, "file");
         try {
-            String text = corba.getPdfService().performOCR(file.getBytes(), language);
+            String text = pdfEngine.performOCR(file.getBytes(), language);
             return ResponseEntity.ok(Map.of("text", text, "language", language));
         } catch (IOException e) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Lecture du fichier impossible", e);
@@ -342,7 +342,7 @@ public class PDFController {
         }
         long start = System.nanoTime();
         try {
-            return pdfResponse(corba.getPdfService().sign(file.getBytes(), certificate.getBytes(), password, reason, location), "signed.pdf", outputName,
+            return pdfResponse(pdfEngine.sign(file.getBytes(), certificate.getBytes(), password, reason, location), "signed.pdf", outputName,
                 "sign", file.getOriginalFilename(), request, start);
         } catch (IOException e) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Lecture des fichiers impossible", e);
@@ -358,7 +358,7 @@ public class PDFController {
     public ResponseEntity<Map<String, Object>> getMetadata(@RequestParam("file") MultipartFile file) {
         validatePdfFile(file, "file");
         try {
-            PDFMetadata meta = corba.getPdfService().getMetadata(file.getBytes());
+            PDFMetadata meta = pdfEngine.getMetadata(file.getBytes());
             return ResponseEntity.ok(Map.of(
                     "title", meta.title,
                     "author", meta.author,
@@ -387,7 +387,7 @@ public class PDFController {
         }
         long start = System.nanoTime();
         try {
-            return pdfResponse(corba.getPdfService().createFromText(text, title), "created.pdf", outputName,
+            return pdfResponse(pdfEngine.createFromText(text, title), "created.pdf", outputName,
                 "create", title, request, start);
         } catch (ResponseStatusException e) {
             throw e;
@@ -404,7 +404,7 @@ public class PDFController {
         validatePdfFile(file, "file");
         long start = System.nanoTime();
         try {
-            PDFResult r = corba.getPdfService().pdfToWord(file.getBytes());
+            PDFResult r = pdfEngine.pdfToWord(file.getBytes());
             return binaryResponse(r, "converted.docx", outputName,
                 "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
                 "pdf-to-word", file.getOriginalFilename(), request, start);
@@ -425,7 +425,7 @@ public class PDFController {
         validatePdfFile(file, "file");
         long start = System.nanoTime();
         try {
-            PDFResult r = corba.getPdfService().pdfToExcel(file.getBytes());
+            PDFResult r = pdfEngine.pdfToExcel(file.getBytes());
             return binaryResponse(r, "converted.xlsx", outputName,
                 "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
                 "pdf-to-excel", file.getOriginalFilename(), request, start);
@@ -452,7 +452,7 @@ public class PDFController {
         }
         long start = System.nanoTime();
         try {
-            return pdfResponse(corba.getPdfService().wordToPdf(file.getBytes()), "converted.pdf", outputName,
+            return pdfResponse(pdfEngine.wordToPdf(file.getBytes()), "converted.pdf", outputName,
                 "word-to-pdf", file.getOriginalFilename(), request, start);
         } catch (IOException e) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Lecture du fichier impossible", e);
@@ -486,7 +486,7 @@ public class PDFController {
                 }
                 images[i] = f.getBytes();
             }
-            return pdfResponse(corba.getPdfService().imagesToPdf(images), "images.pdf", outputName,
+            return pdfResponse(pdfEngine.imagesToPdf(images), "images.pdf", outputName,
                 "images-to-pdf", files[0].getOriginalFilename(), request, start);
         } catch (IOException e) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Lecture des fichiers impossible", e);
@@ -505,7 +505,7 @@ public class PDFController {
         validatePdfFile(file, "file");
         long start = System.nanoTime();
         try {
-            return pdfResponse(corba.getPdfService().reversePages(file.getBytes()), "reversed.pdf", outputName,
+            return pdfResponse(pdfEngine.reversePages(file.getBytes()), "reversed.pdf", outputName,
                 "reverse", file.getOriginalFilename(), request, start);
         } catch (IOException e) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Lecture du fichier impossible", e);
@@ -529,7 +529,7 @@ public class PDFController {
         long start = System.nanoTime();
         try {
             return pdfResponse(
-                corba.getPdfService().addPageNumbers(file.getBytes(), position, format, startNumber, fontSize),
+                pdfEngine.addPageNumbers(file.getBytes(), position, format, startNumber, fontSize),
                 "numbered.pdf", outputName, "page-numbers", file.getOriginalFilename(), request, start);
         } catch (IOException e) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Lecture du fichier impossible", e);
@@ -549,7 +549,7 @@ public class PDFController {
         validatePdfFile(file, "file");
         long start = System.nanoTime();
         try {
-            return pdfResponse(corba.getPdfService().resizePages(file.getBytes(), targetSize),
+            return pdfResponse(pdfEngine.resizePages(file.getBytes(), targetSize),
                 "resized.pdf", outputName, "resize", file.getOriginalFilename(), request, start);
         } catch (IOException e) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Lecture du fichier impossible", e);
@@ -572,7 +572,7 @@ public class PDFController {
         validatePdfFile(file, "file");
         long start = System.nanoTime();
         try {
-            return pdfResponse(corba.getPdfService().cropPages(file.getBytes(),
+            return pdfResponse(pdfEngine.cropPages(file.getBytes(),
                     marginLeft, marginTop, marginRight, marginBottom),
                 "cropped.pdf", outputName, "crop", file.getOriginalFilename(), request, start);
         } catch (IOException e) {
@@ -600,7 +600,7 @@ public class PDFController {
         }
         long start = System.nanoTime();
         try {
-            return pdfResponse(corba.getPdfService().addCoverPage(file.getBytes(), cover.getBytes()),
+            return pdfResponse(pdfEngine.addCoverPage(file.getBytes(), cover.getBytes()),
                 "with-cover.pdf", outputName, "cover", file.getOriginalFilename(), request, start);
         } catch (IOException e) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Lecture des fichiers impossible", e);
@@ -621,7 +621,7 @@ public class PDFController {
         validatePositiveList(order, "order");
         long start = System.nanoTime();
         try {
-            return pdfResponse(corba.getPdfService().reorderPages(file.getBytes(), order),
+            return pdfResponse(pdfEngine.reorderPages(file.getBytes(), order),
                 "reordered.pdf", outputName, "reorder", file.getOriginalFilename(), request, start);
         } catch (IOException e) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Lecture du fichier impossible", e);
@@ -640,7 +640,7 @@ public class PDFController {
         validatePdfFile(file, "file");
         long start = System.nanoTime();
         try {
-            return pdfResponse(corba.getPdfService().anonymize(file.getBytes()),
+            return pdfResponse(pdfEngine.anonymize(file.getBytes()),
                 "anonymized.pdf", outputName, "anonymize", file.getOriginalFilename(), request, start);
         } catch (IOException e) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Lecture du fichier impossible", e);
@@ -674,7 +674,7 @@ public class PDFController {
         }
         long start = System.nanoTime();
         try {
-            return pdfResponse(corba.getPdfService().addSignatureImage(file.getBytes(),
+            return pdfResponse(pdfEngine.addSignatureImage(file.getBytes(),
                     signature.getBytes(), page, xPercent, yPercent, widthPercent),
                 "signed-image.pdf", outputName, "sign-image", file.getOriginalFilename(), request, start);
         } catch (IOException e) {
@@ -698,7 +698,7 @@ public class PDFController {
         }
         long start = System.nanoTime();
         try {
-            return pdfResponse(corba.getPdfService().redactText(file.getBytes(), terms),
+            return pdfResponse(pdfEngine.redactText(file.getBytes(), terms),
                 "redacted.pdf", outputName, "redact", file.getOriginalFilename(), request, start);
         } catch (IOException e) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Lecture du fichier impossible", e);
@@ -728,7 +728,7 @@ public class PDFController {
         }
         long start = System.nanoTime();
         try {
-            return pdfResponse(corba.getPdfService().addStamp(file.getBytes(), text, page, position, color, fontSize),
+            return pdfResponse(pdfEngine.addStamp(file.getBytes(), text, page, position, color, fontSize),
                 "stamped.pdf", outputName, "stamp", file.getOriginalFilename(), request, start);
         } catch (IOException e) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Lecture du fichier impossible", e);
@@ -747,7 +747,7 @@ public class PDFController {
         validatePdfFile(file, "file");
         long start = System.nanoTime();
         try {
-            PDFResult r = corba.getPdfService().pdfToPptx(file.getBytes());
+            PDFResult r = pdfEngine.pdfToPptx(file.getBytes());
             return binaryResponse(r, "converted.pptx", outputName,
                 "application/vnd.openxmlformats-officedocument.presentationml.presentation",
                 "pdf-to-pptx", file.getOriginalFilename(), request, start);
@@ -768,7 +768,7 @@ public class PDFController {
         validatePdfFile(file, "file");
         long start = System.nanoTime();
         try {
-            PDFResult r = corba.getPdfService().pdfToMarkdown(file.getBytes());
+            PDFResult r = pdfEngine.pdfToMarkdown(file.getBytes());
             return binaryResponse(r, "converted.md", outputName, "text/markdown",
                 "pdf-to-markdown", file.getOriginalFilename(), request, start);
         } catch (IOException e) {
@@ -791,7 +791,7 @@ public class PDFController {
         }
         long start = System.nanoTime();
         try {
-            return pdfResponse(corba.getPdfService().markdownToPdf(markdown, title),
+            return pdfResponse(pdfEngine.markdownToPdf(markdown, title),
                 "from-markdown.pdf", outputName, "markdown-to-pdf", title, request, start);
         } catch (ResponseStatusException e) {
             throw e;
@@ -811,7 +811,7 @@ public class PDFController {
         }
         long start = System.nanoTime();
         try {
-            return pdfResponse(corba.getPdfService().htmlToPdf(html, title),
+            return pdfResponse(pdfEngine.htmlToPdf(html, title),
                 "from-html.pdf", outputName, "html-to-pdf", title, request, start);
         } catch (ResponseStatusException e) {
             throw e;
@@ -834,7 +834,7 @@ public class PDFController {
         }
         long start = System.nanoTime();
         try {
-            return pdfResponse(corba.getPdfService().excelToPdf(file.getBytes()),
+            return pdfResponse(pdfEngine.excelToPdf(file.getBytes()),
                 "from-excel.pdf", outputName, "excel-to-pdf", file.getOriginalFilename(), request, start);
         } catch (IOException e) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Lecture du fichier impossible", e);
@@ -859,7 +859,7 @@ public class PDFController {
         }
         long start = System.nanoTime();
         try {
-            return pdfResponse(corba.getPdfService().odtToPdf(file.getBytes()),
+            return pdfResponse(pdfEngine.odtToPdf(file.getBytes()),
                 "from-odt.pdf", outputName, "odt-to-pdf", file.getOriginalFilename(), request, start);
         } catch (IOException e) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Lecture du fichier impossible", e);
@@ -880,7 +880,7 @@ public class PDFController {
         if (password == null) password = "";
         long start = System.nanoTime();
         try {
-            return pdfResponse(corba.getPdfService().unlockPdf(file.getBytes(), password),
+            return pdfResponse(pdfEngine.unlockPdf(file.getBytes(), password),
                 "unlocked.pdf", outputName, "unlock", file.getOriginalFilename(), request, start);
         } catch (IOException e) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Lecture du fichier impossible", e);
@@ -896,7 +896,7 @@ public class PDFController {
     public ResponseEntity<String> verifySignature(@RequestParam("file") MultipartFile file) {
         validatePdfFile(file, "file");
         try {
-            String json = corba.getPdfService().verifySignature(file.getBytes());
+            String json = pdfEngine.verifySignature(file.getBytes());
             return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(json);
         } catch (IOException e) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Lecture du fichier impossible", e);
@@ -913,7 +913,7 @@ public class PDFController {
         validatePdfFile(file, "file");
         long start = System.nanoTime();
         try {
-            return pdfResponse(corba.getPdfService().convertToPdfA(file.getBytes()),
+            return pdfResponse(pdfEngine.convertToPdfA(file.getBytes()),
                 "archive.pdf", outputName, "to-pdfa", file.getOriginalFilename(), request, start);
         } catch (IOException e) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Lecture du fichier impossible", e);
@@ -931,7 +931,7 @@ public class PDFController {
         validatePdfFile(fileA, "fileA");
         validatePdfFile(fileB, "fileB");
         try {
-            String json = corba.getPdfService().comparePdfs(fileA.getBytes(), fileB.getBytes());
+            String json = pdfEngine.comparePdfs(fileA.getBytes(), fileB.getBytes());
             return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(json);
         } catch (IOException e) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Lecture des fichiers impossible", e);
@@ -945,7 +945,7 @@ public class PDFController {
     public ResponseEntity<String> stats(@RequestParam("file") MultipartFile file) {
         validatePdfFile(file, "file");
         try {
-            String json = corba.getPdfService().getDocumentStats(file.getBytes());
+            String json = pdfEngine.getDocumentStats(file.getBytes());
             return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(json);
         } catch (IOException e) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Lecture du fichier impossible", e);
@@ -969,7 +969,7 @@ public class PDFController {
         }
         long start = System.nanoTime();
         try {
-            return pdfResponse(corba.getPdfService().addQrCode(file.getBytes(), text, page, position, sizePx),
+            return pdfResponse(pdfEngine.addQrCode(file.getBytes(), text, page, position, sizePx),
                 "with-qr.pdf", outputName, "add-qr", file.getOriginalFilename(), request, start);
         } catch (IOException e) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Lecture du fichier impossible", e);
@@ -996,7 +996,7 @@ public class PDFController {
         }
         long start = System.nanoTime();
         try {
-            return pdfResponse(corba.getPdfService().addBarcode(file.getBytes(), code, page, position, type, sizePx),
+            return pdfResponse(pdfEngine.addBarcode(file.getBytes(), code, page, position, type, sizePx),
                 "with-barcode.pdf", outputName, "add-barcode", file.getOriginalFilename(), request, start);
         } catch (IOException e) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Lecture du fichier impossible", e);
@@ -1017,7 +1017,7 @@ public class PDFController {
         }
         long start = System.nanoTime();
         try {
-            return pdfResponse(corba.getPdfService().generateCv(cvJson),
+            return pdfResponse(pdfEngine.generateCv(cvJson),
                 "cv.pdf", outputName, "generate-cv", "CV", request, start);
         } catch (ResponseStatusException e) {
             throw e;
@@ -1031,7 +1031,7 @@ public class PDFController {
     public ResponseEntity<Map<String, Integer>> pageCount(@RequestParam("file") MultipartFile file) {
         validatePdfFile(file, "file");
         try {
-            int count = corba.getPdfService().getPageCount(file.getBytes());
+            int count = pdfEngine.getPageCount(file.getBytes());
             return ResponseEntity.ok(Map.of("pageCount", count));
         } catch (IOException e) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Lecture du fichier impossible", e);
@@ -1112,7 +1112,7 @@ public class PDFController {
                                                String operation, String inputFilename,
                                                HttpServletRequest request, long startNanos) {
         if (result == null || !result.success || result.data == null) {
-            // Echec metier (PDF corrompu, parametres invalides cote CORBA, etc.) :
+            // Echec metier (PDF corrompu, parametres invalides cote moteur, etc.) :
             // 422 plutot que 500 — c'est une erreur cliente sur le contenu fourni.
             String message = (result != null && result.message != null) ? result.message : "Operation echouee";
             throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY, message);
@@ -1171,7 +1171,7 @@ public class PDFController {
             .contentType(MediaType.parseMediaType(contentType));
 
         // Politique graceful : si le quota est depasse, on delivre quand meme
-        // le fichier (le travail CORBA est deja fait) mais on ne le stocke pas.
+        // le fichier (le travail du moteur est deja fait) mais on ne le stocke pas.
         // Le frontend lit X-Quota-Exceeded pour afficher un avertissement.
         try {
             storage.checkQuota(identity, data.length);

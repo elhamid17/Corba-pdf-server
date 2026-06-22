@@ -9,7 +9,7 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 
 /**
  * Point d'entrée de l'API Gateway Spring Boot.
- * Expose les services CORBA PDF en REST/JSON sur le port 8080.
+ * Expose le moteur PDF in-process en REST/JSON sur le port 8080.
  */
 @SpringBootApplication
 @EnableScheduling

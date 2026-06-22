@@ -10,11 +10,10 @@ import sn.ussein.gateway.controller.PDFController;
 import sn.ussein.gateway.model.Job;
 import sn.ussein.gateway.security.Identity;
 import sn.ussein.gateway.security.IdentityResolver;
-import sn.ussein.gateway.service.CorbaClientService;
 import sn.ussein.gateway.service.JobStorageService;
 import sn.ussein.gateway.web.GlobalExceptionHandler;
-import sn.ussein.pdf.PDFResult;
-import sn.ussein.pdf.PDFService;
+import sn.ussein.pdfengine.PdfEngine;
+import sn.ussein.pdfengine.model.PDFResult;
 
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.doNothing;
@@ -23,17 +22,15 @@ import static org.mockito.Mockito.when;
 @ExtendWith(MockitoExtension.class)
 public abstract class AbstractPDFControllerTest {
 
-    @Mock protected CorbaClientService corba;
     @Mock protected JobStorageService storage;
     @Mock protected IdentityResolver identityResolver;
-    @Mock protected PDFService pdfService;
+    @Mock protected PdfEngine pdfService;
 
     protected MockMvc mockMvc;
 
     @BeforeEach
     void baseSetUp() {
-        when(corba.getPdfService()).thenReturn(pdfService);
-        PDFController controller = new PDFController(corba, storage, identityResolver);
+        PDFController controller = new PDFController(pdfService, storage, identityResolver);
         mockMvc = MockMvcBuilders.standaloneSetup(controller)
             .setControllerAdvice(new GlobalExceptionHandler())
             .build();

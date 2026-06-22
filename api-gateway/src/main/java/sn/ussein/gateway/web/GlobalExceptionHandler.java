@@ -9,9 +9,9 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.server.ResponseStatusException;
-import sn.ussein.pdf.InvalidPageException;
-import sn.ussein.pdf.PDFException;
-import sn.ussein.pdf.PasswordException;
+import sn.ussein.pdfengine.model.InvalidPageException;
+import sn.ussein.pdfengine.model.PDFException;
+import sn.ussein.pdfengine.model.PasswordException;
 
 import java.time.Instant;
 import java.util.HashMap;

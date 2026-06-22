@@ -18,26 +18,11 @@
 
     <dependencies>
 
-        <!-- Contrats IDL compilés -->
+        <!-- Moteur PDF in-process (remplace l'ancien client CORBA) -->
         <dependency>
             <groupId>sn.ussein</groupId>
-            <artifactId>corba-idl</artifactId>
+            <artifactId>pdf-engine</artifactId>
             <version>${project.version}</version>
-        </dependency>
-
-        <!-- JacORB (client CORBA) -->
-        <dependency>
-            <groupId>org.jacorb</groupId>
-            <artifactId>jacorb</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.jacorb</groupId>
-            <artifactId>jacorb-omgapi</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.jboss.spec.javax.rmi</groupId>
-            <artifactId>jboss-rmi-api_1.0_spec</artifactId>
-            <version>1.0.6.Final</version>
         </dependency>
 
         <!-- Spring Boot Web -->

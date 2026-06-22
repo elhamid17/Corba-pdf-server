@@ -3,7 +3,7 @@ package sn.ussein.gateway.controller;
 import org.junit.jupiter.api.Test;
 import org.springframework.mock.web.MockMultipartFile;
 import sn.ussein.gateway.controller.support.AbstractPDFControllerTest;
-import sn.ussein.pdf.PDFMetadata;
+import sn.ussein.pdfengine.model.PDFMetadata;
 
 import static org.hamcrest.Matchers.*;
 import static org.mockito.ArgumentMatchers.any;
