@@ -6,7 +6,12 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
-import sn.ussein.gateway.controller.PDFController;
+import sn.ussein.gateway.controller.AnalysisController;
+import sn.ussein.gateway.controller.ConversionController;
+import sn.ussein.gateway.controller.GenerationController;
+import sn.ussein.gateway.controller.OrganisationController;
+import sn.ussein.gateway.controller.PingController;
+import sn.ussein.gateway.controller.SecurityController;
 import sn.ussein.gateway.model.Job;
 import sn.ussein.gateway.security.Identity;
 import sn.ussein.gateway.security.IdentityResolver;
@@ -31,8 +36,16 @@ public abstract class AbstractPDFControllerTest {
 
     @BeforeEach
     void baseSetUp() {
-        PDFController controller = new PDFController(pdfService, storage, identityResolver);
-        mockMvc = MockMvcBuilders.standaloneSetup(controller)
+        // Composant transverse partage par tous les controleurs (extrait de l'ancien
+        // PDFController monolithique a l'etape 2.1).
+        PdfResponseSupport support = new PdfResponseSupport(storage, identityResolver);
+        mockMvc = MockMvcBuilders.standaloneSetup(
+                new PingController(pdfService),
+                new OrganisationController(pdfService, support),
+                new ConversionController(pdfService, support),
+                new SecurityController(pdfService, support),
+                new AnalysisController(pdfService, support),
+                new GenerationController(pdfService, support))
             .setControllerAdvice(new GlobalExceptionHandler())
             .build();
 
