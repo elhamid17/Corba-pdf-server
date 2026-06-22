@@ -27,6 +27,6 @@ class ResizeHandlerTest {
 
         PDFException ex = assertThrows(PDFException.class,
             () -> handler.resizePages(pdf, "UNKNOWN"));
-        assertEquals("INVALID_INPUT", ex.code);
+        assertEquals("INVALID_SIZE", ex.code);
     }
 }
