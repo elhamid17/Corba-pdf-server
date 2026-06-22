@@ -41,5 +41,21 @@ fonctionnent comme avant ; toute la suite de tests est verte ; plus aucune trace
 
 ---
 
+---
+
+## Découpage V2 — Socle qualité & domaine
+
+> But : rendre le backend maintenable et présentable avant d'ajouter des features (V4+).
+> Le contrat REST reste stable sur toute la V2 (le frontend ne bouge pas).
+
+| Étape | Intitulé | Livrable clé | État |
+|---|---|---|---|
+| **2.1** | Découpage du `PDFController` | Casser les 1190 LOC en contrôleurs par domaine (organisation/transformation/conversion/sécurité/analyse/génération) + base commune éliminant la duplication (try/catch/validation/record). Contrat REST identique, tests verts. | 🟡 Prêt — `handoffs/V2-etape-2.1-decoupage-controller.md` |
+| **2.2** | OpenAPI + versioning d'API | springdoc/Swagger UI, préfixe `/api/v1`, schémas documentés. | ⚪ Prévu |
+| **2.3** | Durcissement sécurité | Headers de sécurité, validation centralisée, revue JWT/rate-limit/quotas, gestion des secrets. | ⚪ Prévu |
+| **2.4** | CI/CD | GitHub Actions (build + tests + lint) à partir du `.github/workflows/ci.yml` existant ; image Docker publiée. | ⚪ Prévu |
+
+---
+
 ## Suivi des passations
 Voir `docs/handoffs/` — un fichier par étape, avec le prompt prêt à injecter et la rétrospective en fin d'étape.
