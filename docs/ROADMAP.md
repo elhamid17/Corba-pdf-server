@@ -28,8 +28,8 @@ par workflows chaînés**. Évolution chirurgicale (jamais de rewrite). Monolith
 | Étape | Intitulé | Livrable clé |
 |---|---|---|
 | **1.1** | Module `pdf-engine` in-process | ✅ **TERMINÉ** — interface `PdfEngine` (54 méthodes) + `PdfEngineImpl` + 41 handlers + POJO `.model`, sans CORBA. `mvn -pl pdf-engine test` = **62/62 vert, BUILD SUCCESS**. Branche `worktree-agent-a9ab7f0a872ae112b`. |
-| **1.2** | Branchement gateway | 🟡 Prêt à démarrer — `PDFController` appelle `PdfEngine` en direct ; suppression de `CorbaClientService`, JacORB, `corba-idl`, `corba-server`. Cf. `handoffs/V1-etape-1.2-gateway-decorba.md`. |
-| **1.3** | Nettoyage infra | Un seul Dockerfile, `docker-compose` sans corba-server ni supervisord, `render.yaml` mono-service. Validation locale + non-régression e2e. |
+| **1.2** | Branchement gateway | ✅ **TERMINÉ** — `PDFController` branché sur `PdfEngine` in-process ; `CorbaClientService`/JacORB/`corba-idl`/`corba-server` supprimés ; gateway en Java 21. `mvn clean package` = **pdf-engine 62 + api-gateway 74 tests, BUILD SUCCESS**. Correctifs Tech Lead : conflit SLF4J (slf4j-simple exclu), stubs Mockito lenient, 400 params manquants. Commits `7971e71`+`f43a51f`. |
+| **1.3** | Nettoyage infra | 🟡 Prêt à démarrer — docker-compose sans corba-server ni supervisord, `render.yaml` mono-service, Tesseract/polices déplacés dans l'image gateway. Cf. `handoffs/V1-etape-1.3-infra-mono-service.md`. |
 
 **Definition of Done V1 :** `docker compose up` lance frontend + 1 backend + mongo ; les 40+ outils
 fonctionnent comme avant ; toute la suite de tests est verte ; plus aucune trace de CORBA/JacORB/IOR/supervisord.
