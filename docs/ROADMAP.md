@@ -50,8 +50,8 @@ fonctionnent comme avant ; toute la suite de tests est verte ; plus aucune trace
 
 | Étape | Intitulé | Livrable clé | État |
 |---|---|---|---|
-| **2.1** | Découpage du `PDFController` | Casser les 1190 LOC en contrôleurs par domaine (organisation/transformation/conversion/sécurité/analyse/génération) + base commune éliminant la duplication (try/catch/validation/record). Contrat REST identique, tests verts. | 🟡 Prêt — `handoffs/V2-etape-2.1-decoupage-controller.md` |
-| **2.2** | OpenAPI + versioning d'API | springdoc/Swagger UI, préfixe `/api/v1`, schémas documentés. | ⚪ Prévu |
+| **2.1** | Découpage du `PDFController` | ✅ **TERMINÉ** — 1190 LOC → 6 contrôleurs par domaine (Organisation/Conversion/Security/Analysis/Generation/Ping) + `PdfResponseSupport` factorisant validation/réponses/jobs. Contrat REST identique (44 endpoints PDF préservés). `mvn clean package` = 62+74 tests, BUILD SUCCESS. Commit `578b165`. |
+| **2.2** | OpenAPI + versioning d'API | springdoc/Swagger UI (ajout pur) + préfixe `/api/v1` via constante backend partagée + MAJ centralisée de la base URL frontend. ⚠️ Seul point où 2.2 touche le frontend. Cf. `handoffs/V2-etape-2.2-openapi-versioning.md`. | 🟡 Prêt |
 | **2.3** | Durcissement sécurité | Headers de sécurité, validation centralisée, revue JWT/rate-limit/quotas, gestion des secrets. | ⚪ Prévu |
 | **2.4** | CI/CD | GitHub Actions (build + tests + lint) à partir du `.github/workflows/ci.yml` existant ; image Docker publiée. | ⚪ Prévu |
 
