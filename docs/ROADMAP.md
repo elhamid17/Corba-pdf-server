@@ -27,8 +27,8 @@ par workflows chaînés**. Évolution chirurgicale (jamais de rewrite). Monolith
 
 | Étape | Intitulé | Livrable clé |
 |---|---|---|
-| **1.1** | Module `pdf-engine` in-process | Les 41 handlers + util + types déplacés dans un module Java sans CORBA, exposés via une interface `PdfEngine` propre. Tests handlers migrés et verts. |
-| **1.2** | Branchement gateway | `PDFController` appelle `PdfEngine` en direct ; suppression de `CorbaClientService`, JacORB, `corba-idl`, `corba-server`. Tests gateway verts. |
+| **1.1** | Module `pdf-engine` in-process | ✅ **TERMINÉ** — interface `PdfEngine` (54 méthodes) + `PdfEngineImpl` + 41 handlers + POJO `.model`, sans CORBA. `mvn -pl pdf-engine test` = **62/62 vert, BUILD SUCCESS**. Branche `worktree-agent-a9ab7f0a872ae112b`. |
+| **1.2** | Branchement gateway | 🟡 Prêt à démarrer — `PDFController` appelle `PdfEngine` en direct ; suppression de `CorbaClientService`, JacORB, `corba-idl`, `corba-server`. Cf. `handoffs/V1-etape-1.2-gateway-decorba.md`. |
 | **1.3** | Nettoyage infra | Un seul Dockerfile, `docker-compose` sans corba-server ni supervisord, `render.yaml` mono-service. Validation locale + non-régression e2e. |
 
 **Definition of Done V1 :** `docker compose up` lance frontend + 1 backend + mongo ; les 40+ outils
