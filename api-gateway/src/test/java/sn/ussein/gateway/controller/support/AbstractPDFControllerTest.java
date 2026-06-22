@@ -17,6 +17,7 @@ import sn.ussein.pdfengine.model.PDFResult;
 
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -35,11 +36,13 @@ public abstract class AbstractPDFControllerTest {
             .setControllerAdvice(new GlobalExceptionHandler())
             .build();
 
-        when(identityResolver.current(any())).thenReturn(Identity.forGuest("guest-test"));
-        doNothing().when(storage).checkQuota(any(), anyLong());
+        // Stubs partagés : les tests de validation renvoient 400 avant d'atteindre
+        // le moteur/stockage et ne les consomment donc pas — d'où lenient().
+        lenient().when(identityResolver.current(any())).thenReturn(Identity.forGuest("guest-test"));
+        lenient().doNothing().when(storage).checkQuota(any(), anyLong());
         Job job = new Job();
         job.setId("job-1");
-        when(storage.recordSuccess(any(), anyString(), any(), any(), any(), any(), anyLong()))
+        lenient().when(storage.recordSuccess(any(), anyString(), any(), any(), any(), any(), anyLong()))
             .thenReturn(job);
     }
 

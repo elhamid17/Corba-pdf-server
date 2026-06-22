@@ -23,6 +23,15 @@
             <groupId>sn.ussein</groupId>
             <artifactId>pdf-engine</artifactId>
             <version>${project.version}</version>
+            <exclusions>
+                <!-- pdf-engine ramène slf4j-simple (transitif via Tess4J) ; la gateway
+                     utilise Logback de Spring Boot. Deux bindings SLF4J cassent
+                     l'initialisation Logback de Spring Boot (echec de chargement du contexte). -->
+                <exclusion>
+                    <groupId>org.slf4j</groupId>
+                    <artifactId>slf4j-simple</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
 
         <!-- Spring Boot Web -->

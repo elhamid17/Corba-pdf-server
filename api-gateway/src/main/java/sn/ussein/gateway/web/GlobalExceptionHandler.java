@@ -6,8 +6,11 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.multipart.support.MissingServletRequestPartException;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.server.ResponseStatusException;
 import sn.ussein.pdfengine.model.InvalidPageException;
 import sn.ussein.pdfengine.model.PDFException;
@@ -74,6 +77,16 @@ public class GlobalExceptionHandler {
     public ResponseEntity<Map<String, Object>> handlePassword(PasswordException e) {
         String message = e.message != null ? e.message : "Mot de passe incorrect ou PDF protege";
         return body(HttpStatus.BAD_REQUEST, message);
+    }
+
+    /** Parametre/partie de requete manquant ou de type invalide → 400 (erreur client). */
+    @ExceptionHandler({
+        MissingServletRequestParameterException.class,
+        MissingServletRequestPartException.class,
+        MethodArgumentTypeMismatchException.class
+    })
+    public ResponseEntity<Map<String, Object>> handleBadRequest(Exception e) {
+        return body(HttpStatus.BAD_REQUEST, e.getMessage());
     }
 
     /** Filet de securite pour les exceptions non prevues. */
