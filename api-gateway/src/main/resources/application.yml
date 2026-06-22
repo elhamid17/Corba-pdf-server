@@ -50,7 +50,7 @@ management:
         include: health, info
   endpoint:
     health:
-      show-details: always
+      show-details: ${HEALTH_SHOW_DETAILS:when_authorized}
 
 # ── Logging ──
 logging:
@@ -63,6 +63,12 @@ logging:
 app:
   cors:
     allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:5173,http://localhost}
+
+  # ── Rate limiting (par IP, fenetre glissante) ──
+  rate-limit:
+    auth-max-requests: 10
+    pdf-max-requests: 30
+    window-ms: 60000
 
   # ── Quotas par role (cf. plan etape 1) ──
   quota:

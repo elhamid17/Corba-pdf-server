@@ -105,8 +105,15 @@ public class JobStorageService {
                 "Limite de " + maxFiles + " fichiers atteinte pour les invites. "
                 + "Creez un compte pour augmenter votre quota.");
         }
-        // On approxime l'occupation guest a la taille du nouveau fichier
-        // (les anciens sont auto-purges apres retention-hours).
+
+        long usedBytes = jobs.findByGuestIdOrderByCreatedAtDesc(identity.guestId()).stream()
+            .mapToLong(Job::getResultSizeBytes)
+            .sum();
+        if (usedBytes + newOutputBytes > maxBytes) {
+            throw new QuotaExceededException(
+                "Quota de stockage invite depasse (" + humanBytes(maxBytes)
+                + " cumules). Supprimez des fichiers ou creez un compte.");
+        }
         if (newOutputBytes > maxBytes) {
             throw new QuotaExceededException(
                 "Fichier trop volumineux pour un invite (" + humanBytes(maxBytes)

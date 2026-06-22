@@ -9,6 +9,9 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.server.ResponseStatusException;
+import sn.ussein.pdf.InvalidPageException;
+import sn.ussein.pdf.PDFException;
+import sn.ussein.pdf.PasswordException;
 
 import java.time.Instant;
 import java.util.HashMap;
@@ -49,6 +52,28 @@ public class GlobalExceptionHandler {
     public ResponseEntity<Map<String, Object>> handleResponseStatus(ResponseStatusException e) {
         HttpStatus status = HttpStatus.valueOf(e.getStatusCode().value());
         return body(status, e.getReason());
+    }
+
+    @ExceptionHandler(PDFException.class)
+    public ResponseEntity<Map<String, Object>> handlePdfException(PDFException e) {
+        String message = e.message != null ? e.message : "Erreur PDF";
+        if (e.code != null && !e.code.isBlank()) {
+            message = e.code + " : " + message;
+        }
+        return body(HttpStatus.UNPROCESSABLE_ENTITY, message);
+    }
+
+    @ExceptionHandler(InvalidPageException.class)
+    public ResponseEntity<Map<String, Object>> handleInvalidPage(InvalidPageException e) {
+        String message = e.message != null ? e.message
+            : "Page " + e.requestedPage + " invalide (total : " + e.totalPages + ")";
+        return body(HttpStatus.BAD_REQUEST, message);
+    }
+
+    @ExceptionHandler(PasswordException.class)
+    public ResponseEntity<Map<String, Object>> handlePassword(PasswordException e) {
+        String message = e.message != null ? e.message : "Mot de passe incorrect ou PDF protege";
+        return body(HttpStatus.BAD_REQUEST, message);
     }
 
     /** Filet de securite pour les exceptions non prevues. */

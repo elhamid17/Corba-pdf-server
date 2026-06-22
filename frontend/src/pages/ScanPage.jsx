@@ -437,12 +437,12 @@ function PhotoCard({ photo, index, onRemove }) {
         #{index}
       </span>
       <button type="button" onClick={onRemove}
-              className="absolute top-1 right-1 grid place-items-center h-6 w-6 rounded-full bg-rose-500 text-white opacity-0 group-hover:opacity-100 transition-opacity"
+              className="absolute top-1 right-1 grid place-items-center h-6 w-6 rounded-full bg-rose-500 text-white opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity"
               aria-label="Retirer" title="Retirer">
         <Trash2 size={12} />
       </button>
       <div {...attributes} {...listeners}
-           className="absolute bottom-1 left-1/2 -translate-x-1/2 grid place-items-center h-7 w-7 rounded-full bg-black/60 text-white opacity-0 group-hover:opacity-100 transition-opacity cursor-grab active:cursor-grabbing">
+           className="absolute bottom-1 left-1/2 -translate-x-1/2 grid place-items-center h-7 w-7 rounded-full bg-black/60 text-white opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity cursor-grab active:cursor-grabbing">
         <GripVertical size={12} />
       </div>
     </li>

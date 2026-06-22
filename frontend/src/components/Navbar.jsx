@@ -203,6 +203,8 @@ export default function Navbar() {
 }
 
 function DrawerMenu({ open, onClose }) {
+  const { user } = useAuth()
+
   return (
     <>
       {/* Backdrop */}
@@ -278,6 +280,17 @@ function DrawerMenu({ open, onClose }) {
             </div>
           ))}
         </nav>
+
+        {!user && (
+          <div className="px-4 py-3 border-t border-ink-100 dark:border-ink-800 flex flex-col gap-2 sm:hidden">
+            <Link to="/login" onClick={onClose} className="btn-secondary w-full justify-center">
+              <LogIn size={16} /> Connexion
+            </Link>
+            <Link to="/register" onClick={onClose} className="btn-primary w-full justify-center">
+              <UserPlus size={16} /> Créer un compte
+            </Link>
+          </div>
+        )}
 
         <div className="px-5 py-3 border-t border-ink-100 dark:border-ink-800 text-xs text-ink-500 dark:text-ink-400">
           CORBA PDF Suite — USSEIN
