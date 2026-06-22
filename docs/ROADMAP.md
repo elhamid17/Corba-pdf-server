@@ -29,10 +29,15 @@ par workflows chaînés**. Évolution chirurgicale (jamais de rewrite). Monolith
 |---|---|---|
 | **1.1** | Module `pdf-engine` in-process | ✅ **TERMINÉ** — interface `PdfEngine` (54 méthodes) + `PdfEngineImpl` + 41 handlers + POJO `.model`, sans CORBA. `mvn -pl pdf-engine test` = **62/62 vert, BUILD SUCCESS**. Branche `worktree-agent-a9ab7f0a872ae112b`. |
 | **1.2** | Branchement gateway | ✅ **TERMINÉ** — `PDFController` branché sur `PdfEngine` in-process ; `CorbaClientService`/JacORB/`corba-idl`/`corba-server` supprimés ; gateway en Java 21. `mvn clean package` = **pdf-engine 62 + api-gateway 74 tests, BUILD SUCCESS**. Correctifs Tech Lead : conflit SLF4J (slf4j-simple exclu), stubs Mockito lenient, 400 params manquants. Commits `7971e71`+`f43a51f`. |
-| **1.3** | Nettoyage infra | 🟡 Prêt à démarrer — docker-compose sans corba-server ni supervisord, `render.yaml` mono-service, Tesseract/polices déplacés dans l'image gateway. Cf. `handoffs/V1-etape-1.3-infra-mono-service.md`. |
+| **1.3** | Nettoyage infra | ✅ **TERMINÉ (code/infra)** — `corba-server` + supervisord supprimés ; docker-compose = mongo+gateway+frontend+nginx ; Dockerfiles mono-process Java 21 + Tesseract/polices dans l'image gateway ; `render.yaml` mono-service. Grep CORBA infra vide. Commit `c18eca7`. ⏳ Reste la **validation runtime** par l'utilisateur (`docker compose up` + test OCR/conversion). |
 
 **Definition of Done V1 :** `docker compose up` lance frontend + 1 backend + mongo ; les 40+ outils
 fonctionnent comme avant ; toute la suite de tests est verte ; plus aucune trace de CORBA/JacORB/IOR/supervisord.
+
+### Statut V1 : 🟢 code & infra bouclés — en attente de validation runtime utilisateur
+- Code mono-service (1.1 + 1.2) : `mvn clean package` vert (pdf-engine 62 + api-gateway 74 tests).
+- Infra alignée (1.3) : zéro CORBA/supervisord, image gateway autonome (OCR inclus).
+- **Avant clôture définitive / merge `v1/decorba` → `main`** : l'utilisateur valide `docker compose up --build` (4 conteneurs, healthcheck vert) + test manuel OCR + une conversion.
 
 ---
 
