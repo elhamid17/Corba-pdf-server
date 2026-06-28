@@ -1,20 +1,21 @@
 // Historique des jobs : liste, re-telechargement, suppression.
 import { apiFetch, apiJson, readError } from './client'
+import { JOBS } from './routes'
 
 export function listJobs({ page = 0, size = 20 } = {}) {
   const qs = new URLSearchParams({ page: String(page), size: String(size) })
-  return apiJson(`/api/jobs?${qs.toString()}`)
+  return apiJson(`${JOBS}?${qs.toString()}`)
 }
 
 export async function downloadJob(jobId, filename) {
-  const res = await apiFetch(`/api/jobs/${encodeURIComponent(jobId)}/download`)
+  const res = await apiFetch(`${JOBS}/${encodeURIComponent(jobId)}/download`)
   if (!res.ok) throw new Error(await readError(res))
   const blob = await res.blob()
   triggerDownload(blob, filename || dispositionFilename(res) || 'fichier')
 }
 
 export async function deleteJob(jobId) {
-  const res = await apiFetch(`/api/jobs/${encodeURIComponent(jobId)}`, { method: 'DELETE' })
+  const res = await apiFetch(`${JOBS}/${encodeURIComponent(jobId)}`, { method: 'DELETE' })
   if (!res.ok) throw new Error(await readError(res))
 }
 

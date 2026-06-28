@@ -6,6 +6,8 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import sn.ussein.gateway.web.ApiPaths;
 import sn.ussein.pdfengine.PdfEngine;
 
 import java.util.Map;
@@ -13,8 +15,9 @@ import java.util.Map;
 /**
  * Sonde de disponibilite du moteur PDF.
  */
+@Tag(name = "PDF — Ping", description = "Sonde de disponibilite du moteur PDF.")
 @RestController
-@RequestMapping("/api/pdf")
+@RequestMapping(ApiPaths.PDF)
 public class PingController {
 
     private final PdfEngine pdfEngine;

@@ -11,7 +11,9 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import sn.ussein.gateway.controller.support.PdfResponseSupport;
+import sn.ussein.gateway.web.ApiPaths;
 import sn.ussein.pdfengine.PdfEngine;
 import sn.ussein.pdfengine.model.CompressOptions;
 import sn.ussein.pdfengine.model.ConvertOptions;
@@ -23,8 +25,11 @@ import java.io.IOException;
  * Conversions entre formats (PDF <-> Word/Excel/PowerPoint/Markdown/HTML/ODT/images),
  * compression et conversion PDF/A.
  */
+@Tag(name = "PDF — Conversion",
+     description = "Conversions entre formats (PDF <-> Word/Excel/PowerPoint/Markdown/"
+                 + "HTML/ODT/images), compression et conversion PDF/A.")
 @RestController
-@RequestMapping("/api/pdf")
+@RequestMapping(ApiPaths.PDF)
 public class ConversionController {
 
     private static final Logger log = LoggerFactory.getLogger(ConversionController.class);

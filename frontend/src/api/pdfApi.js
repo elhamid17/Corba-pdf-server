@@ -1,9 +1,10 @@
 // ═══════════════════════════════════════════════════════════
-// Couche API — appels REST vers l'API Gateway /api/pdf/*
+// Couche API — appels REST vers l'API Gateway (PDF = /api/v1/pdf/*)
 // Utilise le client partage pour ajouter le JWT et le cookie invite.
 // ═══════════════════════════════════════════════════════════
 
 import { apiFetch, postFormWithProgress, readError } from './client'
+import { PDF } from './routes'
 import { notifyResult } from '../hooks/useWorkflow'
 
 /**
@@ -12,9 +13,9 @@ import { notifyResult } from '../hooks/useWorkflow'
  */
 async function postForm(path, form, { responseType = 'blob', onProgress } = {}) {
   if (onProgress) {
-    return postFormWithProgress(`/api/pdf${path}`, form, { responseType, onProgress })
+    return postFormWithProgress(`${PDF}${path}`, form, { responseType, onProgress })
   }
-  const res = await apiFetch(`/api/pdf${path}`, { method: 'POST', body: form })
+  const res = await apiFetch(`${PDF}${path}`, { method: 'POST', body: form })
   if (!res.ok) throw new Error(await readError(res))
   if (responseType === 'json') return res.json()
   return res.blob()
@@ -51,7 +52,7 @@ function clientFilename(outputName, defaultName) {
 
 /* ───────── Ping ───────── */
 export async function ping() {
-  const res = await apiFetch('/api/pdf/ping')
+  const res = await apiFetch(`${PDF}/ping`)
   if (!res.ok) throw new Error(await readError(res))
   return res.json()
 }
@@ -487,7 +488,7 @@ export async function generateCv(cvData, outputName, onProgress) {
 
   return new Promise((resolve, reject) => {
     const xhr = new XMLHttpRequest()
-    xhr.open('POST', `${API_BASE}/api/pdf/generate-cv${params}`)
+    xhr.open('POST', `${API_BASE}${PDF}/generate-cv${params}`)
     xhr.withCredentials = true
     xhr.setRequestHeader('Content-Type', 'application/json')
     const token = getToken()

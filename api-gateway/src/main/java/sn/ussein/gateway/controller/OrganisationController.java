@@ -11,7 +11,9 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import sn.ussein.gateway.controller.support.PdfResponseSupport;
+import sn.ussein.gateway.web.ApiPaths;
 import sn.ussein.pdfengine.PdfEngine;
 
 import java.io.IOException;
@@ -21,8 +23,11 @@ import java.io.IOException;
  * suppression, reorganisation, rotation, redimensionnement, recadrage,
  * numerotation.
  */
+@Tag(name = "PDF — Organisation",
+     description = "Structure des pages : fusion, decoupage, extraction, suppression, "
+                 + "reorganisation, rotation, redimensionnement, recadrage, numerotation.")
 @RestController
-@RequestMapping("/api/pdf")
+@RequestMapping(ApiPaths.PDF)
 public class OrganisationController {
 
     private static final Logger log = LoggerFactory.getLogger(OrganisationController.class);

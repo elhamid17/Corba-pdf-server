@@ -25,7 +25,7 @@ class AuthControllerIntegrationTest extends AbstractGatewayIntegrationTest {
             {"email":"newbie@test.local","username":"newbie","password":"password123"}
             """;
 
-        mockMvc.perform(post("/api/auth/register")
+        mockMvc.perform(post("/api/v1/auth/register")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(body))
             .andExpect(status().isOk())
@@ -42,7 +42,7 @@ class AuthControllerIntegrationTest extends AbstractGatewayIntegrationTest {
             {"email":"dup@test.local","username":"other","password":"password123"}
             """;
 
-        mockMvc.perform(post("/api/auth/register")
+        mockMvc.perform(post("/api/v1/auth/register")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(body))
             .andExpect(status().isBadRequest())
@@ -57,7 +57,7 @@ class AuthControllerIntegrationTest extends AbstractGatewayIntegrationTest {
             {"identifier":"loginuser","password":"password123"}
             """;
 
-        mockMvc.perform(post("/api/auth/login")
+        mockMvc.perform(post("/api/v1/auth/login")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(body))
             .andExpect(status().isOk())
@@ -73,7 +73,7 @@ class AuthControllerIntegrationTest extends AbstractGatewayIntegrationTest {
             {"identifier":"badlogin","password":"wrong-password"}
             """;
 
-        mockMvc.perform(post("/api/auth/login")
+        mockMvc.perform(post("/api/v1/auth/login")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(body))
             .andExpect(status().isBadRequest())
@@ -82,7 +82,7 @@ class AuthControllerIntegrationTest extends AbstractGatewayIntegrationTest {
 
     @Test
     void me_withoutToken_returns401() throws Exception {
-        mockMvc.perform(get("/api/auth/me"))
+        mockMvc.perform(get("/api/v1/auth/me"))
             .andExpect(status().isUnauthorized());
     }
 
@@ -91,7 +91,7 @@ class AuthControllerIntegrationTest extends AbstractGatewayIntegrationTest {
         registerUser("me@test.local", "meuser", "password123");
         String token = loginAndGetToken("meuser", "password123");
 
-        mockMvc.perform(get("/api/auth/me")
+        mockMvc.perform(get("/api/v1/auth/me")
                 .header("Authorization", "Bearer " + token))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.username").value("meuser"))
@@ -103,7 +103,7 @@ class AuthControllerIntegrationTest extends AbstractGatewayIntegrationTest {
         String body = String.format(
             "{\"email\":\"%s\",\"username\":\"%s\",\"password\":\"%s\"}",
             email, username, password);
-        mockMvc.perform(post("/api/auth/register")
+        mockMvc.perform(post("/api/v1/auth/register")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(body))
             .andExpect(status().isOk());
@@ -112,7 +112,7 @@ class AuthControllerIntegrationTest extends AbstractGatewayIntegrationTest {
     private String loginAndGetToken(String identifier, String password) throws Exception {
         String body = String.format(
             "{\"identifier\":\"%s\",\"password\":\"%s\"}", identifier, password);
-        var result = mockMvc.perform(post("/api/auth/login")
+        var result = mockMvc.perform(post("/api/v1/auth/login")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(body))
             .andExpect(status().isOk())

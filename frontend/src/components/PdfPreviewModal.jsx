@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { X, Download, AlertTriangle, Loader2 } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { apiFetch, readError } from '../api/client'
+import { JOBS } from '../api/routes'
 
 /**
  * Modal de previsualisation PDF (ou image).
@@ -26,7 +27,7 @@ export default function PdfPreviewModal({ job, onClose, onDownload }) {
     let cancelled = false
     setLoading(true); setError(null); setUrl(null)
 
-    apiFetch(`/api/jobs/${encodeURIComponent(job.id)}/download`)
+    apiFetch(`${JOBS}/${encodeURIComponent(job.id)}/download`)
       .then(async res => {
         if (!res.ok) throw new Error(await readError(res))
         return res.blob()

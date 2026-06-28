@@ -17,6 +17,7 @@ import { useToast } from '../components/Toast'
 import { useProgress } from '../hooks/useProgress'
 import { reorderPdf } from '../api/pdfApi'
 import { apiFetch, readError } from '../api/client'
+import { PDF } from '../api/routes'
 
 export default function ReorderPage() {
   const [files, setFiles] = useState([])
@@ -42,7 +43,7 @@ export default function ReorderPage() {
     try {
       const form = new FormData()
       form.append('file', fs[0])
-      const res = await apiFetch('/api/pdf/page-count', { method: 'POST', body: form })
+      const res = await apiFetch(`${PDF}/page-count`, { method: 'POST', body: form })
       if (!res.ok) throw new Error(await readError(res))
       const data = await res.json()
       setPageCount(data.pageCount)

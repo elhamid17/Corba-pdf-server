@@ -11,7 +11,9 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import sn.ussein.gateway.controller.support.PdfResponseSupport;
+import sn.ussein.gateway.web.ApiPaths;
 import sn.ussein.pdfengine.PdfEngine;
 import sn.ussein.pdfengine.model.PDFMetadata;
 
@@ -23,8 +25,11 @@ import java.util.Map;
  * extraction de texte, OCR, metadonnees, verification de signature, comparaison,
  * statistiques, nombre de pages.
  */
+@Tag(name = "PDF — Analyse",
+     description = "Lecture / analyse sans production de fichier : extraction de texte, OCR, "
+                 + "metadonnees, verification de signature, comparaison, statistiques, nombre de pages.")
 @RestController
-@RequestMapping("/api/pdf")
+@RequestMapping(ApiPaths.PDF)
 public class AnalysisController {
 
     private static final Logger log = LoggerFactory.getLogger(AnalysisController.class);

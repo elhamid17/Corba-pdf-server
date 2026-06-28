@@ -17,6 +17,7 @@ import org.springframework.security.web.header.writers.ReferrerPolicyHeaderWrite
 import sn.ussein.gateway.security.GuestCookieFilter;
 import sn.ussein.gateway.security.JwtAuthenticationFilter;
 import sn.ussein.gateway.security.RateLimitFilter;
+import sn.ussein.gateway.web.ApiPaths;
 
 @Configuration
 @EnableMethodSecurity
@@ -62,16 +63,19 @@ public class SecurityConfig {
                 new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED)))
             .authorizeHttpRequests(auth -> auth
                 // Endpoints publics
-                .requestMatchers("/api/auth/register", "/api/auth/login").permitAll()
-                .requestMatchers("/api/pdf/ping").permitAll()
+                .requestMatchers(ApiPaths.AUTH + "/register", ApiPaths.AUTH + "/login").permitAll()
+                .requestMatchers(ApiPaths.PDF + "/ping").permitAll()
                 .requestMatchers("/actuator/health", "/actuator/info").permitAll()
+                // Documentation OpenAPI / Swagger UI : accessible sans authentification
+                .requestMatchers("/v3/api-docs", "/v3/api-docs/**",
+                                 "/swagger-ui.html", "/swagger-ui/**").permitAll()
                 // PDF : accessible aux guests ET aux users (le controleur differenciera)
-                .requestMatchers("/api/pdf/**").permitAll()
+                .requestMatchers(ApiPaths.PDF + "/**").permitAll()
                 // Admin reserve aux ADMIN
-                .requestMatchers("/api/admin/**").hasRole("ADMIN")
+                .requestMatchers(ApiPaths.ADMIN + "/**").hasRole("ADMIN")
                 // Jobs : accessible aux guests (cookie) ET aux users — le controleur differencie
-                .requestMatchers("/api/jobs/**").permitAll()
-                // /api/auth/me et tout le reste : authentification requise
+                .requestMatchers(ApiPaths.JOBS + "/**").permitAll()
+                // /api/v1/auth/me et tout le reste : authentification requise
                 .anyRequest().authenticated())
             // Ordre important : jwtFilter doit etre enregistre AVANT
             // qu'on puisse positionner guestFilter par rapport a lui.

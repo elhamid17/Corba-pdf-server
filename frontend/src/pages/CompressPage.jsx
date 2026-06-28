@@ -8,6 +8,7 @@ import { useToast } from '../components/Toast'
 import { useProgress } from '../hooks/useProgress'
 import { compressPDF, toPdfA } from '../api/pdfApi'
 import { postFormWithProgress } from '../api/client'
+import { PDF } from '../api/routes'
 
 export default function CompressPage() {
   const [files, setFiles] = useState([])
@@ -32,7 +33,7 @@ export default function CompressPage() {
         compressForm.append('compressImages', compressImages)
         compressForm.append('imageQuality',   imageQuality)
         compressForm.append('removeMetadata', removeMetadata)
-        const compressed = await postFormWithProgress('/api/pdf/compress', compressForm, {
+        const compressed = await postFormWithProgress(`${PDF}/compress`, compressForm, {
           onProgress: (p) => {
             if (p.phase === 'done') onProgress({ phase: 'processing', percent: null })
             else onProgress(p)

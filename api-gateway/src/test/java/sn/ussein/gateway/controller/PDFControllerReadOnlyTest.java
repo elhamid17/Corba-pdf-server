@@ -22,7 +22,7 @@ class PDFControllerReadOnlyTest extends AbstractPDFControllerTest {
         MockMultipartFile file = new MockMultipartFile(
             "file", "doc.pdf", "application/pdf", minimalPdfBytes());
 
-        mockMvc.perform(multipart("/api/pdf/extract-text").file(file))
+        mockMvc.perform(multipart("/api/v1/pdf/extract-text").file(file))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.text", containsString("Hello")));
     }
@@ -38,7 +38,7 @@ class PDFControllerReadOnlyTest extends AbstractPDFControllerTest {
         MockMultipartFile file = new MockMultipartFile(
             "file", "doc.pdf", "application/pdf", minimalPdfBytes());
 
-        mockMvc.perform(multipart("/api/pdf/metadata").file(file))
+        mockMvc.perform(multipart("/api/v1/pdf/metadata").file(file))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.title").value("Rapport"))
             .andExpect(jsonPath("$.author").value("Alice"))
@@ -52,7 +52,7 @@ class PDFControllerReadOnlyTest extends AbstractPDFControllerTest {
         MockMultipartFile file = new MockMultipartFile(
             "file", "doc.pdf", "application/pdf", minimalPdfBytes());
 
-        mockMvc.perform(multipart("/api/pdf/page-count").file(file))
+        mockMvc.perform(multipart("/api/v1/pdf/page-count").file(file))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.pageCount").value(5));
     }
@@ -65,7 +65,7 @@ class PDFControllerReadOnlyTest extends AbstractPDFControllerTest {
         MockMultipartFile file = new MockMultipartFile(
             "file", "doc.pdf", "application/pdf", minimalPdfBytes());
 
-        mockMvc.perform(multipart("/api/pdf/stats").file(file))
+        mockMvc.perform(multipart("/api/v1/pdf/stats").file(file))
             .andExpect(status().isOk())
             .andExpect(content().contentType("application/json"))
             .andExpect(content().string(containsString("\"pages\":2")));
@@ -73,7 +73,7 @@ class PDFControllerReadOnlyTest extends AbstractPDFControllerTest {
 
     @Test
     void create_missingText_returns400() throws Exception {
-        mockMvc.perform(post("/api/pdf/create")
+        mockMvc.perform(post("/api/v1/pdf/create")
                 .param("text", " ")
                 .param("title", "Doc"))
             .andExpect(status().isBadRequest());
@@ -84,7 +84,7 @@ class PDFControllerReadOnlyTest extends AbstractPDFControllerTest {
         when(pdfService.createFromText(anyString(), anyString()))
             .thenReturn(okPdf(minimalPdfBytes()));
 
-        mockMvc.perform(post("/api/pdf/create")
+        mockMvc.perform(post("/api/v1/pdf/create")
                 .param("text", "Contenu du document")
                 .param("title", "Mon doc"))
             .andExpect(status().isOk())

@@ -2,15 +2,18 @@
 //
 // VITE_API_URL peut etre :
 //  - vide (dev/local)            -> les fetch utilisent des chemins relatifs (proxy Vite/nginx)
-//  - "/api/pdf"                  -> ancienne valeur ; on strip "/api/pdf" pour obtenir la racine
 //  - "https://backend.example"   -> racine du backend en prod (Render)
+//
+// Les bases de routes versionnees vivent dans ./routes (source unique, /api/v1).
+// On strip un eventuel suffixe "/api/..." de VITE_API_URL pour tolerer une valeur
+// historique pointant vers un prefixe (ex: ".../api/pdf") et n'en garder que la racine.
 //
 // On expose API_BASE (racine), et un helper apiFetch qui ajoute :
 //  - credentials: 'include'      -> indispensable pour le cookie guest_id
 //  - Authorization: Bearer <jwt> -> si un token est present dans localStorage
 
 const RAW = (import.meta.env.VITE_API_URL || '').trim()
-export const API_BASE = RAW.replace(/\/api\/pdf\/?$/, '').replace(/\/+$/, '')
+export const API_BASE = RAW.replace(/\/api(?:\/[a-z0-9]+)*\/?$/i, '').replace(/\/+$/, '')
 
 const TOKEN_KEY = 'corba_pdf_token'
 
@@ -49,7 +52,7 @@ export async function readError(res) {
 
 /**
  * Wrapper fetch ajoutant credentials + Authorization.
- * `path` doit etre absolu (ex: "/api/auth/login") ; il sera concatene a API_BASE.
+ * `path` doit etre absolu (ex: "/api/v1/auth/login") ; il sera concatene a API_BASE.
  */
 export async function apiFetch(path, init = {}) {
   const headers = new Headers(init.headers || {})

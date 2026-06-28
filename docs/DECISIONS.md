@@ -2,7 +2,7 @@
 
 > Registre des décisions structurantes du projet. Chaque ADR est immuable une fois acté ;
 > une décision qu'on révise donne lieu à un nouvel ADR qui *supersede* l'ancien.
-> Tenu par le Tech Lead. Dernière mise à jour : 2026-06-02.
+> Tenu par le Tech Lead. Dernière mise à jour : 2026-06-28.
 
 ---
 
@@ -58,3 +58,40 @@ de travail pour une personne. Impossible de front.
 2. **Workflows chaînés** = fer de lance produit.
 3. **IA documentaire** = couche premium (BYO-key / modèle local pour respecter budget 0).
 4. **Verticale métier** = packaging go-to-market, pas une décision d'architecture.
+
+## ADR-0007 — Versioning d'API `/api/v1` : bascule franche (stratégie A)
+**Statut :** Acté (V2, étape 2.2)
+**Contexte :** Les routes étaient servies sans version (`/api/pdf`, `/api/auth`, `/api/admin`,
+`/api/jobs`). Avant d'ouvrir l'API (OpenAPI/Swagger) et d'envisager des consommateurs externes,
+il faut une stratégie de versioning pour pouvoir faire évoluer le contrat sans casser les clients.
+Deux options étaient sur la table :
+- **(A) Bascule franche** : `/api/v1` partout, frontend mis à jour en lockstep, pas d'alias `/api`.
+- **(B) `/api/v1` canonique + ancien `/api` maintenu en alias déprécié** (migration douce).
+**Décision :** On retient **(A) la bascule franche**. Toutes les routes applicatives passent sous
+`/api/v1` (`/api/v1/pdf/...`, `/api/v1/auth/...`, `/api/v1/admin/...`, `/api/v1/jobs...`).
+Le frontend est mis à jour dans le même commit (lockstep). Aucun alias `/api` n'est conservé.
+**Mise en œuvre — source unique du préfixe (pas de chaînes dupliquées) :**
+- Backend : `sn.ussein.gateway.web.ApiPaths` (constantes `V1`, `PDF`, `AUTH`, `ADMIN`, `JOBS`),
+  référencées par les `@RequestMapping`, `SecurityConfig` et `RateLimitFilter`.
+- Frontend : `frontend/src/api/routes.js` (`API_V1`, `PDF`, `AUTH`, `ADMIN`, `JOBS`),
+  importées par `pdfApi/authApi/adminApi/jobsApi` et les pages qui appellent directement le client.
+- nginx (`location /api/`) couvre déjà `/api/v1/` — inchangé. Les health-checks
+  (docker-compose, `render.yaml`) et `VITE_API_URL` ont été alignés.
+**Conséquences :** Contrat d'URL propre et versionnable ; un futur `v2` cohabitera sans ambiguïté.
+Coût : un déploiement frontend+backend solidaire (acceptable : mono-repo, mono-déployable).
+**Justification :** Le projet est local-first / self-host avec un seul frontend de référence ;
+l'alias déprécié (B) ajouterait de la dette (double surface d'attaque, matrice de tests doublée)
+pour un bénéfice nul à ce stade. La propreté l'emporte tant que la centralisation du préfixe
+(source unique) rend la bascule atomique et sûre.
+
+## ADR-0008 — Documentation d'API via OpenAPI/springdoc
+**Statut :** Acté (V2, étape 2.2)
+**Contexte :** Aucune documentation machine-lisible de l'API ; ADR-0005 prévoyait OpenAPI.
+**Décision :** Ajout de `springdoc-openapi-starter-webmvc-ui` (ligne 2.3.x, compatible Spring Boot 3.2)
+à `api-gateway`. Swagger UI exposé sur `/swagger-ui.html`, schéma JSON sur `/v3/api-docs`. Chaque
+contrôleur porte un `@Tag` par domaine (Organisation, Conversion, Securite, Analyse, Generation, Ping,
+Authentification, Administration, Jobs). Titre/description/version via un bean `OpenAPI`
+(`OpenApiConfig`). Les routes doc/swagger sont **whitelistées** sans authentification dans `SecurityConfig`.
+**Conséquences :** Ajout pur, sans rupture de comportement. Le durcissement de sécurité (faut-il
+restreindre Swagger UI hors dev ?) relève de l'étape 2.3.
+**Justification :** Prérequis à l'ouverture de l'API et à l'onboarding ; coût marginal, valeur immédiate.

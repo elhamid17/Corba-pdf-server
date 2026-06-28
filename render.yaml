@@ -11,7 +11,7 @@ services:
     dockerfilePath: ./Dockerfile.render
     region: frankfurt          # plus proche du Sénégal/Europe
     plan: free
-    healthCheckPath: /api/pdf/ping
+    healthCheckPath: /api/v1/pdf/ping
     autoDeploy: true
     envVars:
       - key: PORT
@@ -48,4 +48,4 @@ services:
         destination: /index.html  # SPA fallback
     envVars:
       - key: VITE_API_URL
-        value: https://corba-pdf-api.onrender.com/api/pdf
+        value: https://corba-pdf-api.onrender.com

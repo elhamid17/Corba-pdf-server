@@ -40,6 +40,14 @@
             <artifactId>spring-boot-starter-web</artifactId>
         </dependency>
 
+        <!-- OpenAPI / Swagger UI — documentation interactive de l'API.
+             2.3.0 est la ligne compatible Spring Boot 3.2.x. -->
+        <dependency>
+            <groupId>org.springdoc</groupId>
+            <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
+            <version>2.3.0</version>
+        </dependency>
+
         <!-- Spring Boot Actuator (health check) -->
         <dependency>
             <groupId>org.springframework.boot</groupId>

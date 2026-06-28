@@ -7,6 +7,7 @@ import PdfPreview from '../components/PdfPreview'
 import { useToast } from '../components/Toast'
 import { useProgress } from '../hooks/useProgress'
 import { API_BASE, getToken } from '../api/client'
+import { PDF } from '../api/routes'
 import { generateCv } from '../api/pdfApi'
 
 const DRAFT_KEY = 'corba_pdf_cv_draft'
@@ -329,7 +330,7 @@ async function fetchCvBlob(cvData) {
   const token = getToken()
   const headers = { 'Content-Type': 'application/json' }
   if (token) headers.Authorization = `Bearer ${token}`
-  const res = await fetch(`${API_BASE}/api/pdf/generate-cv`, {
+  const res = await fetch(`${API_BASE}${PDF}/generate-cv`, {
     method: 'POST',
     credentials: 'include',
     headers,

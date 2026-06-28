@@ -12,7 +12,9 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import sn.ussein.gateway.controller.support.PdfResponseSupport;
+import sn.ussein.gateway.web.ApiPaths;
 import sn.ussein.pdfengine.PdfEngine;
 import sn.ussein.pdfengine.model.WatermarkOptions;
 
@@ -22,8 +24,11 @@ import java.io.IOException;
  * Creation de documents et ajout d'elements graphiques : creation depuis texte,
  * generation de CV, filigrane, couverture, tampon, QR code, code-barres.
  */
+@Tag(name = "PDF — Generation",
+     description = "Creation de documents et ajout d'elements graphiques : creation depuis texte, "
+                 + "generation de CV, filigrane, couverture, tampon, QR code, code-barres.")
 @RestController
-@RequestMapping("/api/pdf")
+@RequestMapping(ApiPaths.PDF)
 public class GenerationController {
 
     private static final Logger log = LoggerFactory.getLogger(GenerationController.class);

@@ -11,7 +11,9 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import sn.ussein.gateway.controller.support.PdfResponseSupport;
+import sn.ussein.gateway.web.ApiPaths;
 import sn.ussein.pdfengine.PdfEngine;
 
 import java.io.IOException;
@@ -20,8 +22,11 @@ import java.io.IOException;
  * Securite et confidentialite : protection/deverrouillage par mot de passe,
  * signature numerique, apposition de signature image, caviardage, anonymisation.
  */
+@Tag(name = "PDF — Securite",
+     description = "Securite et confidentialite : protection/deverrouillage par mot de passe, "
+                 + "signature numerique, signature image, caviardage, anonymisation.")
 @RestController
-@RequestMapping("/api/pdf")
+@RequestMapping(ApiPaths.PDF)
 public class SecurityController {
 
     private static final Logger log = LoggerFactory.getLogger(SecurityController.class);

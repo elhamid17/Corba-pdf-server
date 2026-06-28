@@ -15,7 +15,7 @@ class PDFControllerTest extends AbstractPDFControllerTest {
     void ping_whenCorbaAvailable_returnsOk() throws Exception {
         when(pdfService.ping()).thenReturn("CORBA PDF Server OK");
 
-        mockMvc.perform(get("/api/pdf/ping"))
+        mockMvc.perform(get("/api/v1/pdf/ping"))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.status").value("OK"))
             .andExpect(jsonPath("$.server").value("CORBA PDF Server OK"));
@@ -26,7 +26,7 @@ class PDFControllerTest extends AbstractPDFControllerTest {
         MockMultipartFile file = new MockMultipartFile(
             "files", "a.pdf", "application/pdf", minimalPdfBytes());
 
-        mockMvc.perform(multipart("/api/pdf/merge").file(file))
+        mockMvc.perform(multipart("/api/v1/pdf/merge").file(file))
             .andExpect(status().isBadRequest());
     }
 
@@ -38,7 +38,7 @@ class PDFControllerTest extends AbstractPDFControllerTest {
         MockMultipartFile f1 = new MockMultipartFile("files", "a.pdf", "application/pdf", minimalPdfBytes());
         MockMultipartFile f2 = new MockMultipartFile("files", "b.pdf", "application/pdf", minimalPdfBytes());
 
-        mockMvc.perform(multipart("/api/pdf/merge").file(f1).file(f2))
+        mockMvc.perform(multipart("/api/v1/pdf/merge").file(f1).file(f2))
             .andExpect(status().isOk())
             .andExpect(header().string("Content-Disposition", org.hamcrest.Matchers.containsString("attachment")))
             .andExpect(content().contentType("application/pdf"));

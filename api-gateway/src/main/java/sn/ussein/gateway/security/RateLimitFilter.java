@@ -10,6 +10,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 import sn.ussein.gateway.config.RateLimitProperties;
+import sn.ussein.gateway.web.ApiPaths;
 
 import java.io.IOException;
 import java.util.concurrent.ConcurrentHashMap;
@@ -49,7 +50,7 @@ public class RateLimitFilter extends OncePerRequestFilter {
         }
 
         ConcurrentHashMap<String, Window> buckets =
-            path.startsWith("/api/pdf") ? pdfBuckets : authBuckets;
+            path.startsWith(ApiPaths.PDF) ? pdfBuckets : authBuckets;
 
         Window w = buckets.compute(ip, (k, existing) -> {
             if (existing == null || now - existing.windowStart > props.getWindowMs()) {
@@ -79,11 +80,11 @@ public class RateLimitFilter extends OncePerRequestFilter {
 
     /** Retourne la limite applicable, ou null si le path n'est pas rate-limite. */
     private Integer resolveLimit(String path) {
-        if (path.equals("/api/auth/login") || path.equals("/api/auth/register")) {
+        if (path.equals(ApiPaths.AUTH + "/login") || path.equals(ApiPaths.AUTH + "/register")) {
             return props.getAuthMaxRequests();
         }
         // Ping : le healthcheck Docker appelle cet endpoint en boucle.
-        if (path.startsWith("/api/pdf/") && !path.equals("/api/pdf/ping")) {
+        if (path.startsWith(ApiPaths.PDF + "/") && !path.equals(ApiPaths.PDF + "/ping")) {
             return props.getPdfMaxRequests();
         }
         return null;
