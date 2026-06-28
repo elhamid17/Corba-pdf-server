@@ -51,8 +51,8 @@ fonctionnent comme avant ; toute la suite de tests est verte ; plus aucune trace
 | Étape | Intitulé | Livrable clé | État |
 |---|---|---|---|
 | **2.1** | Découpage du `PDFController` | ✅ **TERMINÉ** — 1190 LOC → 6 contrôleurs par domaine (Organisation/Conversion/Security/Analysis/Generation/Ping) + `PdfResponseSupport` factorisant validation/réponses/jobs. Contrat REST identique (44 endpoints PDF préservés). `mvn clean package` = 62+74 tests, BUILD SUCCESS. Commit `578b165`. |
-| **2.2** | OpenAPI + versioning d'API | springdoc/Swagger UI (ajout pur) + préfixe `/api/v1` via constante backend partagée + MAJ centralisée de la base URL frontend. ⚠️ Seul point où 2.2 touche le frontend. Cf. `handoffs/V2-etape-2.2-openapi-versioning.md`. | 🟡 Prêt |
-| **2.3** | Durcissement sécurité | Headers de sécurité, validation centralisée, revue JWT/rate-limit/quotas, gestion des secrets. | ⚪ Prévu |
+| **2.2** | OpenAPI + versioning d'API | ✅ **TERMINÉ** — springdoc/Swagger UI (9 `@Tag`), bascule `/api/v1` (stratégie A, ADR-0007/0008) via source unique `ApiPaths` (back) + `routes.js` (front). `mvn` 62+74 verts, `npm run build` vert, zéro chemin ancien résiduel. Commit `c0a557d`. |
+| **2.3** | Durcissement sécurité | 🟡 Prêt — headers de sécurité, secret JWT fail-fast, mot de passe admin par défaut, revue rate-limit/CORS/limites upload, exposition Swagger en prod. Cf. `handoffs/V2-etape-2.3-securite.md`. |
 | **2.4** | CI/CD | GitHub Actions (build + tests + lint) à partir du `.github/workflows/ci.yml` existant ; image Docker publiée. | ⚪ Prévu |
 
 ---
