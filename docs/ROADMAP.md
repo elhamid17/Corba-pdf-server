@@ -52,8 +52,8 @@ fonctionnent comme avant ; toute la suite de tests est verte ; plus aucune trace
 |---|---|---|---|
 | **2.1** | Découpage du `PDFController` | ✅ **TERMINÉ** — 1190 LOC → 6 contrôleurs par domaine (Organisation/Conversion/Security/Analysis/Generation/Ping) + `PdfResponseSupport` factorisant validation/réponses/jobs. Contrat REST identique (44 endpoints PDF préservés). `mvn clean package` = 62+74 tests, BUILD SUCCESS. Commit `578b165`. |
 | **2.2** | OpenAPI + versioning d'API | ✅ **TERMINÉ** — springdoc/Swagger UI (9 `@Tag`), bascule `/api/v1` (stratégie A, ADR-0007/0008) via source unique `ApiPaths` (back) + `routes.js` (front). `mvn` 62+74 verts, `npm run build` vert, zéro chemin ancien résiduel. Commit `c0a557d`. |
-| **2.3** | Durcissement sécurité | 🟡 Prêt — headers de sécurité, secret JWT fail-fast, mot de passe admin par défaut, revue rate-limit/CORS/limites upload, exposition Swagger en prod. Cf. `handoffs/V2-etape-2.3-securite.md`. |
-| **2.4** | CI/CD | GitHub Actions (build + tests + lint) à partir du `.github/workflows/ci.yml` existant ; image Docker publiée. | ⚪ Prévu |
+| **2.3** | Durcissement sécurité | ✅ **TERMINÉ** — `ProdSecretsValidator` (fail-fast JWT/admin en prod), CSP + HSTS conditionnel + en-têtes, Swagger désactivé en prod, revue rate-limit/CORS/upload. ADR-0009/0010. Vérifié runtime (curl dev+prod). `mvn` 62+74 vert. Commit `bd61845`. |
+| **2.4** | CI/CD | 🟡 Prêt — moderniser `ci.yml` (Java 21, reactor complet), scan de vulnérabilités des dépendances, build/publication image Docker. Clôture V2. Cf. `handoffs/V2-etape-2.4-cicd.md`. |
 
 ---
 
