@@ -13,7 +13,7 @@ par workflows chaînés**. Évolution chirurgicale (jamais de rewrite). Monolith
 | Version | Thème | Objectif macro | État |
 |---|---|---|---|
 | **V1** | 🔪 Excision de CORBA (Walking Skeleton) | Monolithe Spring Boot unique, handlers in-process, mêmes features, tests verts, déploiement simplifié. Zéro régression. | ✅ **Livrée** (mergée dans `main`, validée runtime) |
-| **V2** | 🧱 Socle qualité & domaine | Casser le contrôleur de 1190 lignes, frontières de modules, OpenAPI, versioning d'API, durcissement sécurité/auth. | ✅ **Livrée** (branche `v2/quality`, PR→main à valider) |
+| **V2** | 🧱 Socle qualité & domaine | Casser le contrôleur de 1190 lignes, frontières de modules, OpenAPI, versioning d'API, durcissement sécurité/auth. | ✅ **Livrée** (mergée dans `main`, PR #1, CI 5/5 verte) |
 | **V3** | ⚙️ Production-ready | Queue de jobs (OCR/gros fichiers), progression SSE, stockage objet, observabilité (OTel, métriques, logs structurés). | 🟡 Prochaine |
 | **V4** | 🗡️ Workflows chaînés | Moteur de pipelines réutilisables (ex. OCR→anonymise→signe→tampon). Le différenciateur produit. | ⚪ Prévu |
 | **V5** | 🔒 Local-first / confidentialité | Traitement client WASM pour ops sensibles, zéro-rétention garantie, auto-hébergement 1 commande, RGPD. | ⚪ Prévu |
@@ -54,13 +54,26 @@ fonctionnent comme avant ; toute la suite de tests est verte ; plus aucune trace
 | **2.3** | Durcissement sécurité | ✅ **TERMINÉ** — `ProdSecretsValidator` (fail-fast JWT/admin en prod), CSP + HSTS conditionnel + en-têtes, Swagger désactivé en prod, revue rate-limit/CORS/upload. ADR-0009/0010. Vérifié runtime (curl dev+prod). `mvn` 62+74 vert. Commit `bd61845`. |
 | **2.4** | CI/CD | ✅ **TERMINÉ** — `ci.yml` Java 21, reactor complet (`mvn -B clean verify`), 5 jobs (backend/frontend/e2e/docker/security) avec `needs`+`concurrency`. Dependabot (maven+npm+actions) + scan Trivy. Image GHCR build à chaque run, push sur `main` via `GITHUB_TOKEN`. Fiabilisation : Vitest exclut `e2e/**`, mock e2e corrigé (`/api/v1`). ADR-0011. Tout vert local (62+74, vitest 17, e2e 2, build). |
 
-### Statut V2 : 🟢 socle qualité bouclé (4/4 étapes)
+### Statut V2 : ✅ LIVRÉE — mergée dans `main` (PR #1, merge `4554409`)
 - Backend maintenable : `PDFController` éclaté en 6 contrôleurs de domaine (2.1).
 - API présentable et versionnée : OpenAPI/Swagger + `/api/v1` source unique (2.2).
 - Durcissement : profil prod, fail-fast secrets, CSP/HSTS, Swagger off en prod (2.3).
 - Pipeline fiable et moderne : CI/CD Java 21, scan dépendances, image GHCR (2.4).
-- **Avant merge `v2/quality` → `main`** : l'utilisateur ouvre la PR et valide le run CI (le pipeline
-  ne s'exécute qu'une fois sur GitHub Actions ; tout a été vérifié localement côté commandes).
+- **CI GitHub Actions 5/5 verte** sur la PR (backend/frontend/e2e/docker/security).
+
+---
+
+## Découpage V3 — Production-ready
+
+> But : passer d'« ça marche » à « ça tient en production ». Opérations lourdes asynchrones,
+> retour de progression, observabilité. Contrat REST étendu (nouveaux endpoints jobs/SSE), pas cassé.
+
+| Étape | Intitulé | Livrable clé | État |
+|---|---|---|---|
+| **3.1** | Traitement asynchrone des opérations lourdes | File de jobs (OCR, gros fichiers, conversions) : `submit → 202 + jobId → poll`. Exécution en arrière-plan, état persistant. S'appuie sur `Job`/`JobStorageService`/`JobController` existants. | 🟡 Prêt — `handoffs/V3-etape-3.1-jobs-async.md` |
+| **3.2** | Progression temps réel (SSE) | Endpoint SSE pour suivre l'avancement d'un job (0→100 %, statut, résultat). | ⚪ Prévu |
+| **3.3** | Observabilité | OpenTelemetry (traces), Micrometer/Prometheus (métriques), logs JSON structurés, `/actuator`. | ⚪ Prévu |
+| **3.4** | Abstraction stockage objet | Abstraire GridFS pour permettre S3/MinIO en self-host (rétention, cycle de vie). | ⚪ Prévu |
 
 ---
 
