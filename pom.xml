@@ -35,7 +35,7 @@
         <tess4j.version>5.8.0</tess4j.version>
         <bouncycastle.version>1.78.1</bouncycastle.version>
         <poi.version>5.2.5</poi.version>
-        <springboot.version>3.2.5</springboot.version>
+        <springboot.version>4.1.0</springboot.version>
         <junit.version>5.10.2</junit.version>
         <commonmark.version>0.22.0</commonmark.version>
         <jsoup.version>1.17.2</jsoup.version>
