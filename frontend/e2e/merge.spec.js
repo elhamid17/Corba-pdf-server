@@ -17,7 +17,7 @@ test.beforeEach(async ({ page }) => {
 })
 
 test('merge two PDFs triggers download', async ({ page }) => {
-  await page.route('**/api/pdf/merge', async (route) => {
+  await page.route('**/pdf/merge', async (route) => {
     await route.fulfill({
       status: 200,
       contentType: 'application/pdf',

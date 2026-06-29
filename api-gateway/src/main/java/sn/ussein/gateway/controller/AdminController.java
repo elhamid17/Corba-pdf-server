@@ -4,6 +4,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import sn.ussein.gateway.dto.AdminJobView;
 import sn.ussein.gateway.dto.AdminStats;
 import sn.ussein.gateway.dto.AdminUserUpdateRequest;
@@ -11,14 +12,17 @@ import sn.ussein.gateway.dto.AdminUserView;
 import sn.ussein.gateway.security.Identity;
 import sn.ussein.gateway.security.IdentityResolver;
 import sn.ussein.gateway.service.AdminService;
+import sn.ussein.gateway.web.ApiPaths;
 
 import java.util.Map;
 
 /**
  * Endpoints reserves au role ADMIN (protege par SecurityConfig).
  */
+@Tag(name = "Administration",
+     description = "Endpoints reserves au role ADMIN : statistiques, gestion des utilisateurs et des jobs.")
 @RestController
-@RequestMapping("/api/admin")
+@RequestMapping(ApiPaths.ADMIN)
 public class AdminController {
 
     private final AdminService admin;

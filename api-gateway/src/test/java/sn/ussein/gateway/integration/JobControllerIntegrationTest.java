@@ -22,7 +22,7 @@ class JobControllerIntegrationTest extends AbstractGatewayIntegrationTest {
         storage.recordSuccess(guestB, "split", "b.pdf", "b-out.pdf",
             "application/pdf", new byte[]{2}, 1L);
 
-        mockMvc.perform(get("/api/jobs").cookie(guestCookie("guest-a-list")))
+        mockMvc.perform(get("/api/v1/jobs").cookie(guestCookie("guest-a-list")))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.content", hasSize(1)))
             .andExpect(jsonPath("$.content[0].operation").value("merge"))
@@ -39,7 +39,7 @@ class JobControllerIntegrationTest extends AbstractGatewayIntegrationTest {
         storage.recordSuccess(Identity.forGuest("some-guest"),
             "merge", "g.pdf", "g-out.pdf", "application/pdf", new byte[]{4}, 1L);
 
-        mockMvc.perform(get("/api/jobs")
+        mockMvc.perform(get("/api/v1/jobs")
                 .header("Authorization", "Bearer " + token))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.content", hasSize(1)))
@@ -55,7 +55,7 @@ class JobControllerIntegrationTest extends AbstractGatewayIntegrationTest {
         var job = storage.recordSuccess(guest, "merge", "in.pdf", "merged.pdf",
             "application/pdf", pdf, 10L);
 
-        mockMvc.perform(get("/api/jobs/{id}/download", job.getId())
+        mockMvc.perform(get("/api/v1/jobs/{id}/download", job.getId())
                 .cookie(guestCookie("guest-dl")))
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_PDF))
@@ -69,7 +69,7 @@ class JobControllerIntegrationTest extends AbstractGatewayIntegrationTest {
         var job = storage.recordSuccess(owner, "merge", "in.pdf", "out.pdf",
             "application/pdf", new byte[]{5}, 1L);
 
-        mockMvc.perform(get("/api/jobs/{id}/download", job.getId())
+        mockMvc.perform(get("/api/v1/jobs/{id}/download", job.getId())
                 .cookie(guestCookie("guest-intruder-dl")))
             .andExpect(status().isNotFound())
             .andExpect(jsonPath("$.error").exists());
@@ -81,11 +81,11 @@ class JobControllerIntegrationTest extends AbstractGatewayIntegrationTest {
         var job = storage.recordSuccess(guest, "merge", "in.pdf", "out.pdf",
             "application/pdf", new byte[]{7}, 1L);
 
-        mockMvc.perform(delete("/api/jobs/{id}", job.getId())
+        mockMvc.perform(delete("/api/v1/jobs/{id}", job.getId())
                 .cookie(guestCookie("guest-del-http")))
             .andExpect(status().isNoContent());
 
-        mockMvc.perform(get("/api/jobs/{id}/download", job.getId())
+        mockMvc.perform(get("/api/v1/jobs/{id}/download", job.getId())
                 .cookie(guestCookie("guest-del-http")))
             .andExpect(status().isNotFound());
     }
@@ -96,7 +96,7 @@ class JobControllerIntegrationTest extends AbstractGatewayIntegrationTest {
         var job = storage.recordSuccess(owner, "merge", "in.pdf", "out.pdf",
             "application/pdf", new byte[]{8}, 1L);
 
-        mockMvc.perform(delete("/api/jobs/{id}", job.getId())
+        mockMvc.perform(delete("/api/v1/jobs/{id}", job.getId())
                 .cookie(guestCookie("guest-intruder-del")))
             .andExpect(status().isNotFound())
             .andExpect(jsonPath("$.error").exists());

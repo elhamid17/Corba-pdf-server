@@ -30,7 +30,7 @@ class RateLimitFilterTest {
 
     @Test
     void authEndpoint_underLimit_passesThrough() throws ServletException, IOException {
-        MockHttpServletRequest req = new MockHttpServletRequest("POST", "/api/auth/login");
+        MockHttpServletRequest req = new MockHttpServletRequest("POST", "/api/v1/auth/login");
         req.setRemoteAddr("10.0.0.1");
         MockHttpServletResponse res = new MockHttpServletResponse();
 
@@ -43,7 +43,7 @@ class RateLimitFilterTest {
 
     @Test
     void authEndpoint_overLimit_returns429() throws ServletException, IOException {
-        MockHttpServletRequest req = new MockHttpServletRequest("POST", "/api/auth/login");
+        MockHttpServletRequest req = new MockHttpServletRequest("POST", "/api/v1/auth/login");
         req.setRemoteAddr("10.0.0.2");
         MockHttpServletResponse res = new MockHttpServletResponse();
 
@@ -58,9 +58,9 @@ class RateLimitFilterTest {
 
     @Test
     void pdfEndpoint_rateLimited_separatelyFromAuth() throws ServletException, IOException {
-        MockHttpServletRequest authReq = new MockHttpServletRequest("POST", "/api/auth/login");
+        MockHttpServletRequest authReq = new MockHttpServletRequest("POST", "/api/v1/auth/login");
         authReq.setRemoteAddr("10.0.0.3");
-        MockHttpServletRequest pdfReq = new MockHttpServletRequest("POST", "/api/pdf/merge");
+        MockHttpServletRequest pdfReq = new MockHttpServletRequest("POST", "/api/v1/pdf/merge");
         pdfReq.setRemoteAddr("10.0.0.3");
         MockHttpServletResponse res = new MockHttpServletResponse();
 
@@ -77,7 +77,7 @@ class RateLimitFilterTest {
 
     @Test
     void pingEndpoint_isNotRateLimited() throws ServletException, IOException {
-        MockHttpServletRequest req = new MockHttpServletRequest("GET", "/api/pdf/ping");
+        MockHttpServletRequest req = new MockHttpServletRequest("GET", "/api/v1/pdf/ping");
         req.setRemoteAddr("10.0.0.4");
         MockHttpServletResponse res = new MockHttpServletResponse();
 

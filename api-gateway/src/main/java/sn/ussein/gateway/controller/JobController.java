@@ -9,19 +9,23 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import sn.ussein.gateway.dto.JobSummary;
 import sn.ussein.gateway.model.Job;
 import sn.ussein.gateway.repository.JobRepository;
 import sn.ussein.gateway.security.Identity;
 import sn.ussein.gateway.security.IdentityResolver;
 import sn.ussein.gateway.service.JobStorageService;
+import sn.ussein.gateway.web.ApiPaths;
 
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
+@Tag(name = "Jobs",
+     description = "Historique des jobs : liste, re-telechargement et suppression.")
 @RestController
-@RequestMapping("/api/jobs")
+@RequestMapping(ApiPaths.JOBS)
 public class JobController {
 
     private static final int MAX_PAGE_SIZE = 100;

@@ -36,7 +36,7 @@ class AdminControllerIntegrationTest extends AbstractGatewayIntegrationTest {
         String reg = """
             {"email":"regular@test.local","username":"regular","password":"password123"}
             """;
-        var loginRes = mockMvc.perform(post("/api/auth/register")
+        var loginRes = mockMvc.perform(post("/api/v1/auth/register")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(reg))
             .andExpect(status().isOk())
@@ -50,7 +50,7 @@ class AdminControllerIntegrationTest extends AbstractGatewayIntegrationTest {
 
     @Test
     void stats_asAdmin_returnsAggregates() throws Exception {
-        mockMvc.perform(get("/api/admin/stats")
+        mockMvc.perform(get("/api/v1/admin/stats")
                 .header("Authorization", "Bearer " + adminToken))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.totalUsers").isNumber())
@@ -59,14 +59,14 @@ class AdminControllerIntegrationTest extends AbstractGatewayIntegrationTest {
 
     @Test
     void stats_asRegularUser_returns403() throws Exception {
-        mockMvc.perform(get("/api/admin/stats")
+        mockMvc.perform(get("/api/v1/admin/stats")
                 .header("Authorization", "Bearer " + userToken))
             .andExpect(status().isForbidden());
     }
 
     @Test
     void listUsers_asAdmin_returnsPage() throws Exception {
-        mockMvc.perform(get("/api/admin/users")
+        mockMvc.perform(get("/api/v1/admin/users")
                 .header("Authorization", "Bearer " + adminToken))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.content", not(empty())))
@@ -75,7 +75,7 @@ class AdminControllerIntegrationTest extends AbstractGatewayIntegrationTest {
 
     @Test
     void listJobs_asAdmin_includesStoredJobs() throws Exception {
-        mockMvc.perform(get("/api/admin/jobs")
+        mockMvc.perform(get("/api/v1/admin/jobs")
                 .header("Authorization", "Bearer " + adminToken))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.content", not(empty())))
@@ -84,7 +84,7 @@ class AdminControllerIntegrationTest extends AbstractGatewayIntegrationTest {
 
     @Test
     void adminEndpoints_withoutToken_returns401() throws Exception {
-        mockMvc.perform(get("/api/admin/stats"))
+        mockMvc.perform(get("/api/v1/admin/stats"))
             .andExpect(status().isUnauthorized());
     }
 }

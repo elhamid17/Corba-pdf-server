@@ -2,7 +2,7 @@
 
 > Registre des décisions structurantes du projet. Chaque ADR est immuable une fois acté ;
 > une décision qu'on révise donne lieu à un nouvel ADR qui *supersede* l'ancien.
-> Tenu par le Tech Lead. Dernière mise à jour : 2026-06-02.
+> Tenu par le Tech Lead. Dernière mise à jour : 2026-06-29.
 
 ---
 
@@ -58,3 +58,116 @@ de travail pour une personne. Impossible de front.
 2. **Workflows chaînés** = fer de lance produit.
 3. **IA documentaire** = couche premium (BYO-key / modèle local pour respecter budget 0).
 4. **Verticale métier** = packaging go-to-market, pas une décision d'architecture.
+
+## ADR-0007 — Versioning d'API `/api/v1` : bascule franche (stratégie A)
+**Statut :** Acté (V2, étape 2.2)
+**Contexte :** Les routes étaient servies sans version (`/api/pdf`, `/api/auth`, `/api/admin`,
+`/api/jobs`). Avant d'ouvrir l'API (OpenAPI/Swagger) et d'envisager des consommateurs externes,
+il faut une stratégie de versioning pour pouvoir faire évoluer le contrat sans casser les clients.
+Deux options étaient sur la table :
+- **(A) Bascule franche** : `/api/v1` partout, frontend mis à jour en lockstep, pas d'alias `/api`.
+- **(B) `/api/v1` canonique + ancien `/api` maintenu en alias déprécié** (migration douce).
+**Décision :** On retient **(A) la bascule franche**. Toutes les routes applicatives passent sous
+`/api/v1` (`/api/v1/pdf/...`, `/api/v1/auth/...`, `/api/v1/admin/...`, `/api/v1/jobs...`).
+Le frontend est mis à jour dans le même commit (lockstep). Aucun alias `/api` n'est conservé.
+**Mise en œuvre — source unique du préfixe (pas de chaînes dupliquées) :**
+- Backend : `sn.ussein.gateway.web.ApiPaths` (constantes `V1`, `PDF`, `AUTH`, `ADMIN`, `JOBS`),
+  référencées par les `@RequestMapping`, `SecurityConfig` et `RateLimitFilter`.
+- Frontend : `frontend/src/api/routes.js` (`API_V1`, `PDF`, `AUTH`, `ADMIN`, `JOBS`),
+  importées par `pdfApi/authApi/adminApi/jobsApi` et les pages qui appellent directement le client.
+- nginx (`location /api/`) couvre déjà `/api/v1/` — inchangé. Les health-checks
+  (docker-compose, `render.yaml`) et `VITE_API_URL` ont été alignés.
+**Conséquences :** Contrat d'URL propre et versionnable ; un futur `v2` cohabitera sans ambiguïté.
+Coût : un déploiement frontend+backend solidaire (acceptable : mono-repo, mono-déployable).
+**Justification :** Le projet est local-first / self-host avec un seul frontend de référence ;
+l'alias déprécié (B) ajouterait de la dette (double surface d'attaque, matrice de tests doublée)
+pour un bénéfice nul à ce stade. La propreté l'emporte tant que la centralisation du préfixe
+(source unique) rend la bascule atomique et sûre.
+
+## ADR-0008 — Documentation d'API via OpenAPI/springdoc
+**Statut :** Acté (V2, étape 2.2)
+**Contexte :** Aucune documentation machine-lisible de l'API ; ADR-0005 prévoyait OpenAPI.
+**Décision :** Ajout de `springdoc-openapi-starter-webmvc-ui` (ligne 2.3.x, compatible Spring Boot 3.2)
+à `api-gateway`. Swagger UI exposé sur `/swagger-ui.html`, schéma JSON sur `/v3/api-docs`. Chaque
+contrôleur porte un `@Tag` par domaine (Organisation, Conversion, Securite, Analyse, Generation, Ping,
+Authentification, Administration, Jobs). Titre/description/version via un bean `OpenAPI`
+(`OpenApiConfig`). Les routes doc/swagger sont **whitelistées** sans authentification dans `SecurityConfig`.
+**Conséquences :** Ajout pur, sans rupture de comportement. Le durcissement de sécurité (faut-il
+restreindre Swagger UI hors dev ?) relève de l'étape 2.3.
+**Justification :** Prérequis à l'ouverture de l'API et à l'onboarding ; coût marginal, valeur immédiate.
+
+## ADR-0009 — Exposition Swagger : ouvert en dev, désactivé en prod
+**Statut :** Acté (V2, étape 2.3)
+**Contexte :** Depuis ADR-0008, Swagger UI (`/swagger-ui.html`) et le schéma OpenAPI (`/v3/api-docs`)
+sont whitelistés sans authentification, y compris en production. Pour un produit local-first / self-host,
+exposer publiquement la cartographie complète de l'API en prod accroît la surface d'attaque et la
+divulgation d'information (énumération des routes, des paramètres) sans bénéfice pour l'opérateur.
+**Options :** (A) garder Swagger ouvert partout ; (B) le protéger derrière l'auth ADMIN ;
+(C) le **désactiver en prod**, le garder ouvert en dev.
+**Décision :** On retient **(C)**. Introduction d'un profil Spring `prod` (`SPRING_PROFILES_ACTIVE=prod`,
+posé dans `render.yaml`). En prod, `application-prod.yml` désactive springdoc
+(`springdoc.api-docs.enabled=false` + `springdoc.swagger-ui.enabled=false`) : les routes renvoient 404.
+En dev/local (profil par défaut, `docker compose`), Swagger reste pleinement accessible.
+La whitelist de sécurité des routes Swagger est conservée (inoffensive quand springdoc est désactivé).
+**Conséquences :** Surface d'attaque réduite en prod ; onboarding/dev inchangés. Un opérateur self-host
+qui souhaite réexposer Swagger en prod peut surcharger ces deux propriétés (choix explicite, documenté).
+**Justification :** Principe de moindre exposition. La doc d'API n'a pas à être un endpoint public d'un
+déploiement de production self-host.
+
+## ADR-0010 — Durcissement sécurité : profil prod, fail-fast secrets, en-têtes HTTP
+**Statut :** Acté (V2, étape 2.3)
+**Contexte :** `JWT_SECRET` et `ADMIN_PASSWORD` avaient des **valeurs par défaut** de dev
+(`change-me-in-production-...`, `admin123`) qui pouvaient silencieusement partir en production.
+Les en-têtes de sécurité existaient partiellement (X-Frame-Options, nosniff, Referrer-Policy, HSTS,
+Permissions-Policy) mais sans CSP, et HSTS était émis quel que soit l'environnement.
+**Décision :**
+1. **Fail-fast secrets (prod uniquement)** : un bean `ProdSecretsValidator` (`@Profile("prod")`)
+   refuse le démarrage si `JWT_SECRET` est absent, égal au défaut, ou < 32 caractères, ou si
+   `ADMIN_PASSWORD` est absent ou égal à `admin123`. Le mode dev/local démarre toujours sans config
+   secrète lourde (invariant : `docker compose up` simple).
+2. **CSP prudente** ajoutée pour toutes les réponses backend : `default-src 'self'`,
+   `script-src/style-src 'self' 'unsafe-inline'` (nécessaire au rendu de Swagger UI), `img-src 'self' data:`,
+   `frame-ancestors 'none'`, `object-src 'none'`, `base-uri/form-action 'self'`. Le frontend React
+   (servi par nginx, origine distincte) n'est pas impacté par cet en-tête backend.
+3. **HSTS conditionné au profil prod** (HTTPS) ; désactivé en dev HTTP local.
+**Conséquences :** Démarrage prod impossible avec des secrets par défaut ; en-têtes vérifiables via
+`curl -I`. Aucun secret réel n'est commité (`render.yaml` utilise `sync: false`). Aucune régression
+de contrat REST. Dette restante (cf. 2.4) : validation par *magic bytes* du type de fichier uploadé,
+rate-limit distribué (actuellement en mémoire, non partagé entre instances).
+**Justification :** Sécuriser par défaut sans alourdir le dev ; les garde-fous bloquent les erreurs de
+déploiement les plus courantes (secrets oubliés) plutôt que de compter sur la vigilance de l'opérateur.
+
+## ADR-0011 — Pipeline CI/CD : reactor Java 21, scan de dépendances, image GHCR
+**Statut :** Acté (V2, étape 2.4 — clôture V2)
+**Contexte :** `.github/workflows/ci.yml` était obsolète : **JDK 17** (le code est en 21), un job
+monolithique lançant `mvn test` + `npm test` + Playwright e2e, sans cache discipliné, sans scan de
+vulnérabilités ni construction d'artefact déployable. De plus deux incohérences masquaient un pipeline
+faussement vert : (1) Vitest collectait la spec Playwright `e2e/merge.spec.js` (collision de runners)
+et (2) le mock e2e interceptait `**/api/pdf/merge` alors que le frontend appelle `/api/v1/pdf/merge`
+depuis la bascule ADR-0007.
+**Décision :**
+1. **Modernisation du workflow** : JDK **21** (temurin), build du **reactor complet** via
+   `mvn -B clean verify` (exécute aussi les tests d'intégration Testcontainers/MongoDB, Docker étant
+   natif sur `ubuntu-latest`). Découpage en jobs lisibles et parallèles : `backend` (Maven),
+   `frontend` (Vitest + build de prod), `e2e` (Playwright, `needs: frontend`), `docker` (image),
+   `security` (scan). `concurrency` annule les runs périmés ; `needs` assure le fail-fast.
+2. **Fiabilisation (pas masquage)** : exclusion de `e2e/**` dans `vitest.config.js` et correction du
+   glob du mock e2e (`**/pdf/merge`). Les e2e mockent l'API (`page.route`) : déterministes, sans
+   backend. `npm run lint` reste **hors CI** car ESLint n'est pas une dépendance installée du frontend
+   (le script tombe sur un ESLint global incompatible) — l'intégrer mentirait sur l'état réel.
+3. **Scan de vulnérabilités** : **Dependabot** (`.github/dependabot.yml`, écosystèmes maven + npm +
+   github-actions, hebdomadaire) pilote les PRs de correctifs ; complété par un **scan Trivy filesystem**
+   en CI (HIGH/CRITICAL, `ignore-unfixed`) pour une visibilité immédiate. Trivy est **informatif**
+   (`exit-code: 0`) pour ne pas rendre le pipeline rouge sur une CVE amont non corrigeable ;
+   passer `exit-code` à `1` le rend bloquant.
+4. **Image Docker** : construite à **chaque run** (`api-gateway/Dockerfile`, contexte racine),
+   **poussée vers GHCR uniquement sur push `main`** (`ghcr.io/<owner>/<repo>`, tags `sha-…` + `latest`).
+   Authentification par le **`GITHUB_TOKEN` intégré** (job `permissions: packages: write`) : **aucun
+   secret de registry à configurer**. En PR l'image est seulement bâtie (validation, pas de push).
+**Conséquences :** Le vert CI reflète désormais l'état local (`mvn clean verify` 62+74, `npm test`,
+`npm run build`, `npm run test:e2e` tous verts). Artefact déployable publié automatiquement sur `main`.
+Dette restante : scan d'image (CVE OS de la base Alpine/Tesseract) non câblé ; déploiement continu réel
+vers prod volontairement non déclenché (hors périmètre V2).
+**Justification :** Un pipeline doit refléter la réalité et produire un artefact ; on fiabilise les
+tests instables au lieu de les désactiver. Le `GITHUB_TOKEN` + GHCR évite toute fuite de credential et
+tout secret manuel, ce qui colle au positionnement open-core / self-host.

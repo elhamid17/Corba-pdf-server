@@ -17,7 +17,7 @@ class PDFControllerTransformTest extends AbstractPDFControllerTest {
         MockMultipartFile file = new MockMultipartFile(
             "file", "doc.pdf", "application/pdf", minimalPdfBytes());
 
-        mockMvc.perform(multipart("/api/pdf/rotate")
+        mockMvc.perform(multipart("/api/v1/pdf/rotate")
                 .file(file)
                 .param("angle", "45"))
             .andExpect(status().isBadRequest());
@@ -30,7 +30,7 @@ class PDFControllerTransformTest extends AbstractPDFControllerTest {
         MockMultipartFile file = new MockMultipartFile(
             "file", "doc.pdf", "application/pdf", minimalPdfBytes());
 
-        mockMvc.perform(multipart("/api/pdf/rotate")
+        mockMvc.perform(multipart("/api/v1/pdf/rotate")
                 .file(file)
                 .param("angle", "90"))
             .andExpect(status().isOk())
@@ -44,7 +44,7 @@ class PDFControllerTransformTest extends AbstractPDFControllerTest {
         MockMultipartFile file = new MockMultipartFile(
             "file", "doc.pdf", "application/pdf", minimalPdfBytes());
 
-        mockMvc.perform(multipart("/api/pdf/compress").file(file))
+        mockMvc.perform(multipart("/api/v1/pdf/compress").file(file))
             .andExpect(status().isOk())
             .andExpect(content().contentType("application/pdf"));
     }
@@ -54,7 +54,7 @@ class PDFControllerTransformTest extends AbstractPDFControllerTest {
         MockMultipartFile file = new MockMultipartFile(
             "file", "doc.pdf", "application/pdf", minimalPdfBytes());
 
-        mockMvc.perform(multipart("/api/pdf/watermark")
+        mockMvc.perform(multipart("/api/v1/pdf/watermark")
                 .file(file)
                 .param("text", " "))
             .andExpect(status().isBadRequest());
@@ -68,7 +68,7 @@ class PDFControllerTransformTest extends AbstractPDFControllerTest {
         MockMultipartFile file = new MockMultipartFile(
             "file", "doc.pdf", "application/pdf", minimalPdfBytes());
 
-        mockMvc.perform(multipart("/api/pdf/watermark")
+        mockMvc.perform(multipart("/api/v1/pdf/watermark")
                 .file(file)
                 .param("text", "CONFIDENTIEL"))
             .andExpect(status().isOk())
@@ -82,7 +82,7 @@ class PDFControllerTransformTest extends AbstractPDFControllerTest {
         MockMultipartFile file = new MockMultipartFile(
             "file", "doc.pdf", "application/pdf", minimalPdfBytes());
 
-        mockMvc.perform(multipart("/api/pdf/resize")
+        mockMvc.perform(multipart("/api/v1/pdf/resize")
                 .file(file)
                 .param("targetSize", "A4"))
             .andExpect(status().isOk())
@@ -97,7 +97,7 @@ class PDFControllerTransformTest extends AbstractPDFControllerTest {
         MockMultipartFile file = new MockMultipartFile(
             "file", "doc.pdf", "application/pdf", minimalPdfBytes());
 
-        mockMvc.perform(multipart("/api/pdf/crop")
+        mockMvc.perform(multipart("/api/v1/pdf/crop")
                 .file(file)
                 .param("marginLeft", "5")
                 .param("marginTop", "5")

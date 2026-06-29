@@ -18,7 +18,7 @@ class PDFControllerOrganisationTest extends AbstractPDFControllerTest {
         MockMultipartFile file = new MockMultipartFile(
             "file", "doc.pdf", "application/pdf", minimalPdfBytes());
 
-        mockMvc.perform(multipart("/api/pdf/split")
+        mockMvc.perform(multipart("/api/v1/pdf/split")
                 .file(file)
                 .param("ranges", "1", "2", "3"))
             .andExpect(status().isBadRequest());
@@ -32,7 +32,7 @@ class PDFControllerOrganisationTest extends AbstractPDFControllerTest {
         MockMultipartFile file = new MockMultipartFile(
             "file", "doc.pdf", "application/pdf", minimalPdfBytes());
 
-        mockMvc.perform(multipart("/api/pdf/split")
+        mockMvc.perform(multipart("/api/v1/pdf/split")
                 .file(file)
                 .param("ranges", "1", "1"))
             .andExpect(status().isOk())
@@ -46,7 +46,7 @@ class PDFControllerOrganisationTest extends AbstractPDFControllerTest {
         MockMultipartFile file = new MockMultipartFile(
             "file", "doc.pdf", "application/pdf", minimalPdfBytes());
 
-        mockMvc.perform(multipart("/api/pdf/extract-pages")
+        mockMvc.perform(multipart("/api/v1/pdf/extract-pages")
                 .file(file)
                 .param("pages", "1"))
             .andExpect(status().isOk())
@@ -58,7 +58,7 @@ class PDFControllerOrganisationTest extends AbstractPDFControllerTest {
         MockMultipartFile file = new MockMultipartFile(
             "file", "doc.pdf", "application/pdf", minimalPdfBytes());
 
-        mockMvc.perform(multipart("/api/pdf/delete-pages")
+        mockMvc.perform(multipart("/api/v1/pdf/delete-pages")
                 .file(file))
             .andExpect(status().isBadRequest());
     }
@@ -70,7 +70,7 @@ class PDFControllerOrganisationTest extends AbstractPDFControllerTest {
         MockMultipartFile file = new MockMultipartFile(
             "file", "doc.pdf", "application/pdf", minimalPdfBytes());
 
-        mockMvc.perform(multipart("/api/pdf/reorder")
+        mockMvc.perform(multipart("/api/v1/pdf/reorder")
                 .file(file)
                 .param("order", "1"))
             .andExpect(status().isOk())
@@ -84,7 +84,7 @@ class PDFControllerOrganisationTest extends AbstractPDFControllerTest {
         MockMultipartFile file = new MockMultipartFile(
             "file", "doc.pdf", "application/pdf", minimalPdfBytes());
 
-        mockMvc.perform(multipart("/api/pdf/reverse").file(file))
+        mockMvc.perform(multipart("/api/v1/pdf/reverse").file(file))
             .andExpect(status().isOk())
             .andExpect(content().contentType("application/pdf"));
     }

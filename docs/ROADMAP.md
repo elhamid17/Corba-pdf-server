@@ -12,9 +12,9 @@ par workflows chaînés**. Évolution chirurgicale (jamais de rewrite). Monolith
 
 | Version | Thème | Objectif macro | État |
 |---|---|---|---|
-| **V1** | 🔪 Excision de CORBA (Walking Skeleton) | Monolithe Spring Boot unique, handlers in-process, mêmes features, tests verts, déploiement simplifié. Zéro régression. | 🟡 À démarrer |
-| **V2** | 🧱 Socle qualité & domaine | Casser le contrôleur de 1190 lignes, frontières de modules, OpenAPI, versioning d'API, durcissement sécurité/auth. | ⚪ Prévu |
-| **V3** | ⚙️ Production-ready | Queue de jobs (OCR/gros fichiers), progression SSE, stockage objet, observabilité (OTel, métriques, logs structurés). | ⚪ Prévu |
+| **V1** | 🔪 Excision de CORBA (Walking Skeleton) | Monolithe Spring Boot unique, handlers in-process, mêmes features, tests verts, déploiement simplifié. Zéro régression. | ✅ **Livrée** (mergée dans `main`, validée runtime) |
+| **V2** | 🧱 Socle qualité & domaine | Casser le contrôleur de 1190 lignes, frontières de modules, OpenAPI, versioning d'API, durcissement sécurité/auth. | ✅ **Livrée** (branche `v2/quality`, PR→main à valider) |
+| **V3** | ⚙️ Production-ready | Queue de jobs (OCR/gros fichiers), progression SSE, stockage objet, observabilité (OTel, métriques, logs structurés). | 🟡 Prochaine |
 | **V4** | 🗡️ Workflows chaînés | Moteur de pipelines réutilisables (ex. OCR→anonymise→signe→tampon). Le différenciateur produit. | ⚪ Prévu |
 | **V5** | 🔒 Local-first / confidentialité | Traitement client WASM pour ops sensibles, zéro-rétention garantie, auto-hébergement 1 commande, RGPD. | ⚪ Prévu |
 | **V6** | 💎 IA + commercialisation | IA documentaire (BYO-key/modèle local), multi-tenant, facturation, SLA, SRE. Verticale = packaging GTM. | ⚪ Prévu |
@@ -34,10 +34,9 @@ par workflows chaînés**. Évolution chirurgicale (jamais de rewrite). Monolith
 **Definition of Done V1 :** `docker compose up` lance frontend + 1 backend + mongo ; les 40+ outils
 fonctionnent comme avant ; toute la suite de tests est verte ; plus aucune trace de CORBA/JacORB/IOR/supervisord.
 
-### Statut V1 : 🟢 code & infra bouclés — en attente de validation runtime utilisateur
-- Code mono-service (1.1 + 1.2) : `mvn clean package` vert (pdf-engine 62 + api-gateway 74 tests).
-- Infra alignée (1.3) : zéro CORBA/supervisord, image gateway autonome (OCR inclus).
-- **Avant clôture définitive / merge `v1/decorba` → `main`** : l'utilisateur valide `docker compose up --build` (4 conteneurs, healthcheck vert) + test manuel OCR + une conversion.
+### Statut V1 : ✅ LIVRÉE — mergée dans `main` (`7d9bba0`, poussée sur origin)
+- Code mono-service (1.1 + 1.2) + infra alignée (1.3) : zéro CORBA/supervisord.
+- Validée runtime : `docker compose up` → 4 conteneurs healthy, ping/merge/create/**OCR** OK.
 
 ---
 
@@ -50,10 +49,18 @@ fonctionnent comme avant ; toute la suite de tests est verte ; plus aucune trace
 
 | Étape | Intitulé | Livrable clé | État |
 |---|---|---|---|
-| **2.1** | Découpage du `PDFController` | Casser les 1190 LOC en contrôleurs par domaine (organisation/transformation/conversion/sécurité/analyse/génération) + base commune éliminant la duplication (try/catch/validation/record). Contrat REST identique, tests verts. | 🟡 Prêt — `handoffs/V2-etape-2.1-decoupage-controller.md` |
-| **2.2** | OpenAPI + versioning d'API | springdoc/Swagger UI, préfixe `/api/v1`, schémas documentés. | ⚪ Prévu |
-| **2.3** | Durcissement sécurité | Headers de sécurité, validation centralisée, revue JWT/rate-limit/quotas, gestion des secrets. | ⚪ Prévu |
-| **2.4** | CI/CD | GitHub Actions (build + tests + lint) à partir du `.github/workflows/ci.yml` existant ; image Docker publiée. | ⚪ Prévu |
+| **2.1** | Découpage du `PDFController` | ✅ **TERMINÉ** — 1190 LOC → 6 contrôleurs par domaine (Organisation/Conversion/Security/Analysis/Generation/Ping) + `PdfResponseSupport` factorisant validation/réponses/jobs. Contrat REST identique (44 endpoints PDF préservés). `mvn clean package` = 62+74 tests, BUILD SUCCESS. Commit `578b165`. |
+| **2.2** | OpenAPI + versioning d'API | ✅ **TERMINÉ** — springdoc/Swagger UI (9 `@Tag`), bascule `/api/v1` (stratégie A, ADR-0007/0008) via source unique `ApiPaths` (back) + `routes.js` (front). `mvn` 62+74 verts, `npm run build` vert, zéro chemin ancien résiduel. Commit `c0a557d`. |
+| **2.3** | Durcissement sécurité | ✅ **TERMINÉ** — `ProdSecretsValidator` (fail-fast JWT/admin en prod), CSP + HSTS conditionnel + en-têtes, Swagger désactivé en prod, revue rate-limit/CORS/upload. ADR-0009/0010. Vérifié runtime (curl dev+prod). `mvn` 62+74 vert. Commit `bd61845`. |
+| **2.4** | CI/CD | ✅ **TERMINÉ** — `ci.yml` Java 21, reactor complet (`mvn -B clean verify`), 5 jobs (backend/frontend/e2e/docker/security) avec `needs`+`concurrency`. Dependabot (maven+npm+actions) + scan Trivy. Image GHCR build à chaque run, push sur `main` via `GITHUB_TOKEN`. Fiabilisation : Vitest exclut `e2e/**`, mock e2e corrigé (`/api/v1`). ADR-0011. Tout vert local (62+74, vitest 17, e2e 2, build). |
+
+### Statut V2 : 🟢 socle qualité bouclé (4/4 étapes)
+- Backend maintenable : `PDFController` éclaté en 6 contrôleurs de domaine (2.1).
+- API présentable et versionnée : OpenAPI/Swagger + `/api/v1` source unique (2.2).
+- Durcissement : profil prod, fail-fast secrets, CSP/HSTS, Swagger off en prod (2.3).
+- Pipeline fiable et moderne : CI/CD Java 21, scan dépendances, image GHCR (2.4).
+- **Avant merge `v2/quality` → `main`** : l'utilisateur ouvre la PR et valide le run CI (le pipeline
+  ne s'exécute qu'une fois sur GitHub Actions ; tout a été vérifié localement côté commandes).
 
 ---
 
