@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.multipart.support.MissingServletRequestPartException;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.server.ResponseStatusException;
+import org.springframework.web.servlet.resource.NoResourceFoundException;
 import sn.ussein.pdfengine.model.InvalidPageException;
 import sn.ussein.pdfengine.model.PDFException;
 import sn.ussein.pdfengine.model.PasswordException;
@@ -87,6 +88,15 @@ public class GlobalExceptionHandler {
     })
     public ResponseEntity<Map<String, Object>> handleBadRequest(Exception e) {
         return body(HttpStatus.BAD_REQUEST, e.getMessage());
+    }
+
+    /**
+     * Ressource statique/route inexistante → 404 (et non 500). Couvre notamment
+     * les routes Swagger lorsque springdoc est desactive en prod (cf. ADR-0009).
+     */
+    @ExceptionHandler(NoResourceFoundException.class)
+    public ResponseEntity<Map<String, Object>> handleNotFound(NoResourceFoundException e) {
+        return body(HttpStatus.NOT_FOUND, "Ressource introuvable");
     }
 
     /** Filet de securite pour les exceptions non prevues. */

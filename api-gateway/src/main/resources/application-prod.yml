@@ -1,0 +1,15 @@
+# ═══════════════════════════════════════════════════════════════
+#  Profil PROD — durcissement sécurité (V2, étape 2.3).
+#  Activé via SPRING_PROFILES_ACTIVE=prod (cf. render.yaml).
+#  Le mode dev/local (docker compose) reste sur le profil par défaut
+#  et n'est PAS affecté par ce fichier.
+# ═══════════════════════════════════════════════════════════════
+
+# ── Documentation OpenAPI / Swagger : désactivée en prod (cf. ADR-0009) ──
+# Réduit la surface d'attaque et la divulgation d'information. Un opérateur
+# self-host qui souhaite la réexposer peut surcharger ces deux propriétés.
+springdoc:
+  api-docs:
+    enabled: false
+  swagger-ui:
+    enabled: false

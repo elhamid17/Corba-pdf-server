@@ -2,7 +2,7 @@
 
 > Registre des décisions structurantes du projet. Chaque ADR est immuable une fois acté ;
 > une décision qu'on révise donne lieu à un nouvel ADR qui *supersede* l'ancien.
-> Tenu par le Tech Lead. Dernière mise à jour : 2026-06-28.
+> Tenu par le Tech Lead. Dernière mise à jour : 2026-06-29.
 
 ---
 
@@ -95,3 +95,44 @@ Authentification, Administration, Jobs). Titre/description/version via un bean `
 **Conséquences :** Ajout pur, sans rupture de comportement. Le durcissement de sécurité (faut-il
 restreindre Swagger UI hors dev ?) relève de l'étape 2.3.
 **Justification :** Prérequis à l'ouverture de l'API et à l'onboarding ; coût marginal, valeur immédiate.
+
+## ADR-0009 — Exposition Swagger : ouvert en dev, désactivé en prod
+**Statut :** Acté (V2, étape 2.3)
+**Contexte :** Depuis ADR-0008, Swagger UI (`/swagger-ui.html`) et le schéma OpenAPI (`/v3/api-docs`)
+sont whitelistés sans authentification, y compris en production. Pour un produit local-first / self-host,
+exposer publiquement la cartographie complète de l'API en prod accroît la surface d'attaque et la
+divulgation d'information (énumération des routes, des paramètres) sans bénéfice pour l'opérateur.
+**Options :** (A) garder Swagger ouvert partout ; (B) le protéger derrière l'auth ADMIN ;
+(C) le **désactiver en prod**, le garder ouvert en dev.
+**Décision :** On retient **(C)**. Introduction d'un profil Spring `prod` (`SPRING_PROFILES_ACTIVE=prod`,
+posé dans `render.yaml`). En prod, `application-prod.yml` désactive springdoc
+(`springdoc.api-docs.enabled=false` + `springdoc.swagger-ui.enabled=false`) : les routes renvoient 404.
+En dev/local (profil par défaut, `docker compose`), Swagger reste pleinement accessible.
+La whitelist de sécurité des routes Swagger est conservée (inoffensive quand springdoc est désactivé).
+**Conséquences :** Surface d'attaque réduite en prod ; onboarding/dev inchangés. Un opérateur self-host
+qui souhaite réexposer Swagger en prod peut surcharger ces deux propriétés (choix explicite, documenté).
+**Justification :** Principe de moindre exposition. La doc d'API n'a pas à être un endpoint public d'un
+déploiement de production self-host.
+
+## ADR-0010 — Durcissement sécurité : profil prod, fail-fast secrets, en-têtes HTTP
+**Statut :** Acté (V2, étape 2.3)
+**Contexte :** `JWT_SECRET` et `ADMIN_PASSWORD` avaient des **valeurs par défaut** de dev
+(`change-me-in-production-...`, `admin123`) qui pouvaient silencieusement partir en production.
+Les en-têtes de sécurité existaient partiellement (X-Frame-Options, nosniff, Referrer-Policy, HSTS,
+Permissions-Policy) mais sans CSP, et HSTS était émis quel que soit l'environnement.
+**Décision :**
+1. **Fail-fast secrets (prod uniquement)** : un bean `ProdSecretsValidator` (`@Profile("prod")`)
+   refuse le démarrage si `JWT_SECRET` est absent, égal au défaut, ou < 32 caractères, ou si
+   `ADMIN_PASSWORD` est absent ou égal à `admin123`. Le mode dev/local démarre toujours sans config
+   secrète lourde (invariant : `docker compose up` simple).
+2. **CSP prudente** ajoutée pour toutes les réponses backend : `default-src 'self'`,
+   `script-src/style-src 'self' 'unsafe-inline'` (nécessaire au rendu de Swagger UI), `img-src 'self' data:`,
+   `frame-ancestors 'none'`, `object-src 'none'`, `base-uri/form-action 'self'`. Le frontend React
+   (servi par nginx, origine distincte) n'est pas impacté par cet en-tête backend.
+3. **HSTS conditionné au profil prod** (HTTPS) ; désactivé en dev HTTP local.
+**Conséquences :** Démarrage prod impossible avec des secrets par défaut ; en-têtes vérifiables via
+`curl -I`. Aucun secret réel n'est commité (`render.yaml` utilise `sync: false`). Aucune régression
+de contrat REST. Dette restante (cf. 2.4) : validation par *magic bytes* du type de fichier uploadé,
+rate-limit distribué (actuellement en mémoire, non partagé entre instances).
+**Justification :** Sécuriser par défaut sans alourdir le dev ; les garde-fous bloquent les erreurs de
+déploiement les plus courantes (secrets oubliés) plutôt que de compter sur la vigilance de l'opérateur.
