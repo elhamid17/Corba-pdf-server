@@ -32,7 +32,7 @@
 
         <!-- Versions des dépendances — on les gère ici, une seule fois -->
         <pdfbox.version>2.0.31</pdfbox.version>
-        <tess4j.version>5.8.0</tess4j.version>
+        <tess4j.version>5.19.0</tess4j.version>
         <bouncycastle.version>1.78.1</bouncycastle.version>
         <poi.version>5.2.5</poi.version>
         <springboot.version>3.2.5</springboot.version>
