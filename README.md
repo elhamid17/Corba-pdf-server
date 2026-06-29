@@ -1,5 +1,7 @@
 # CORBA PDF Server
 
+[![CI](https://github.com/elhamid17/Corba-pdf-server/actions/workflows/ci.yml/badge.svg)](https://github.com/elhamid17/Corba-pdf-server/actions/workflows/ci.yml)
+
 Serveur distribué de traitement PDF basé sur CORBA/JacORB, exposé via une API REST Spring Boot, avec un frontend React.
 
 ## Stack technique

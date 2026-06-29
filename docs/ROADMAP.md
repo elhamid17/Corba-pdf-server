@@ -53,7 +53,15 @@ fonctionnent comme avant ; toute la suite de tests est verte ; plus aucune trace
 | **2.1** | Découpage du `PDFController` | ✅ **TERMINÉ** — 1190 LOC → 6 contrôleurs par domaine (Organisation/Conversion/Security/Analysis/Generation/Ping) + `PdfResponseSupport` factorisant validation/réponses/jobs. Contrat REST identique (44 endpoints PDF préservés). `mvn clean package` = 62+74 tests, BUILD SUCCESS. Commit `578b165`. |
 | **2.2** | OpenAPI + versioning d'API | ✅ **TERMINÉ** — springdoc/Swagger UI (9 `@Tag`), bascule `/api/v1` (stratégie A, ADR-0007/0008) via source unique `ApiPaths` (back) + `routes.js` (front). `mvn` 62+74 verts, `npm run build` vert, zéro chemin ancien résiduel. Commit `c0a557d`. |
 | **2.3** | Durcissement sécurité | ✅ **TERMINÉ** — `ProdSecretsValidator` (fail-fast JWT/admin en prod), CSP + HSTS conditionnel + en-têtes, Swagger désactivé en prod, revue rate-limit/CORS/upload. ADR-0009/0010. Vérifié runtime (curl dev+prod). `mvn` 62+74 vert. Commit `bd61845`. |
-| **2.4** | CI/CD | 🟡 Prêt — moderniser `ci.yml` (Java 21, reactor complet), scan de vulnérabilités des dépendances, build/publication image Docker. Clôture V2. Cf. `handoffs/V2-etape-2.4-cicd.md`. |
+| **2.4** | CI/CD | ✅ **TERMINÉ** — `ci.yml` Java 21, reactor complet (`mvn -B clean verify`), 5 jobs (backend/frontend/e2e/docker/security) avec `needs`+`concurrency`. Dependabot (maven+npm+actions) + scan Trivy. Image GHCR build à chaque run, push sur `main` via `GITHUB_TOKEN`. Fiabilisation : Vitest exclut `e2e/**`, mock e2e corrigé (`/api/v1`). ADR-0011. Tout vert local (62+74, vitest 17, e2e 2, build). |
+
+### Statut V2 : 🟢 socle qualité bouclé (4/4 étapes)
+- Backend maintenable : `PDFController` éclaté en 6 contrôleurs de domaine (2.1).
+- API présentable et versionnée : OpenAPI/Swagger + `/api/v1` source unique (2.2).
+- Durcissement : profil prod, fail-fast secrets, CSP/HSTS, Swagger off en prod (2.3).
+- Pipeline fiable et moderne : CI/CD Java 21, scan dépendances, image GHCR (2.4).
+- **Avant merge `v2/quality` → `main`** : l'utilisateur ouvre la PR et valide le run CI (le pipeline
+  ne s'exécute qu'une fois sur GitHub Actions ; tout a été vérifié localement côté commandes).
 
 ---
 

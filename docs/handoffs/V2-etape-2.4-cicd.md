@@ -65,7 +65,38 @@ HORS PÉRIMÈTRE :
 5. Écarts au scope, justifiés.
 
 ---
-*Rétrospective (à remplir en fin d'étape) :*
-- Livré : …
-- Écarts : …
-- Clôture V2 / amorçage V3 : …
+*Rétrospective (remplie en fin d'étape — 2026-06-29) :*
+
+**Livré :**
+- `ci.yml` réécrit : JDK **21** (temurin), reactor complet `mvn -B clean verify` (inclut les tests
+  d'intégration Testcontainers/MongoDB). 5 jobs lisibles et parallèles : `backend`, `frontend`
+  (Vitest + build de prod), `e2e` (`needs: frontend`), `docker`, `security`. `concurrency`
+  (annulation des runs périmés) + `needs` (fail-fast). Caches Maven et npm.
+- `.github/dependabot.yml` : 3 écosystèmes (maven `/`, npm `/frontend`, github-actions `/`), hebdo.
+- Scan **Trivy filesystem** (HIGH/CRITICAL, `ignore-unfixed`, informatif) en complément de Dependabot.
+- Image Docker (`api-gateway/Dockerfile`) **construite à chaque run**, **poussée sur GHCR uniquement
+  sur push `main`** (`ghcr.io/<owner>/<repo>`, tags `sha-…` + `latest`) via le `GITHUB_TOKEN` intégré
+  (job `permissions: packages: write`) — aucun secret de registry à configurer.
+- Badge CI dans le `README`. ADR-0011 acté.
+- **Fiabilisation (pas masquage)** : `vitest.config.js` exclut `e2e/**` (collision de runners qui
+  faisait échouer `npm test`) ; mock e2e corrigé de `**/api/pdf/merge` → `**/pdf/merge` (stale depuis
+  la bascule `/api/v1` ADR-0007). `npm run lint` laissé hors CI (ESLint non installé côté frontend).
+
+**Vérifié en local** (les workflows GitHub Actions ne s'exécutent pas hors-ligne ; cohérence
+commandes CI = commandes locales) : `mvn -B clean verify` → BUILD SUCCESS (pdf-engine **62** +
+api-gateway **74**) ; `npm test` → 17 verts (e2e exclus) ; `npm run build` → vert ;
+`npm run test:e2e` → 2 verts ; `docker build -f api-gateway/Dockerfile .` → vérifié ;
+YAML des deux fichiers validé (`yaml.safe_load`).
+
+**Écarts au scope (justifiés) :**
+- Scan de vulnérabilités : fait Dependabot **+** Trivy (fs) au lieu de l'un OU l'autre — défense en
+  profondeur, coût nul. Trivy informatif (`exit-code 0`) pour ne pas rougir sur CVE amont non
+  corrigeable ; bascule documentée.
+- `lint` exclu du pipeline (réalité : pas de dépendance ESLint installée) — l'ajouter mentirait.
+- Scan d'**image** (CVE OS Alpine/Tesseract) non câblé (l'image n'est pas chargée localement en PR) ;
+  Trivy fs couvre les dépendances applicatives. À envisager en V3.
+
+**Clôture V2 / amorçage V3 :** V2 (socle qualité) **bouclée 4/4** — backend maintenable, API
+versionnée et documentée, sécurité durcie, CI/CD moderne. **V3 = production-ready** : queue de jobs
+asynchrone (OCR/gros fichiers), progression **SSE**, stockage objet, observabilité (OpenTelemetry,
+métriques, logs structurés). Le pipeline 2.4 fournit déjà l'artefact GHCR sur lequel V3 s'appuiera.

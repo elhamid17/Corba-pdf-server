@@ -136,3 +136,38 @@ de contrat REST. Dette restante (cf. 2.4) : validation par *magic bytes* du type
 rate-limit distribué (actuellement en mémoire, non partagé entre instances).
 **Justification :** Sécuriser par défaut sans alourdir le dev ; les garde-fous bloquent les erreurs de
 déploiement les plus courantes (secrets oubliés) plutôt que de compter sur la vigilance de l'opérateur.
+
+## ADR-0011 — Pipeline CI/CD : reactor Java 21, scan de dépendances, image GHCR
+**Statut :** Acté (V2, étape 2.4 — clôture V2)
+**Contexte :** `.github/workflows/ci.yml` était obsolète : **JDK 17** (le code est en 21), un job
+monolithique lançant `mvn test` + `npm test` + Playwright e2e, sans cache discipliné, sans scan de
+vulnérabilités ni construction d'artefact déployable. De plus deux incohérences masquaient un pipeline
+faussement vert : (1) Vitest collectait la spec Playwright `e2e/merge.spec.js` (collision de runners)
+et (2) le mock e2e interceptait `**/api/pdf/merge` alors que le frontend appelle `/api/v1/pdf/merge`
+depuis la bascule ADR-0007.
+**Décision :**
+1. **Modernisation du workflow** : JDK **21** (temurin), build du **reactor complet** via
+   `mvn -B clean verify` (exécute aussi les tests d'intégration Testcontainers/MongoDB, Docker étant
+   natif sur `ubuntu-latest`). Découpage en jobs lisibles et parallèles : `backend` (Maven),
+   `frontend` (Vitest + build de prod), `e2e` (Playwright, `needs: frontend`), `docker` (image),
+   `security` (scan). `concurrency` annule les runs périmés ; `needs` assure le fail-fast.
+2. **Fiabilisation (pas masquage)** : exclusion de `e2e/**` dans `vitest.config.js` et correction du
+   glob du mock e2e (`**/pdf/merge`). Les e2e mockent l'API (`page.route`) : déterministes, sans
+   backend. `npm run lint` reste **hors CI** car ESLint n'est pas une dépendance installée du frontend
+   (le script tombe sur un ESLint global incompatible) — l'intégrer mentirait sur l'état réel.
+3. **Scan de vulnérabilités** : **Dependabot** (`.github/dependabot.yml`, écosystèmes maven + npm +
+   github-actions, hebdomadaire) pilote les PRs de correctifs ; complété par un **scan Trivy filesystem**
+   en CI (HIGH/CRITICAL, `ignore-unfixed`) pour une visibilité immédiate. Trivy est **informatif**
+   (`exit-code: 0`) pour ne pas rendre le pipeline rouge sur une CVE amont non corrigeable ;
+   passer `exit-code` à `1` le rend bloquant.
+4. **Image Docker** : construite à **chaque run** (`api-gateway/Dockerfile`, contexte racine),
+   **poussée vers GHCR uniquement sur push `main`** (`ghcr.io/<owner>/<repo>`, tags `sha-…` + `latest`).
+   Authentification par le **`GITHUB_TOKEN` intégré** (job `permissions: packages: write`) : **aucun
+   secret de registry à configurer**. En PR l'image est seulement bâtie (validation, pas de push).
+**Conséquences :** Le vert CI reflète désormais l'état local (`mvn clean verify` 62+74, `npm test`,
+`npm run build`, `npm run test:e2e` tous verts). Artefact déployable publié automatiquement sur `main`.
+Dette restante : scan d'image (CVE OS de la base Alpine/Tesseract) non câblé ; déploiement continu réel
+vers prod volontairement non déclenché (hors périmètre V2).
+**Justification :** Un pipeline doit refléter la réalité et produire un artefact ; on fiabilise les
+tests instables au lieu de les désactiver. Le `GITHUB_TOKEN` + GHCR évite toute fuite de credential et
+tout secret manuel, ce qui colle au positionnement open-core / self-host.
