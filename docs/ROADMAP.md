@@ -12,9 +12,9 @@ par workflows chaînés**. Évolution chirurgicale (jamais de rewrite). Monolith
 
 | Version | Thème | Objectif macro | État |
 |---|---|---|---|
-| **V1** | 🔪 Excision de CORBA (Walking Skeleton) | Monolithe Spring Boot unique, handlers in-process, mêmes features, tests verts, déploiement simplifié. Zéro régression. | 🟡 À démarrer |
-| **V2** | 🧱 Socle qualité & domaine | Casser le contrôleur de 1190 lignes, frontières de modules, OpenAPI, versioning d'API, durcissement sécurité/auth. | ⚪ Prévu |
-| **V3** | ⚙️ Production-ready | Queue de jobs (OCR/gros fichiers), progression SSE, stockage objet, observabilité (OTel, métriques, logs structurés). | ⚪ Prévu |
+| **V1** | 🔪 Excision de CORBA (Walking Skeleton) | Monolithe Spring Boot unique, handlers in-process, mêmes features, tests verts, déploiement simplifié. Zéro régression. | ✅ **Livrée** (mergée dans `main`, validée runtime) |
+| **V2** | 🧱 Socle qualité & domaine | Casser le contrôleur de 1190 lignes, frontières de modules, OpenAPI, versioning d'API, durcissement sécurité/auth. | ✅ **Livrée** (branche `v2/quality`, PR→main à valider) |
+| **V3** | ⚙️ Production-ready | Queue de jobs (OCR/gros fichiers), progression SSE, stockage objet, observabilité (OTel, métriques, logs structurés). | 🟡 Prochaine |
 | **V4** | 🗡️ Workflows chaînés | Moteur de pipelines réutilisables (ex. OCR→anonymise→signe→tampon). Le différenciateur produit. | ⚪ Prévu |
 | **V5** | 🔒 Local-first / confidentialité | Traitement client WASM pour ops sensibles, zéro-rétention garantie, auto-hébergement 1 commande, RGPD. | ⚪ Prévu |
 | **V6** | 💎 IA + commercialisation | IA documentaire (BYO-key/modèle local), multi-tenant, facturation, SLA, SRE. Verticale = packaging GTM. | ⚪ Prévu |
@@ -34,10 +34,9 @@ par workflows chaînés**. Évolution chirurgicale (jamais de rewrite). Monolith
 **Definition of Done V1 :** `docker compose up` lance frontend + 1 backend + mongo ; les 40+ outils
 fonctionnent comme avant ; toute la suite de tests est verte ; plus aucune trace de CORBA/JacORB/IOR/supervisord.
 
-### Statut V1 : 🟢 code & infra bouclés — en attente de validation runtime utilisateur
-- Code mono-service (1.1 + 1.2) : `mvn clean package` vert (pdf-engine 62 + api-gateway 74 tests).
-- Infra alignée (1.3) : zéro CORBA/supervisord, image gateway autonome (OCR inclus).
-- **Avant clôture définitive / merge `v1/decorba` → `main`** : l'utilisateur valide `docker compose up --build` (4 conteneurs, healthcheck vert) + test manuel OCR + une conversion.
+### Statut V1 : ✅ LIVRÉE — mergée dans `main` (`7d9bba0`, poussée sur origin)
+- Code mono-service (1.1 + 1.2) + infra alignée (1.3) : zéro CORBA/supervisord.
+- Validée runtime : `docker compose up` → 4 conteneurs healthy, ping/merge/create/**OCR** OK.
 
 ---
 
