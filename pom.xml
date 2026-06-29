@@ -38,7 +38,7 @@
         <springboot.version>3.2.5</springboot.version>
         <junit.version>5.10.2</junit.version>
         <commonmark.version>0.22.0</commonmark.version>
-        <jsoup.version>1.17.2</jsoup.version>
+        <jsoup.version>1.22.2</jsoup.version>
         <odfdom.version>0.12.0</odfdom.version>
         <zxing.version>3.5.3</zxing.version>
     </properties>
